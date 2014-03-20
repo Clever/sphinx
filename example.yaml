@@ -1,0 +1,52 @@
+forward:
+  scheme: http
+  host: proxy.example.com
+
+buckets:
+  bearer/events:
+    interval: 15
+    limit: 200
+    keys:
+      - 'header:authentication'
+
+    matches:
+      headers:
+        - "Authentication: Bearer .*"
+      paths:
+        - "/v1.1/push/events/.*"
+        - "/v1.1/.*/events$"
+
+  basic/events:
+    interval: 15
+    limit: 200
+    keys:
+      - 'header:authentication'
+    matches:
+      paths:
+        - "/v1.1/push/events/.*"
+      headers:
+        - "Authentication: Basic .*"
+
+  bearer/main:
+    interval: 15
+    limit: 200
+    keys:
+      - 'header:authentication'
+    matches:
+      headers:
+        - "Authentication: Bearer .*"
+    excludes:
+      paths:
+        - "/v1.1/push/events/.*"
+
+  basic/main:
+    interval: 15
+    limit: 200
+    keys:
+      - 'header:authentication'
+    matches:
+      headers:
+        - "Authentication: Basic .*"
+    excludes:
+      paths:
+        - "/v1.1/push/events/.*"
