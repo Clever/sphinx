@@ -8,7 +8,6 @@ buckets:
     limit: 200
     keys:
       - 'header:authentication'
-
     matches:
       headers:
         - "Authentication: Bearer .*"
