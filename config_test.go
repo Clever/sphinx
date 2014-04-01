@@ -13,22 +13,22 @@ func TestNewConfiguration(t *testing.T) {
 		t.Error("expected http for Forward.Scheme")
 	}
 
-	if len(config.Buckets) != 4 {
+	if len(config.Limits) != 4 {
 		t.Error("expected 4 bucket definitions")
 	}
 
-	for _, bucket := range config.Buckets {
-		if bucket.Interval < 1 {
-			t.Error("bucket interval should be greator than 1")
+	for _, limit := range config.Limits {
+		if limit.Interval < 1 {
+			t.Error("limit interval should be greator than 1")
 		}
-		if bucket.Limit < 1 {
-			t.Error("bucket limit should be greator than 1")
+		if limit.Max < 1 {
+			t.Error("limit max should be greator than 1")
 		}
-		if len(bucket.Keys) < 1 {
-			t.Error("bucket was expected to have 1 key")
+		if len(limit.Keys) < 1 {
+			t.Error("limit was expected to have 1 key")
 		}
 
-		if len(bucket.Matches.Headers) < 1 && len(bucket.Matches.Paths) < 1 {
+		if len(limit.Matches["headers"]) < 1 && len(limit.Matches["paths"]) < 1 {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
 	}

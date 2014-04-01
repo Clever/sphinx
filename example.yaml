@@ -7,7 +7,7 @@ limits:
     interval: 15
     max: 200
     keys:
-      - 'header:authentication'
+      - 'headers:authentication'
     matches:
       headers:
         - "Authentication: Bearer .*"

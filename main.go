@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	config = flag.String("config", "sphinx.yaml", "/path/to/configuration.yaml")
+	config = flag.String("config", "example.yaml", "/path/to/configuration.yaml")
 )
 
 func main() {
