@@ -5,11 +5,12 @@ import (
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 type Configuration struct {
 	Forward Forward
-	Buckets map[string]BucketConfig
+	Limits  map[string]LimitConfig
 }
 
 type Forward struct {
@@ -17,22 +18,18 @@ type Forward struct {
 	Host   string
 }
 
-type BucketConfig struct {
-	Interval int
-	Limit    int
+type LimitConfig struct {
+	Interval time.Duration
+	Max      uint
 	Keys     []string
-	Matches  Rules
-	Excludes Rules
-}
-
-type Rules struct {
-	Headers []string
-	Paths   []string
+	Matches  map[string][]string
+	Excludes map[string][]string
 }
 
 func panicWithError(err error, message string) {
 	if err != nil {
-		log.Panic(message, err)
+		log.Print(message)
+		log.Panic(err)
 	}
 }
 
@@ -48,16 +45,16 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	if config.Forward.Host == "" {
 		return config, fmt.Errorf("forward.host not set")
 	}
-	if len(config.Buckets) < 1 {
-		return config, fmt.Errorf("No buckets definied")
+	if len(config.Limits) < 1 {
+		return config, fmt.Errorf("No limits definied")
 	}
 
-	for name, bucket := range config.Buckets {
-		if bucket.Interval < 1 {
-			return config, fmt.Errorf("Interval must be set > 1 for bucket: %s", name)
+	for name, limit := range config.Limits {
+		if limit.Interval < 1 {
+			return config, fmt.Errorf("Interval must be set > 1 for limit: %s", name)
 		}
-		if bucket.Limit < 1 {
-			return config, fmt.Errorf("Limit must be set > 1 for bucket: %s", name)
+		if limit.Max < 1 {
+			return config, fmt.Errorf("Max must be set > 1 for limit: %s", name)
 		}
 	}
 

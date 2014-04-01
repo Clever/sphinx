@@ -2,10 +2,10 @@ forward:
   scheme: http
   host: proxy.example.com
 
-buckets:
+limits:
   bearer/events:
     interval: 15
-    limit: 200
+    max: 200
     keys:
       - 'header:authentication'
     matches:
@@ -13,11 +13,11 @@ buckets:
         - "Authentication: Bearer .*"
       paths:
         - "/v1.1/push/events/.*"
-        - "/v1.1/.*/events$"
+        - "/v2.1/.*/events$"
 
   basic/events:
     interval: 15
-    limit: 200
+    max: 200
     keys:
       - 'header:authentication'
     matches:
@@ -28,7 +28,7 @@ buckets:
 
   bearer/main:
     interval: 15
-    limit: 200
+    max: 200
     keys:
       - 'header:authentication'
     matches:
@@ -40,7 +40,7 @@ buckets:
 
   basic/main:
     interval: 15
-    limit: 200
+    max: 200
     keys:
       - 'header:authentication'
     matches:
