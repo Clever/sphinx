@@ -39,7 +39,7 @@ func TestParsesHeaders(t *testing.T) {
 		"X-Forwarded-For": []string{"IP1", "IP2"},
 	}))
 	if len(request["headers"].(http.Header)) != 2 {
-		t.Fatalf("Expected 2 header, recevied %d", len(request["headers"].(http.Header)))
+		t.Fatalf("expected 2 headers, recevied %d", len(request["headers"].(http.Header)))
 	}
 
 	compareHeader(t, request["headers"].(http.Header), "Authorization", []string{"Bearer 12345"})
