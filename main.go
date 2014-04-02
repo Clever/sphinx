@@ -1,4 +1,4 @@
-package main
+package sphinx
 
 import (
 	"flag"
@@ -12,5 +12,5 @@ var (
 func main() {
 
 	flag.Parse()
-	NewSphinxDaemon(NewConfiguration(*config))
+	NewDaemon(NewConfiguration(*config))
 }

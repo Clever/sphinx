@@ -1,15 +1,14 @@
-package main
+package sphinx
 
 import (
-	leakybucket "github.com/Clever/leakybucket"
+	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
 	//"log"
 	"regexp"
+	"time"
 )
 
-type Request interface {
-	Properties() map[string]interface{}
-}
+type Request map[string]interface{}
 
 type RequestMatcher struct {
 	Matches  map[string][]*regexp.Regexp
@@ -74,7 +73,7 @@ func (l *Limit) Match(request map[string]string) (bool, error) {
 	return false, nil
 }
 
-func (l *Limit) Add(request string /*sphinx.Request*/) (leakybucket.Bucket, error) {
+func (l *Limit) Add(request Request) (leakybucket.Bucket, error) {
 	// getBucketName
 	// if bucket already exists add to bucket
 	// if does not exist create new bucket with name
@@ -99,15 +98,25 @@ type RateLimiter struct {
 	Limits        []Limit
 }
 
-func (r *RateLimiter) Add(request map[string]string) /*(buckets []leakybucket.Bucket, error)*/ {
-
-	// check match for every limit
-	// add to all buckets that match
-	// return matched buckets
-	return
+type Status struct {
+	Capacity  uint
+	Reset     time.Time
+	Remaining uint
+	Name      string
 }
 
-func NewSphinxDaemon(config Configuration) {
+func (r *RateLimiter) Add(request Request) ([]Status, error) {
+	// status := make([]status)
+	// for limit in limits
+	//   if limit.Match(request)
+	//     buckets, err := limit.Add(request)
+	//       for bucket in buckets
+	//         status = append(status, NewStatus)
+	// return status, nil
+	return nil, nil
+}
+
+func NewDaemon(config Configuration) {
 
 	rateLimiter := RateLimiter{}
 
