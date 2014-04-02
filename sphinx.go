@@ -7,6 +7,10 @@ import (
 	"regexp"
 )
 
+type Request interface {
+	Properties() map[string]interface{}
+}
+
 type RequestMatcher struct {
 	Matches  map[string][]*regexp.Regexp
 	Excludes map[string][]*regexp.Regexp
