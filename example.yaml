@@ -10,10 +10,14 @@ limits:
       - 'headers:authentication'
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        - name: "Authentication"
+          match: "Bearer"
+        - name: "X-Forwarded-For"
+          match: "192.0.0.1"
       paths:
-        - "/v1.1/push/events/.*"
-        - "/v2.1/.*/events$"
+        match_any:
+          - "/v1.1/push/events/.*"
+          - "/v2.1/.*/events$"
 
   basic/events:
     interval: 15
@@ -22,9 +26,11 @@ limits:
       - 'header:authentication'
     matches:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
       headers:
-        - "Authentication: Basic .*"
+        - name: "Authentication"
+          match: "Basic"
 
   bearer/main:
     interval: 15
@@ -33,10 +39,12 @@ limits:
       - 'header:authentication'
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        - name: "Authentication"
+          match: bearer
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
 
   basic/main:
     interval: 15
@@ -45,7 +53,9 @@ limits:
       - 'header:authentication'
     matches:
       headers:
-        - "Authentication: Basic .*"
+        - name: "Authentication"
+          match: "Basic"
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"

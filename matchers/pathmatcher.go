@@ -1,9 +1,43 @@
-package matcher
+package matchers
 
 import (
-	"github.com/Clever/sphinx"
+	"regexp"
 )
 
 type PathMatcherConfig struct {
-	Paths []string
+	MatchAny []string `yaml:"match_any"`
+}
+
+type PathMatcher struct {
+	Paths []*regexp.Regexp
+}
+
+func (pm PathMatcher) Match(request string) bool {
+
+	return false
+}
+
+type PathMatcherFactory struct{}
+
+func (pmf PathMatcherFactory) Type() string {
+	return "paths"
+}
+
+func (pmf PathMatcherFactory) Create(config interface{}) (Matcher, error) {
+	matcherConfig := PathMatcherConfig{}
+	var matcher PathMatcher
+
+	err := ReMarshal(config, matcherConfig)
+	if err != nil {
+		return matcher, err
+	}
+
+	for _, p := range matcherConfig.MatchAny {
+		compiled, err := regexp.Compile(p)
+		if err != nil {
+			return matcher, err
+		}
+		matcher.Paths = append(matcher.Paths, compiled)
+	}
+	return matcher, nil
 }

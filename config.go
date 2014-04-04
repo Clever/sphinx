@@ -2,6 +2,7 @@ package sphinx
 
 import (
 	"fmt"
+	"github.com/Clever/sphinx/matchers"
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
@@ -22,8 +23,8 @@ type LimitConfig struct {
 	Interval time.Duration
 	Max      uint
 	Keys     []string
-	Matches  map[string][]string
-	Excludes map[string][]string
+	Matches  map[string]interface{}
+	Excludes map[string]interface{}
 }
 
 func panicWithError(err error, message string) {
@@ -36,8 +37,10 @@ func panicWithError(err error, message string) {
 func loadAndValidateConfig(data []byte) (Configuration, error) {
 
 	config := Configuration{}
-	err := yaml.Unmarshal(data, &config)
-	panicWithError(err, fmt.Sprintf("Failed to parse data in configuration. Aborting"))
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		log.Print("Failed to parse data in configuration. Aborting")
+		return config, err
+	}
 
 	if config.Forward.Scheme == "" {
 		return config, fmt.Errorf("forward.scheme not set")
@@ -55,6 +58,15 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 		}
 		if limit.Max < 1 {
 			return config, fmt.Errorf("Max must be set > 1 for limit: %s", name)
+		}
+		// try and setup Matches to the actual config object defined by matchers
+		for key, _ := range limit.Matches {
+			factory := matchers.MatcherFactoryFinder(key)
+			if factory == nil {
+				return config, fmt.Errorf("Could not find matcher for %s", key)
+			}
+			matcher, err := factory.Create(limit.Matches[key])
+			print(matcher, err)
 		}
 	}
 

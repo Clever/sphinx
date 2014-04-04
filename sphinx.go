@@ -3,7 +3,8 @@ package sphinx
 import (
 	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
-	//"log"
+	"github.com/Clever/sphinx/matchers"
+	"log"
 	"regexp"
 	"time"
 )
@@ -11,43 +12,17 @@ import (
 type Request map[string]interface{}
 
 type RequestMatcher struct {
-	Matches  map[string][]*regexp.Regexp
-	Excludes map[string][]*regexp.Regexp
-}
-
-func compileRules(rules []string) ([]*regexp.Regexp, error) {
-	regexps := []*regexp.Regexp{}
-
-	for _, rule := range rules {
-		compiled, err := regexp.Compile(rule)
-		if err != nil {
-			return nil, err
-		}
-		regexps = append(regexps, compiled)
-	}
-
-	return regexps, nil
+	Matches  map[string][]matchers.Matcher
+	Excludes map[string][]matchers.Matcher
 }
 
 func (r *RequestMatcher) AddMatches(name string, rules []string) error {
 
-	compiledRules, err := compileRules(rules)
-	if err != nil {
-		return err
-	}
-
-	r.Matches[name] = compiledRules
 	return nil
 }
 
 func (r *RequestMatcher) AddExcludes(name string, rules []string) error {
 
-	compiledRules, err := compileRules(rules)
-	if err != nil {
-		return err
-	}
-
-	r.Excludes[name] = compiledRules
 	return nil
 }
 
