@@ -12,8 +12,8 @@ import (
 type Request map[string]interface{}
 
 type RequestMatcher struct {
-	Matches  map[string][]matchers.Matcher
-	Excludes map[string][]matchers.Matcher
+	Matches  []matchers.Matcher
+	Excludes []matchers.Matcher
 }
 
 func (r *RequestMatcher) AddMatches(name string, rules []string) error {
@@ -63,6 +63,8 @@ func NewLimit(name string, config LimitConfig) Limit {
 	limit.config = config
 
 	limit.matcher = RequestMatcher{}
+	requestMatcher.Matches = ResolveMatchers(config.Matchers)
+	requestMatcher.Excludes = ResolveMatchers(config.Excludes)
 
 	return limit
 

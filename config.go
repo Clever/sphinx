@@ -59,18 +59,27 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 		if limit.Max < 1 {
 			return config, fmt.Errorf("Max must be set > 1 for limit: %s", name)
 		}
-		// try and setup Matches to the actual config object defined by matchers
-		for key, _ := range limit.Matches {
-			factory := matchers.MatcherFactoryFinder(key)
-			if factory == nil {
-				return config, fmt.Errorf("Could not find matcher for %s", key)
-			}
-			matcher, err := factory.Create(limit.Matches[key])
-			print(matcher, err)
-		}
 	}
 
 	return config, nil
+}
+
+func ResolveMatchers(matchersConfig map[string]interface{}) (includes []matchers.Matcher, excludes []matchers.Matcher, err error) {
+
+	resolvedMatchers := []matchers.Matcher{}
+
+	// try and setup Matches to the actual config object defined by matchers
+	for key, config := range matchersConfig {
+		factory := matchers.MatcherFactoryFinder(key)
+		if factory == nil {
+			return resolvedMatchers, fmt.Errorf("Could not find matcher for %s", key)
+		}
+		matcher, err := factory.Create(config)
+		if err != nil {
+			return resolvedMatchers, err
+		}
+		resolvedMatchers = append(resolvedMatchers, matcher)
+	}
 }
 
 func NewConfiguration(path string) Configuration {
