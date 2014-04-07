@@ -93,11 +93,6 @@ func NewLimit(name string, config LimitConfig) Limit {
 
 }
 
-type RateLimiter struct {
-	Configuration Configuration
-	Limits        []Limit
-}
-
 type Status struct {
 	Capacity  uint
 	Reset     time.Time
@@ -105,7 +100,31 @@ type Status struct {
 	Name      string
 }
 
-func (r *RateLimiter) Add(request Request) ([]Status, error) {
+type RateLimiter interface {
+	Configuration() Configuration
+	Limits() []Limit
+	SetLimits([]Limit)
+	Add(request Request) ([]Status, error)
+}
+
+type SphinxRateLimiter struct {
+	configuration Configuration
+	limits        []Limit
+}
+
+func (r *SphinxRateLimiter) Limits() []Limit {
+	return r.limits
+}
+
+func (r *SphinxRateLimiter) Configuration() Configuration {
+	return r.configuration
+}
+
+func (r *SphinxRateLimiter) SetLimits(limits []Limit) {
+	r.limits = limits
+}
+
+func (r *SphinxRateLimiter) Add(request Request) ([]Status, error) {
 	// status := make([]status)
 	// for limit in limits
 	//   if limit.Match(request)
@@ -118,10 +137,11 @@ func (r *RateLimiter) Add(request Request) ([]Status, error) {
 
 func NewDaemon(config Configuration) {
 
-	rateLimiter := RateLimiter{}
+	rateLimiter := SphinxRateLimiter{}
 
+	limits := make([]Limit, len(config.Limits))
 	for name, config := range config.Limits {
-		rateLimiter.Limits = append(rateLimiter.Limits, NewLimit(name, config))
-
+		limits = append(limits, NewLimit(name, config))
 	}
+	rateLimiter.SetLimits(limits)
 }
