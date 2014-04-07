@@ -16,18 +16,18 @@ func parseRequest(r *http.Request) sphinx.Request {
 }
 
 type HTTPRateLimiter struct {
-	ratelimiter *sphinx.RateLimiter
+	ratelimiter sphinx.RateLimiter
 	proxy       *httputil.ReverseProxy
 }
 
 func (hrl HTTPRateLimiter) Handle(w http.ResponseWriter, r *http.Request) {
-	buckets, err := hrl.ratelimiter.Add(parseRequest(r))
+	matches, err := hrl.ratelimiter.Add(parseRequest(r))
 	if err != nil && err != leakybucket.ErrorFull {
 		// TODO: Send to sentry.
 		w.WriteHeader(500)
 		return
 	}
-	addRateLimitHeaders(w, buckets)
+	addRateLimitHeaders(w, matches)
 	if err == leakybucket.ErrorFull {
 		w.WriteHeader(429)
 		return

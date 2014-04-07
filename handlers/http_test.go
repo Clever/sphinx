@@ -1,7 +1,10 @@
 package http
 
 import (
+	"github.com/Clever/sphinx"
+	"github.com/stretchr/testify/mock"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"testing"
 )
@@ -31,6 +34,32 @@ func compareHeader(t *testing.T, headers http.Header, key string, values []strin
 	for i, expected := range values {
 		compareStrings(t, expected, headers[key][i])
 	}
+}
+
+type MockRateLimiter struct {
+	mock   mock.Mock
+	limits []sphinx.Limit
+}
+
+func (r *MockRateLimiter) Configuration() sphinx.Configuration {
+	return sphinx.Configuration{}
+}
+
+func (r *MockRateLimiter) Limits() []sphinx.Limit {
+	return r.limits
+}
+
+func (r *MockRateLimiter) Add(request sphinx.Request) ([]sphinx.Status, error) {
+	args := m.Mock.Called(request)
+	return nil, nil
+}
+
+func (r *MockRateLimiter) SetLimits(limits []sphinx.Limit) {
+	r.limits = limits
+}
+
+func constructHTTPRateLimiter(ratelimiter *sphinx.RateLimiter, proxy *httputil.ReverseProxy) HTTPRateLimiter {
+	return HTTPRateLimiter{ratelimiter: &MockRateLimiter{}}
 }
 
 func TestParsesHeaders(t *testing.T) {
