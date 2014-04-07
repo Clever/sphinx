@@ -3,12 +3,12 @@ package sphinx
 import (
 	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
+	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
 	"log"
 	"time"
 )
-
-type Request map[string]interface{}
 
 type RequestMatcher struct {
 	Matches  []matchers.Matcher
@@ -22,9 +22,10 @@ type Limit struct {
 	buckets     map[string]leakybucket.Bucket
 	config      LimitConfig
 	matcher     RequestMatcher
+	keys        []limitkeys.LimitKey
 }
 
-func (l *Limit) getBucketName(request map[string]string) string {
+func (l *Limit) getBucketName(request common.Request) string {
 
 	// compute bucketName = Limit.Name + concat(keys)
 	// eg. bearer/events-header:authentication:ABCD-request:ip:172.0.0.1
@@ -32,12 +33,12 @@ func (l *Limit) getBucketName(request map[string]string) string {
 	return "nothing"
 }
 
-func (l *Limit) Match(request map[string]string) (bool, error) {
+func (l *Limit) Match(request common.Request) (bool, error) {
 	// match with matches and excludes
 	return false, nil
 }
 
-func (l *Limit) Add(request Request) (leakybucket.Bucket, error) {
+func (l *Limit) Add(request common.Request) (leakybucket.Bucket, error) {
 	// getBucketName
 	// if bucket already exists add to bucket
 	// if does not exist create new bucket with name
@@ -69,11 +70,22 @@ type Status struct {
 	Name      string
 }
 
+func NewStatus(name string, bucket leakybucket.Bucket) Status {
+
+	status := Status{}
+	status.Name = name
+	status.Capacity = bucket.Capacity()
+	status.Reset = bucket.Reset()
+	status.Remaining = bucket.Remaining()
+
+	return status
+}
+
 type RateLimiter interface {
 	Configuration() Configuration
 	Limits() []Limit
 	SetLimits([]Limit)
-	Add(request Request) ([]Status, error)
+	Add(request common.Request) ([]Status, error)
 }
 
 type SphinxRateLimiter struct {
@@ -93,15 +105,18 @@ func (r *SphinxRateLimiter) SetLimits(limits []Limit) {
 	r.limits = limits
 }
 
-func (r *SphinxRateLimiter) Add(request Request) ([]Status, error) {
-	// status := make([]status)
-	// for limit in limits
-	//   if limit.Match(request)
-	//     buckets, err := limit.Add(request)
-	//       for bucket in buckets
-	//         status = append(status, NewStatus)
-	// return status, nil
-	return nil, nil
+func (r *SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
+	var status []Status
+	for _, limit := range r.Limits() {
+		if match, _ := limit.Match(request); match {
+			bucket, err := limit.Add(request)
+			if err == nil {
+				//DO SOMETHING
+			}
+			status = append(status, NewStatus(limit.Name, bucket))
+		}
+	}
+	return status, nil
 }
 
 func NewDaemon(config Configuration) {

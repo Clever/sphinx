@@ -10,8 +10,9 @@ import (
 
 func parseRequest(r *http.Request) sphinx.Request {
 	return map[string]interface{}{
-		"path":    r.URL.Path,
-		"headers": r.Header,
+		"path":       r.URL.Path,
+		"headers":    r.Header,
+		"remoteaddr": r.RemoteAddr,
 	}
 }
 

@@ -22,7 +22,7 @@ type Forward struct {
 type LimitConfig struct {
 	Interval time.Duration
 	Max      uint
-	Keys     []string
+	Keys     map[string]string
 	Matches  map[string]interface{}
 	Excludes map[string]interface{}
 }
