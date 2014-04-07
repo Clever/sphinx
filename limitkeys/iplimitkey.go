@@ -14,5 +14,5 @@ func (ilk IPLimitKey) GetKey(request common.Request) string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s-%s", "remoteaddr", request["remoteaddr"])
+	return fmt.Sprintf("%s:%s", "remoteaddr", request["remoteaddr"])
 }

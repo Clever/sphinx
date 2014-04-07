@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
 )
 
@@ -19,7 +20,7 @@ func MatcherFactoryFinder(name string) MatcherFactory {
 }
 
 type Matcher interface {
-	Match(string /*sphinx.Request*/) bool
+	Match(common.Request) bool
 }
 
 type MatcherFactory interface {

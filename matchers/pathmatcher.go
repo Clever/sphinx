@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"github.com/Clever/sphinx/common"
 	"regexp"
 )
 
@@ -12,7 +13,7 @@ type PathMatcher struct {
 	Paths []*regexp.Regexp
 }
 
-func (pm PathMatcher) Match(request string) bool {
+func (pm PathMatcher) Match(request common.Request) bool {
 
 	return false
 }

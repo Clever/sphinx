@@ -22,6 +22,6 @@ func (hlk HeaderLimitKey) GetKey(request common.Request) string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s-%s", hlk.name,
+	return fmt.Sprintf("%s:%s", hlk.name,
 		strings.Join(headers[hlk.name], ":"))
 }

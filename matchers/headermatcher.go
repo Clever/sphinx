@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"github.com/Clever/sphinx/common"
 	"regexp"
 )
 
@@ -18,7 +19,7 @@ type HeaderMatcher struct {
 	Headers []HeaderMatch
 }
 
-func (hm HeaderMatcher) Match(request string) bool {
+func (hm HeaderMatcher) Match(request common.Request) bool {
 	return false
 }
 
