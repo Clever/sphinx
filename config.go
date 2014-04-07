@@ -64,7 +64,7 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	return config, nil
 }
 
-func ResolveMatchers(matchersConfig map[string]interface{}) (includes []matchers.Matcher, excludes []matchers.Matcher, err error) {
+func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher, error) {
 
 	resolvedMatchers := []matchers.Matcher{}
 
@@ -80,6 +80,7 @@ func ResolveMatchers(matchersConfig map[string]interface{}) (includes []matchers
 		}
 		resolvedMatchers = append(resolvedMatchers, matcher)
 	}
+	return resolvedMatchers, nil
 }
 
 func NewConfiguration(path string) Configuration {

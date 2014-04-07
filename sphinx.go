@@ -5,7 +5,6 @@ import (
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/matchers"
 	"log"
-	"regexp"
 	"time"
 )
 
@@ -14,16 +13,6 @@ type Request map[string]interface{}
 type RequestMatcher struct {
 	Matches  []matchers.Matcher
 	Excludes []matchers.Matcher
-}
-
-func (r *RequestMatcher) AddMatches(name string, rules []string) error {
-
-	return nil
-}
-
-func (r *RequestMatcher) AddExcludes(name string, rules []string) error {
-
-	return nil
 }
 
 type Limit struct {
@@ -63,11 +52,14 @@ func NewLimit(name string, config LimitConfig) Limit {
 	limit.config = config
 
 	limit.matcher = RequestMatcher{}
-	requestMatcher.Matches = ResolveMatchers(config.Matchers)
-	requestMatcher.Excludes = ResolveMatchers(config.Excludes)
+	var err error
+	limit.matcher.Matches, err = ResolveMatchers(config.Matches)
+	limit.matcher.Excludes, err = ResolveMatchers(config.Excludes)
+	if err != nil {
+		log.Panicf("Failed to load matchers.", err)
+	}
 
 	return limit
-
 }
 
 type Status struct {
