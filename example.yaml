@@ -10,10 +10,10 @@ limits:
       - header: "Authentication"
     matches:
       headers:
-        - name: "Authentication"
-          match: "Bearer"
-        - name: "X-Forwarded-For"
-          match: "192.0.0.1"
+        match_any:
+          - name: "Authorization"
+            match: "Bearer.*"
+          - name: "X-Forwarded-For"
       paths:
         match_any:
           - "/v1.1/push/events/.*"
@@ -29,8 +29,8 @@ limits:
         match_any:
           - "/v1.1/push/events/.*"
       headers:
-        - name: "Authentication"
-          match: "Basic"
+        match_any:
+          Authentication: "Basic .*"
 
   bearer/main:
     interval: 15

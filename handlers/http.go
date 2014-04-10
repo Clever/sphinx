@@ -3,12 +3,13 @@ package http
 import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/common"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 )
 
-func parseRequest(r *http.Request) sphinx.Request {
+func parseRequest(r *http.Request) common.Request {
 	return map[string]interface{}{
 		"path":       r.URL.Path,
 		"headers":    r.Header,
@@ -17,7 +18,7 @@ func parseRequest(r *http.Request) sphinx.Request {
 }
 
 type HTTPRateLimiter struct {
-	ratelimiter *sphinx.RateLimiter
+	ratelimiter sphinx.RateLimiter
 	proxy       *httputil.ReverseProxy
 }
 

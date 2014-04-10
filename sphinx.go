@@ -112,10 +112,10 @@ func NewStatus(name string, bucket leakybucket.BucketState) Status {
 }
 
 type RateLimiter interface {
+	Add(request common.Request) ([]Status, error)
 	Configuration() Configuration
 	Limits() []Limit
 	SetLimits([]Limit)
-	Add(request common.Request) ([]Status, error)
 }
 
 type SphinxRateLimiter struct {
