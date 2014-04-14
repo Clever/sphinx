@@ -12,8 +12,26 @@ type TestHeaderConfig struct {
 	Headers interface{}
 }
 
-func TestHeaderMatcherFactory(t *testing.T) {
+func getHeaderMatcher(config []byte) Matcher {
 
+	var headerConfig TestHeaderConfig
+	yaml.Unmarshal(config, &headerConfig)
+
+	factory := HeaderMatcherFactory{}
+	headermatcher, err := factory.Create(headerConfig.Headers)
+	if err != nil {
+		log.Panicf("Failed to create HeaderMatcher", err)
+	}
+
+	return headermatcher
+}
+
+func getRequest(headers map[string][]string) common.Request {
+	httprequest := common.ConstructMockRequestWithHeaders(headers)
+	return common.HttpToSphinxRequest(httprequest)
+}
+
+func TestHeaderMatcherFactory(t *testing.T) {
 	config := []byte(`
 headers:
   match_any:
@@ -21,15 +39,8 @@ headers:
       match: "Bearer.*"
     - name: "X-Forwarded-For"
 `)
-	var headerConfig TestHeaderConfig
-	yaml.Unmarshal(config, &headerConfig)
+	headermatcher := getHeaderMatcher(config)
 
-	factory := HeaderMatcherFactory{}
-	headermatcher, err := factory.Create(headerConfig.Headers)
-
-	if err != nil {
-		log.Panicf("Failed to create HeaderMatcher", err)
-	}
 	if len(headermatcher.(HeaderMatcher).Headers) != 2 {
 		log.Panicf("Expected two Headers in HeaderMatcher found: %d",
 			len(headermatcher.(HeaderMatcher).Headers))
@@ -46,13 +57,67 @@ headers:
 			}
 		}
 	}
+}
 
-	httprequest := common.ConstructMockRequestWithHeaders(map[string][]string{
+func TestRegexMatches(t *testing.T) {
+	config := []byte(`
+headers:
+  match_any:
+    - name: "Authorization"
+      match: "Bearer.*"
+    - name: "X-Forwarded-For"
+      match: "192.0.0.1"
+`)
+	headermatcher := getHeaderMatcher(config)
+	request := getRequest(map[string][]string{
 		"Authorization": []string{"Bearer 12345"},
 	})
-	request := common.HttpToSphinxRequest(httprequest)
 
 	if !headermatcher.Match(request) {
 		log.Panicf("Should have matched Header Authorization")
+	}
+
+	request = getRequest(map[string][]string{
+		"Authorization": []string{"Basic 12345"},
+	})
+	if headermatcher.Match(request) {
+		log.Panicf("Should NOT have matched Header Authorization Basic")
+	}
+
+	request = getRequest(map[string][]string{
+		"X-Forwarded-For": []string{"192.0.0.1", "127.0.0.1"},
+		"Authorization":   []string{"Basic 12345"},
+	})
+	if !headermatcher.Match(request) {
+		log.Panicf("Should have matched X-Forwarded-For")
+	}
+	request = getRequest(map[string][]string{
+		"Authorization": []string{"Basic 12345"},
+	})
+	if headermatcher.Match(request) {
+		log.Panicf("Should NOT have matched Header Authorization Basic")
+	}
+}
+
+func TestHeaderPresence(t *testing.T) {
+	config := []byte(`
+headers:
+  match_any:
+    - name: "Authorization"
+`)
+	headermatcher := getHeaderMatcher(config)
+
+	request := getRequest(map[string][]string{
+		"Authorization": []string{"Bearer 12345"},
+	})
+	if !headermatcher.Match(request) {
+		log.Panicf("Should have matched Header Authorization")
+	}
+
+	request = getRequest(map[string][]string{
+		"X-Forwarded-For": []string{"192.0.0.1"},
+	})
+	if headermatcher.Match(request) {
+		log.Panicf("Should NOT have matched Header X-Forwarded-For")
 	}
 }
