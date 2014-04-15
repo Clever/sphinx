@@ -15,6 +15,17 @@ type PathMatcher struct {
 
 func (pm PathMatcher) Match(request common.Request) bool {
 
+	if _, ok := request["path"]; !ok {
+		return false
+	}
+
+	// consider it a match if any of the headers match
+	for _, matcher := range pm.Paths {
+		if matcher.MatchString(request["path"].(string)) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -28,7 +39,7 @@ func (pmf PathMatcherFactory) Create(config interface{}) (Matcher, error) {
 	matcherConfig := PathMatcherConfig{}
 	var matcher PathMatcher
 
-	err := ReMarshal(config, matcherConfig)
+	err := ReMarshal(config, &matcherConfig)
 	if err != nil {
 		return matcher, err
 	}
