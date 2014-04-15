@@ -4,6 +4,7 @@ import (
 	"github.com/Clever/sphinx"
 	"github.com/stretchr/testify/mock"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
 	"testing"
@@ -37,7 +38,7 @@ func compareHeader(t *testing.T, headers http.Header, key string, values []strin
 }
 
 type MockRateLimiter struct {
-	mock   mock.Mock
+	Mock   mock.Mock
 	limits []sphinx.Limit
 }
 
@@ -50,7 +51,7 @@ func (r *MockRateLimiter) Limits() []sphinx.Limit {
 }
 
 func (r *MockRateLimiter) Add(request sphinx.Request) ([]sphinx.Status, error) {
-	args := m.Mock.Called(request)
+	// args := r.Mock.Called(request)
 	return nil, nil
 }
 
@@ -75,3 +76,19 @@ func TestParsesHeaders(t *testing.T) {
 	compareHeader(t, request["headers"].(http.Header), "X-Forwarded-For", []string{"IP1", "IP2"})
 	compareStrings(t, request["path"].(string), "/trolling/path")
 }
+
+func TestAddHeaders(t *testing.T) {
+	w := httptest.NewRecorder()
+	statuses := make([]sphinx.Status, 0)
+	addRateLimitHeaders(w, statuses)
+	compareHeader(t, w.Header(), "X-Rate-Limit-Limit", []string{})
+	compareHeader(t, w.Header(), "X-Rate-Limit-Reset", []string{})
+	compareHeader(t, w.Header(), "X-Rate-Limit-Remaining", []string{})
+	compareHeader(t, w.Header(), "X-Rate-Limit-Bucket", []string{})
+}
+
+func TestHandleWhenErr(t *testing.T) {}
+
+func TestHandleWhenFull(t *testing.T) {}
+
+func TestHandleWhenNotFull(t *testing.T) {}
