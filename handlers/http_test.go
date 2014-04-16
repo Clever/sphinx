@@ -170,7 +170,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	proxyMock := limiter.proxy.(*MockProxy).Mock
 	proxyMock.On("ServeHTTP", w, r).Return().Once()
 
-	limiter.Handle(w, r)
+	limiter.ServeHTTP(w, r)
 
 	compareStatusesToHeader(t, w.Header(), statuses)
 	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
@@ -190,7 +190,7 @@ func TestHandleWhenFull(t *testing.T) {
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, leakybucket.ErrorFull).Once()
 
-	limiter.Handle(w, r)
+	limiter.ServeHTTP(w, r)
 
 	compareStatusesToHeader(t, w.Header(), statuses)
 	if w.Code != 429 {
@@ -212,7 +212,7 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
-	limiter.Handle(w, r)
+	limiter.ServeHTTP(w, r)
 	assertNoRateLimitHeaders(t, w.Header())
 
 	if w.Code != 500 {
@@ -234,7 +234,7 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
-	limiter.Handle(w, r)
+	limiter.ServeHTTP(w, r)
 	assertNoRateLimitHeaders(t, w.Header())
 
 	if w.Code != 500 {

@@ -16,16 +16,12 @@ func parseRequest(r *http.Request) common.Request {
 	}
 }
 
-type Proxy interface {
-	ServeHTTP(rw http.ResponseWriter, r *http.Request)
-}
-
 type HTTPRateLimiter struct {
 	ratelimiter sphinx.RateLimiter
-	proxy       Proxy
+	proxy       http.Handler
 }
 
-func (hrl HTTPRateLimiter) Handle(w http.ResponseWriter, r *http.Request) {
+func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	matches, err := hrl.ratelimiter.Add(parseRequest(r))
 	if err != nil && err != leakybucket.ErrorFull {
 		// TODO: Send to sentry.
