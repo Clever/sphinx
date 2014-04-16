@@ -2,6 +2,7 @@ package sphinx
 
 import (
 	"fmt"
+	"github.com/Clever/sphinx/matchers"
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
@@ -21,9 +22,9 @@ type Forward struct {
 type LimitConfig struct {
 	Interval time.Duration
 	Max      uint
-	Keys     []string
-	Matches  map[string][]string
-	Excludes map[string][]string
+	Keys     map[string]string
+	Matches  map[string]interface{}
+	Excludes map[string]interface{}
 }
 
 func panicWithError(err error, message string) {
@@ -36,8 +37,10 @@ func panicWithError(err error, message string) {
 func loadAndValidateConfig(data []byte) (Configuration, error) {
 
 	config := Configuration{}
-	err := yaml.Unmarshal(data, &config)
-	panicWithError(err, fmt.Sprintf("Failed to parse data in configuration. Aborting"))
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		log.Print("Failed to parse data in configuration. Aborting")
+		return config, err
+	}
 
 	if config.Forward.Scheme == "" {
 		return config, fmt.Errorf("forward.scheme not set")
@@ -59,6 +62,25 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	}
 
 	return config, nil
+}
+
+func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher, error) {
+
+	resolvedMatchers := []matchers.Matcher{}
+
+	// try and setup Matches to the actual config object defined by matchers
+	for key, config := range matchersConfig {
+		factory := matchers.MatcherFactoryFinder(key)
+		if factory == nil {
+			return resolvedMatchers, fmt.Errorf("Could not find matcher for %s", key)
+		}
+		matcher, err := factory.Create(config)
+		if err != nil {
+			return resolvedMatchers, err
+		}
+		resolvedMatchers = append(resolvedMatchers, matcher)
+	}
+	return resolvedMatchers, nil
 }
 
 func NewConfiguration(path string) Configuration {

@@ -24,11 +24,11 @@ func TestNewConfiguration(t *testing.T) {
 		if limit.Max < 1 {
 			t.Error("limit max should be greator than 1")
 		}
-		if len(limit.Keys) < 1 {
-			t.Error("limit was expected to have 1 key")
+		if limit.Keys != nil {
+			t.Error("limit was expected to have atleast 1 key")
 		}
 
-		if len(limit.Matches["headers"]) < 1 && len(limit.Matches["paths"]) < 1 {
+		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
 	}

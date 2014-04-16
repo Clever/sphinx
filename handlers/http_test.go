@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/common"
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
@@ -81,7 +82,7 @@ func (r *MockRateLimiter) Configuration() sphinx.Configuration {
 func (r *MockRateLimiter) Limits() []sphinx.Limit {
 	return r.limits
 }
-func (r *MockRateLimiter) Add(request sphinx.Request) ([]sphinx.Status, error) {
+func (r *MockRateLimiter) Add(request common.Request) ([]sphinx.Status, error) {
 	args := r.Mock.Called(request)
 	return args.Get(0).([]sphinx.Status), args.Error(1)
 }
@@ -146,7 +147,7 @@ func TestAddHeadersMultipleStatus(t *testing.T) {
 	compareStatusesToHeader(t, w.Header(), statuses)
 }
 
-var anySphinxRequest = mock.AnythingOfTypeArgument("sphinx.Request")
+var anyRequest = mock.AnythingOfTypeArgument("common.Request")
 var sphinxStatus = sphinx.Status{
 	Capacity:  uint(10),
 	Reset:     time.Now(),
@@ -164,7 +165,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	statuses := []sphinx.Status{sphinxStatus}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
-	limitMock.On("Add", anySphinxRequest).Return(statuses, nil).Once()
+	limitMock.On("Add", anyRequest).Return(statuses, nil).Once()
 
 	proxyMock := limiter.proxy.(*MockProxy).Mock
 	proxyMock.On("ServeHTTP", w, r).Return().Once()
@@ -187,7 +188,7 @@ func TestHandleWhenFull(t *testing.T) {
 	statuses := []sphinx.Status{sphinxStatus}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
-	limitMock.On("Add", anySphinxRequest).Return(statuses, leakybucket.ErrorFull).Once()
+	limitMock.On("Add", anyRequest).Return(statuses, leakybucket.ErrorFull).Once()
 
 	limiter.Handle(w, r)
 
@@ -209,7 +210,7 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	statuses := []sphinx.Status{sphinxStatus}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
-	limitMock.On("Add", anySphinxRequest).Return(statuses, errors.New("random error")).Once()
+	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
 	limiter.Handle(w, r)
 	assertNoRateLimitHeaders(t, w.Header())
@@ -231,7 +232,7 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	statuses := []sphinx.Status{}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
-	limitMock.On("Add", anySphinxRequest).Return(statuses, errors.New("random error")).Once()
+	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
 	limiter.Handle(w, r)
 	assertNoRateLimitHeaders(t, w.Header())

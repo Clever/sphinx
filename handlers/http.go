@@ -3,14 +3,16 @@ package http
 import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/common"
 	"net/http"
 	"strconv"
 )
 
-func parseRequest(r *http.Request) sphinx.Request {
+func parseRequest(r *http.Request) common.Request {
 	return map[string]interface{}{
-		"path":    r.URL.Path,
-		"headers": r.Header,
+		"path":       r.URL.Path,
+		"headers":    r.Header,
+		"remoteaddr": r.RemoteAddr,
 	}
 }
 

@@ -7,45 +7,56 @@ limits:
     interval: 15
     max: 200
     keys:
-      - 'headers:authentication'
+      - header: "Authentication"
+      - ip: "127.0.0.1"
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        match_any:
+          - name: "Authorization"
+            match: "Bearer.*"
+          - name: "X-Forwarded-For"
       paths:
-        - "/v1.1/push/events/.*"
-        - "/v2.1/.*/events$"
+        match_any:
+          - "/v1.1/push/events/.*"
+          - "/v2.1/.*/events$"
 
   basic/events:
     interval: 15
     max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
       headers:
-        - "Authentication: Basic .*"
+        match_any:
+          Authentication: "Basic .*"
 
   bearer/main:
     interval: 15
     max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        - name: "Authentication"
+          match: bearer
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
 
   basic/main:
     interval: 15
     max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       headers:
-        - "Authentication: Basic .*"
+        - name: "Authentication"
+          match: "Basic"
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
