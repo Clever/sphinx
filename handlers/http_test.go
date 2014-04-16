@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
 	"github.com/stretchr/testify/mock"
@@ -60,6 +61,15 @@ func compareStatusesToHeader(t *testing.T, header http.Header, statuses []sphinx
 	compareHeader(t, header, "X-Rate-Limit-Bucket", buckets)
 }
 
+func assertNoRateLimitHeaders(t *testing.T, header http.Header) {
+	for _, key := range []string{"Limit", "Reset", "Remaining", "Bucket"} {
+		val := header.Get(fmt.Sprintf("X-Rate-Limit-%s", key))
+		if val != "" {
+			t.Fatalf("expected nil for header %s, got %#v", key, val)
+		}
+	}
+}
+
 type MockRateLimiter struct {
 	*mock.Mock
 	limits []sphinx.Limit
@@ -111,15 +121,15 @@ func TestParsesHeaders(t *testing.T) {
 
 func TestAddHeadersNoStatus(t *testing.T) {
 	w := httptest.NewRecorder()
-	statuses := make([]sphinx.Status, 0)
+	statuses := []sphinx.Status{}
 	addRateLimitHeaders(w, statuses)
-	compareStatusesToHeader(t, w.Header(), statuses)
+	assertNoRateLimitHeaders(t, w.Header())
 }
 
 func TestAddHeadersOneStatus(t *testing.T) {
 	w := httptest.NewRecorder()
 	statuses := []sphinx.Status{
-		sphinx.Status{Capacity: uint(10), Reset: time.Now(), Remaining: uint(10), Name: "test"},
+		{Capacity: uint(10), Reset: time.Now(), Remaining: uint(10), Name: "test"},
 	}
 	addRateLimitHeaders(w, statuses)
 	compareStatusesToHeader(t, w.Header(), statuses)
@@ -137,6 +147,12 @@ func TestAddHeadersMultipleStatus(t *testing.T) {
 }
 
 var anySphinxRequest = mock.AnythingOfTypeArgument("sphinx.Request")
+var sphinxStatus = sphinx.Status{
+	Capacity:  uint(10),
+	Reset:     time.Now(),
+	Remaining: uint(10),
+	Name:      "test",
+}
 
 func TestHandleWhenNotFull(t *testing.T) {
 	limiter := constructHTTPRateLimiter()
@@ -145,7 +161,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []sphinx.Status{}
+	statuses := []sphinx.Status{sphinxStatus}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anySphinxRequest).Return(statuses, nil).Once()
@@ -168,7 +184,7 @@ func TestHandleWhenFull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []sphinx.Status{}
+	statuses := []sphinx.Status{sphinxStatus}
 
 	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anySphinxRequest).Return(statuses, leakybucket.ErrorFull).Once()
@@ -183,7 +199,29 @@ func TestHandleWhenFull(t *testing.T) {
 	// limitMock.AssertExpectations(t)
 }
 
-func TestHandleWhenErr(t *testing.T) {
+func TestHandleWhenErrWithStatus(t *testing.T) {
+	limiter := constructHTTPRateLimiter()
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("thebody"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	statuses := []sphinx.Status{sphinxStatus}
+
+	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
+	limitMock.On("Add", anySphinxRequest).Return(statuses, errors.New("random error")).Once()
+
+	limiter.Handle(w, r)
+	assertNoRateLimitHeaders(t, w.Header())
+
+	if w.Code != 500 {
+		t.Fatalf("expected status 500, received %d", w.Code)
+	}
+	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
+	// limitMock.AssertExpectations(t)
+}
+
+func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	limiter := constructHTTPRateLimiter()
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("thebody"))
@@ -196,8 +234,8 @@ func TestHandleWhenErr(t *testing.T) {
 	limitMock.On("Add", anySphinxRequest).Return(statuses, errors.New("random error")).Once()
 
 	limiter.Handle(w, r)
+	assertNoRateLimitHeaders(t, w.Header())
 
-	compareStatusesToHeader(t, w.Header(), statuses)
 	if w.Code != 500 {
 		t.Fatalf("expected status 500, received %d", w.Code)
 	}
