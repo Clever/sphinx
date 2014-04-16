@@ -54,3 +54,7 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
 		w.Header().Add("X-Rate-Limit-Bucket", status.Name)
 	}
 }
+
+func NewHTTPLimiter(ratelimiter sphinx.RateLimiter, proxy http.Handler) HTTPRateLimiter {
+	return HTTPRateLimiter{ratelimter: ratelimiter, proxy: proxy}
+}
