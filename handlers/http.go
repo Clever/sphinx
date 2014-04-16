@@ -4,7 +4,6 @@ import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
 	"net/http"
-	"net/http/httputil"
 	"strconv"
 )
 
@@ -15,9 +14,13 @@ func parseRequest(r *http.Request) sphinx.Request {
 	}
 }
 
+type Proxy interface {
+	ServeHTTP(rw http.ResponseWriter, r *http.Request)
+}
+
 type HTTPRateLimiter struct {
 	ratelimiter sphinx.RateLimiter
-	proxy       *httputil.ReverseProxy
+	proxy       Proxy
 }
 
 func (hrl HTTPRateLimiter) Handle(w http.ResponseWriter, r *http.Request) {
