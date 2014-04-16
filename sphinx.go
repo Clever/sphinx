@@ -30,7 +30,11 @@ func (l *Limit) BucketName(request common.Request) string {
 
 	var keyNames []string
 	for _, key := range l.keys {
-		keyNames = append(keyNames, key.GetKey(request))
+		keyString, err := key.Key(request)
+		if err != nil {
+			continue
+		}
+		keyNames = append(keyNames, keyString)
 	}
 
 	return fmt.Sprintf("%s-%s", l.Name, strings.Join(keyNames, "-"))

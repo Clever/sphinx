@@ -8,11 +8,15 @@ import (
 type IPLimitKey struct {
 }
 
-func (ilk IPLimitKey) GetKey(request common.Request) string {
+func (ilk IPLimitKey) Type() string {
+	return "ip"
+}
+
+func (ilk IPLimitKey) Key(request common.Request) (string, error) {
 
 	if _, ok := request["remoteaddr"]; !ok {
-		return ""
+		return "", EmptyKeyError{ilk, "No remoteaddr key in request"}
 	}
 
-	return fmt.Sprintf("%s:%s", "remoteaddr", request["remoteaddr"])
+	return fmt.Sprintf("%s:%s", "ip", request["remoteaddr"]), nil
 }

@@ -8,6 +8,7 @@ limits:
     max: 200
     keys:
       - header: "Authentication"
+      - ip: "127.0.0.1"
     matches:
       headers:
         match_any:
