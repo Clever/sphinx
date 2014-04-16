@@ -47,6 +47,8 @@ func int64ToString(num int64) string {
 }
 
 func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
+	// TODO (azylman): What is the expected behavior if statuses is empty?
+	// Do we set the Headers to empty string or not set them at all (current behavior)?
 	for _, status := range statuses {
 		w.Header().Add("X-Rate-Limit-Limit", uintToString(status.Capacity))
 		w.Header().Add("X-Rate-Limit-Reset", int64ToString(status.Reset.Unix()))
