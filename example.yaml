@@ -1,6 +1,12 @@
 forward:
   scheme: http
   host: proxy.example.com
+  listen: 8080
+
+storage:
+  type: redis  # can be {redis,memory}
+  host: redis1.ops.clever.com  # not required for memory
+  port: 6379  # not required for memory
 
 limits:
   bearer/events:

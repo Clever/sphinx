@@ -6,17 +6,20 @@ import (
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"time"
 )
 
 type Configuration struct {
 	Forward Forward
 	Limits  map[string]LimitConfig
+	Storage map[string]string
 }
 
 type Forward struct {
 	Scheme string
 	Host   string
+	Listen string
 }
 
 type LimitConfig struct {
@@ -48,6 +51,9 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	if config.Forward.Host == "" {
 		return config, fmt.Errorf("forward.host not set")
 	}
+	if _, err := url.Parse(config.Forward.Host); err != nil {
+		return config, fmt.Errorf("could not parse forward.host")
+	}
 	if len(config.Limits) < 1 {
 		return config, fmt.Errorf("No limits definied")
 	}
@@ -59,6 +65,24 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 		if limit.Max < 1 {
 			return config, fmt.Errorf("Max must be set > 1 for limit: %s", name)
 		}
+	}
+
+	store, ok := config.Storage["type"]
+	if !ok {
+		return config, fmt.Errorf("leakybucket:store must be set.")
+	}
+	switch store {
+	default:
+		return config, fmt.Errorf("Storage type needs to be memory or redis")
+	case "redis":
+		if _, ok := config.Storage["host"]; !ok {
+			config.Storage["host"] = "localhost"
+		}
+		if _, ok := config.Storage["port"]; !ok {
+			config.Storage["port"] = "6379"
+		}
+	case "memory":
+		// nothing to do here
 	}
 
 	return config, nil
@@ -83,12 +107,11 @@ func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 	return resolvedMatchers, nil
 }
 
-func NewConfiguration(path string) Configuration {
+func NewConfiguration(path string) (Configuration, error) {
 	data, err := ioutil.ReadFile(path)
-	panicWithError(err, fmt.Sprintf("Failed to read configuration %s. Aborting", path))
+	return Configuration{},
+		fmt.Errorf("Failed to read %s. Aborting with error: %s", path, err.Error())
 
 	config, load_err := loadAndValidateConfig(data)
-	panicWithError(load_err, "Failed to validate configuration")
-
-	return config
+	return config, load_err
 }

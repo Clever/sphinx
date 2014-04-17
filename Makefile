@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 PKG = github.com/Clever/sphinx
-SUBPKGS = $(addprefix $(PKG)/,common handlers limitkeys matchers)
+SUBPKGS = $(addprefix $(PKG)/,common handlers limitkeys matchers main)
 PKGS = $(PKG) $(SUBPKGS)
 .PHONY: test $(PKGS)
 

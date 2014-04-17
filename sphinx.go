@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
+	//leakybucketRedis "github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
@@ -11,6 +12,19 @@ import (
 	"strings"
 	"time"
 )
+
+func LeakyBucketStore(config map[string]string) (leakybucket.Storage, error) {
+
+	var bucketstore leakybucket.Storage
+
+	switch config["type"] {
+	default: // leakybucket memory
+		return leakybucketMemory.New(), nil
+	case "redis":
+		// TODO: actually return a redis store
+		return bucketstore, nil
+	}
+}
 
 type RequestMatcher struct {
 	Matches  []matchers.Matcher
@@ -79,11 +93,11 @@ func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 	return bucketstate, nil
 }
 
-func NewLimit(name string, config LimitConfig) Limit {
+func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) Limit {
 
 	limit := Limit{}
 	limit.Name = name
-	limit.bucketStore = leakybucketMemory.New()
+	limit.bucketStore = storage
 	limit.config = config
 
 	limit.matcher = RequestMatcher{}
@@ -106,11 +120,12 @@ type Status struct {
 
 func NewStatus(name string, bucket leakybucket.BucketState) Status {
 
-	status := Status{}
-	status.Name = name
-	status.Capacity = bucket.Capacity
-	status.Reset = bucket.Reset
-	status.Remaining = bucket.Remaining
+	status := Status{
+		Name:      name,
+		Capacity:  bucket.Capacity,
+		Reset:     bucket.Reset,
+		Remaining: bucket.Remaining,
+	}
 
 	return status
 }
@@ -127,19 +142,19 @@ type SphinxRateLimiter struct {
 	limits        []Limit
 }
 
-func (r *SphinxRateLimiter) Limits() []Limit {
+func (r SphinxRateLimiter) Limits() []Limit {
 	return r.limits
 }
 
-func (r *SphinxRateLimiter) Configuration() Configuration {
+func (r SphinxRateLimiter) Configuration() Configuration {
 	return r.configuration
 }
 
-func (r *SphinxRateLimiter) SetLimits(limits []Limit) {
+func (r SphinxRateLimiter) SetLimits(limits []Limit) {
 	r.limits = limits
 }
 
-func (r *SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
+func (r SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 	var status []Status
 	for _, limit := range r.Limits() {
 		if match := limit.Match(request); match {
@@ -153,13 +168,19 @@ func (r *SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 	return status, nil
 }
 
-func NewDaemon(config Configuration) {
+func NewRateLimiter(config Configuration) (RateLimiter, error) {
 
 	rateLimiter := SphinxRateLimiter{}
+	storage, err := LeakyBucketStore(config.Storage)
+	if err != nil {
+		return rateLimiter, err
+	}
 
 	limits := make([]Limit, len(config.Limits))
 	for name, config := range config.Limits {
-		limits = append(limits, NewLimit(name, config))
+		limits = append(limits, NewLimit(name, config, storage))
 	}
 	rateLimiter.SetLimits(limits)
+
+	return rateLimiter, nil
 }
