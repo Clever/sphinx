@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func TestNewConfiguration(t *testing.T) {
+// test example config file is loaded correctly
+func TestConfigurationFileLoading(t *testing.T) {
 
-	// test loading example config
 	config, err := NewConfiguration("./example.yaml")
 	if err != nil {
 		t.Error("could not load example configuration")
@@ -35,8 +35,11 @@ func TestNewConfiguration(t *testing.T) {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
 	}
+}
 
-	// test incorrect config
+// Incorrect configuration file should return errors
+func TestConfigurationFileFailures(t *testing.T) {
+
 	invalid_config := []byte(`
 forward:
   host: proxy.example.com
