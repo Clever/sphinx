@@ -108,10 +108,14 @@ func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 }
 
 func NewConfiguration(path string) (Configuration, error) {
-	data, err := ioutil.ReadFile(path)
-	return Configuration{},
-		fmt.Errorf("Failed to read %s. Aborting with error: %s", path, err.Error())
+	var config Configuration
 
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return config,
+			fmt.Errorf("Failed to read %s. Aborting with error: %s", path, err.Error())
+	}
 	config, load_err := loadAndValidateConfig(data)
+
 	return config, load_err
 }

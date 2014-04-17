@@ -7,7 +7,10 @@ import (
 func TestNewConfiguration(t *testing.T) {
 
 	// test loading example config
-	config := NewConfiguration("./example.yaml")
+	config, err := NewConfiguration("./example.yaml")
+	if err != nil {
+		t.Error("could not load example configuration")
+	}
 
 	if config.Forward.Scheme != "http" {
 		t.Error("expected http for Forward.Scheme")
@@ -38,7 +41,7 @@ func TestNewConfiguration(t *testing.T) {
 forward:
   host: proxy.example.com
 `)
-	config, err := loadAndValidateConfig(invalid_config)
+	config, err = loadAndValidateConfig(invalid_config)
 	if err == nil {
 		t.Error("invalid config did not return error")
 	}
