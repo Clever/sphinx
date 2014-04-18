@@ -5,12 +5,12 @@ forward:
 
 storage:
   type: redis  # can be {redis,memory}
-  host: redis1.ops.clever.com  # not required for memory
+  host: localhost  # not required for memory
   port: 6379  # not required for memory
 
 limits:
   bearer/events:
-    interval: 15
+    interval: 15  # in seconds
     max: 200
     keys:
       - header: "Authentication"

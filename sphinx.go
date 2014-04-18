@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
-	//leakybucketRedis "github.com/Clever/leakybucket/memory"
+	leakybucketRedis "github.com/Clever/leakybucket/redis"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
@@ -15,14 +15,15 @@ import (
 
 func LeakyBucketStore(config map[string]string) (leakybucket.Storage, error) {
 
-	var bucketstore leakybucket.Storage
-
 	switch config["type"] {
-	default: // leakybucket memory
+	// default is leakybucket memory
+	default:
 		return leakybucketMemory.New(), nil
 	case "redis":
-		// TODO: actually return a redis store
-		return bucketstore, nil
+		redisstore, err := leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
+			config["host"], config["port"]))
+
+		return redisstore, err
 	}
 }
 
@@ -67,7 +68,7 @@ func (l *Limit) Match(request common.Request) bool {
 	// At least one matcher in Matches should return true
 	for _, matcher := range l.matcher.Matches {
 		match := matcher.Match(request)
-		if !match {
+		if match {
 			return true
 		}
 	}
@@ -79,12 +80,13 @@ func (l *Limit) Match(request common.Request) bool {
 func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 
 	var bucketstate leakybucket.BucketState
+	expiry := time.Duration(l.config.Interval) * time.Second
 	bucket, err := l.bucketStore.Create(l.BucketName(request),
-		l.config.Max, l.config.Interval)
-
+		l.config.Max, expiry)
 	if err != nil {
 		return bucketstate, err
 	}
+
 	bucketstate, err = bucket.Add(1)
 	if err != nil {
 		return bucketstate, err
@@ -93,7 +95,7 @@ func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 	return bucketstate, nil
 }
 
-func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) Limit {
+func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) *Limit {
 
 	limit := Limit{}
 	limit.Name = name
@@ -105,10 +107,10 @@ func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) Limi
 	limit.matcher.Matches, err = ResolveMatchers(config.Matches)
 	limit.matcher.Excludes, err = ResolveMatchers(config.Excludes)
 	if err != nil {
-		log.Panicf("Failed to load matchers.", err)
+		log.Fatalf("Failed to load matchers.", err)
 	}
 
-	return limit
+	return &limit
 }
 
 type Status struct {
@@ -133,34 +135,36 @@ func NewStatus(name string, bucket leakybucket.BucketState) Status {
 type RateLimiter interface {
 	Add(request common.Request) ([]Status, error)
 	Configuration() Configuration
-	Limits() []Limit
-	SetLimits([]Limit)
+	Limits() []*Limit
+	SetLimits([]*Limit)
 }
 
 type SphinxRateLimiter struct {
 	configuration Configuration
-	limits        []Limit
+	limits        []*Limit
 }
 
-func (r SphinxRateLimiter) Limits() []Limit {
+func (r *SphinxRateLimiter) Limits() []*Limit {
 	return r.limits
 }
 
-func (r SphinxRateLimiter) Configuration() Configuration {
+func (r *SphinxRateLimiter) Configuration() Configuration {
 	return r.configuration
 }
 
-func (r SphinxRateLimiter) SetLimits(limits []Limit) {
+func (r *SphinxRateLimiter) SetLimits(limits []*Limit) {
 	r.limits = limits
 }
 
-func (r SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
+func (r *SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 	var status []Status
 	for _, limit := range r.Limits() {
 		if match := limit.Match(request); match {
 			bucketstate, err := limit.Add(request)
-			if err == nil {
-				//TODO SOMETHING
+			if err != nil {
+				return status,
+					fmt.Errorf("Error while adding to Limit: %s. %s",
+						limit.Name, err.Error())
 			}
 			status = append(status, NewStatus(limit.Name, bucketstate))
 		}
@@ -170,17 +174,19 @@ func (r SphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 
 func NewRateLimiter(config Configuration) (RateLimiter, error) {
 
-	rateLimiter := SphinxRateLimiter{}
+	rateLimiter := SphinxRateLimiter{
+		configuration: config,
+	}
 	storage, err := LeakyBucketStore(config.Storage)
 	if err != nil {
-		return rateLimiter, err
+		return &rateLimiter, err
 	}
 
-	limits := make([]Limit, len(config.Limits))
+	var limits []*Limit
 	for name, config := range config.Limits {
 		limits = append(limits, NewLimit(name, config, storage))
 	}
 	rateLimiter.SetLimits(limits)
 
-	return rateLimiter, nil
+	return &rateLimiter, nil
 }

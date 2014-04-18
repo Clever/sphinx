@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/url"
-	"time"
 )
 
 type Configuration struct {
@@ -23,18 +22,11 @@ type Forward struct {
 }
 
 type LimitConfig struct {
-	Interval time.Duration
+	Interval uint
 	Max      uint
 	Keys     map[string]string
 	Matches  map[string]interface{}
 	Excludes map[string]interface{}
-}
-
-func panicWithError(err error, message string) {
-	if err != nil {
-		log.Print(message)
-		log.Panic(err)
-	}
 }
 
 func loadAndValidateConfig(data []byte) (Configuration, error) {

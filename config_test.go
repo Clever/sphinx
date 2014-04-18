@@ -44,7 +44,7 @@ func TestConfigurationFileFailures(t *testing.T) {
 forward:
   host: proxy.example.com
 `)
-	config, err = loadAndValidateConfig(invalid_config)
+	_, err := loadAndValidateConfig(invalid_config)
 	if err == nil {
 		t.Error("invalid config did not return error")
 	}
@@ -59,7 +59,7 @@ buckets:
     keys:
       - 'header:authentication'
 `)
-	config, err = loadAndValidateConfig(invalid_config)
+	_, err = loadAndValidateConfig(invalid_config)
 	if err == nil {
 		t.Error("invalid config did not return error")
 	}
