@@ -1,10 +1,36 @@
 package sphinx
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Clever/sphinx/common"
 	"testing"
 )
+
+func checkStatusForRequests(ratelimiter RateLimiter,
+	request common.Request, num int, expected_statuses []Status) error {
+
+	var statuses []Status
+	var err error
+	for i := 0; i < num; i++ {
+		statuses, err = ratelimiter.Add(request)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(statuses) != len(expected_statuses) {
+		return errors.New(fmt.Sprintf("expected to match %d buckets. Got: %d",
+			len(expected_statuses), len(statuses)))
+	}
+	for i, status := range expected_statuses {
+		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
+			return errors.New("Expected 5 requests for the 'bearer/events' limits")
+		}
+	}
+
+	return nil
+}
 
 // ratelimiter is initialized properly based on config
 func TestNewRateLimiter(t *testing.T) {
@@ -24,9 +50,10 @@ func TestNewRateLimiter(t *testing.T) {
 	}
 }
 
-func TestBadConfiguration(t *testing.T) {
+func sssTestBadConfiguration(t *testing.T) {
 }
 
+// adds different kinds of requests and checks limit Status
 func TestAdd(t *testing.T) {
 	config, err := NewConfiguration("./example.yaml")
 	if err != nil {
@@ -42,23 +69,22 @@ func TestAdd(t *testing.T) {
 		}).Header,
 		"remoteaddr": "127.0.0.1",
 	}
+	if err = checkStatusForRequests(
+		ratelimiter, request, 5, []Status{
+			Status{Remaining: 195, Name: "bearer/events"}}); err != nil {
+		t.Error(err)
+	}
 
-	for i := 0; i < 4; i++ {
-		_, err = ratelimiter.Add(request)
-		if err != nil {
-			t.Error("Error while adding request to ratelimiter")
-		}
+	request = common.Request{
+		"path": "/v1.1/students/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic 12345"},
+		}).Header,
 	}
-	statuses, err := ratelimiter.Add(request)
-	if err != nil {
-		t.Error("Error while adding request to ratelimiter")
-	}
-	if len(statuses) != 1 {
-		t.Error("expected request to match just one bucket")
-	}
-	for _, status := range statuses {
-		if status.Remaining != 195 && status.Name != "bearer/events" {
-			t.Error("Expected 5 requests for the 'bearer/events' limits")
-		}
+
+	if err = checkStatusForRequests(
+		ratelimiter, request, 1, []Status{
+			Status{Remaining: 195, Name: "basic/main"}}); err != nil {
+		t.Error(err)
 	}
 }

@@ -37,7 +37,7 @@ limits:
           - "/v1.1/push/events/.*"
       headers:
         match_any:
-          Authentication: "Basic .*"
+          Authentication: "Basic.*"
 
   bearer/main:
     interval: 15
@@ -46,8 +46,9 @@ limits:
       - header: "Authentication"
     matches:
       headers:
-        - name: "Authentication"
-          match: bearer
+        match_any:
+          - name: "Authentication"
+            match: bearer
     excludes:
       paths:
         match_any:
@@ -60,8 +61,9 @@ limits:
       - header: "Authentication"
     matches:
       headers:
-        - name: "Authentication"
-          match: "Basic"
+        match_any:
+          - name: "Authorization"
+            match: "Basic.*"
     excludes:
       paths:
         match_any:
