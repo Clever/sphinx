@@ -7,36 +7,35 @@ import (
 	"regexp"
 )
 
-type HeaderMatcherConfig struct {
-	MatchAny []HeaderMatchConfig `yaml:"match_any"`
+// type to deserialize configuration
+type matcherConfig struct {
+	MatchAny []matcherItem `yaml:"match_any"`
 }
 
-type HeaderMatchConfig struct {
+type matcherItem struct {
 	Name  string
 	Match string
 }
 
-type HeaderMatch struct {
+type HeaderMatcher struct {
+	headers []headerMatch
+}
+
+type headerMatch struct {
 	Name  string
 	Match *regexp.Regexp
 }
 
-func NewHeaderMatch(name string, value string) (HeaderMatch, error) {
+func NewHeaderMatch(name string, value string) (headerMatch, error) {
 
-	var err error
-	matcher := HeaderMatch{}
-	matcher.Name = name
+	matcher := headerMatch{Name: name}
 	if value == "" {
-		matcher.Match = nil
-	} else {
-		matcher.Match, err = regexp.Compile(value)
+		return matcher, nil
 	}
 
+	match, err := regexp.Compile(value)
+	matcher.Match = match
 	return matcher, err
-}
-
-type HeaderMatcher struct {
-	Headers []HeaderMatch
 }
 
 func (hm HeaderMatcher) Match(request common.Request) bool {
@@ -46,21 +45,23 @@ func (hm HeaderMatcher) Match(request common.Request) bool {
 		return false
 	}
 	headers := request["headers"].(http.Header)
-	for _, matcher := range hm.Headers {
-		if header, ok := headers[http.CanonicalHeaderKey(matcher.Name)]; ok {
-			// call it a match if there is no regexp
-			if matcher.Match == nil {
+	for _, matcher := range hm.headers {
+		header, ok := headers[http.CanonicalHeaderKey(matcher.Name)]
+		// ignore if header is not found
+		if !ok {
+			continue
+		}
+		// call it a match when header is found and there is no regexp
+		if matcher.Match == nil {
+			return true
+		}
+		// consider it a match when any of the header values pass the regexp
+		for _, headerval := range header {
+			if matcher.Match.MatchString(headerval) {
 				return true
-			}
-			// consider it a match when any of the header values pass the regexp
-			for _, headerval := range header {
-				if matcher.Match.MatchString(headerval) {
-					return true
-				}
 			}
 		}
 	}
-
 	return false
 }
 
@@ -71,25 +72,24 @@ func (hmf HeaderMatcherFactory) Type() string {
 }
 
 func (hmf HeaderMatcherFactory) Create(config interface{}) (Matcher, error) {
-	var matcherConfig HeaderMatcherConfig
-	var matcher HeaderMatcher
+	var headermatcherconfig matcherConfig
 
-	err := ReMarshal(config, &matcherConfig)
+	err := ReMarshal(config, &headermatcherconfig)
 	if err != nil {
-		return matcher, err
+		return HeaderMatcher{}, err
 	}
 
-	if len(matcherConfig.MatchAny) == 0 {
-		return matcher, ErrorMatcherConfig{
+	if len(headermatcherconfig.MatchAny) == 0 {
+		return HeaderMatcher{}, ErrorMatcherConfig{
 			name:    hmf.Type(),
 			message: "missing key match_any",
 		}
 	}
 
-	var headers []HeaderMatch
-	for _, headerdetails := range matcherConfig.MatchAny {
+	var headers []headerMatch
+	for _, headerdetails := range headermatcherconfig.MatchAny {
 		if headerdetails.Name == "" {
-			return matcher, ErrorMatcherConfig{
+			return HeaderMatcher{}, ErrorMatcherConfig{
 				name:    hmf.Type(),
 				message: "name required for headers",
 			}
@@ -98,10 +98,9 @@ func (hmf HeaderMatcherFactory) Create(config interface{}) (Matcher, error) {
 		headermatch, err := NewHeaderMatch(headerdetails.Name,
 			headerdetails.Match)
 		if err != nil {
-			return matcher, err
+			return HeaderMatcher{}, err
 		}
 		headers = append(headers, headermatch)
 	}
-	matcher.Headers = headers
-	return matcher, nil
+	return HeaderMatcher{headers: headers}, nil
 }

@@ -41,11 +41,11 @@ headers:
 `)
 	headermatcher := getHeaderMatcher(config)
 
-	if len(headermatcher.(HeaderMatcher).Headers) != 2 {
+	if len(headermatcher.(HeaderMatcher).headers) != 2 {
 		log.Panicf("Expected two Headers in HeaderMatcher found: %d",
-			len(headermatcher.(HeaderMatcher).Headers))
+			len(headermatcher.(HeaderMatcher).headers))
 	}
-	for _, header := range headermatcher.(HeaderMatcher).Headers {
+	for _, header := range headermatcher.(HeaderMatcher).headers {
 		if header.Name == "X-Forwarded-For" {
 			if header.Match != nil {
 				log.Panicf("Expected X-Forwarded-For match to be nil. Found:%s",
