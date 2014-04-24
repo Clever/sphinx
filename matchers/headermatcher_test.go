@@ -20,7 +20,7 @@ func getHeaderMatcher(config []byte) Matcher {
 	factory := HeaderMatcherFactory{}
 	headermatcher, err := factory.Create(headerConfig.Headers)
 	if err != nil {
-		log.Panicf("Failed to create HeaderMatcher", err)
+		log.Fatalf("Failed to create HeaderMatcher", err)
 	}
 
 	return headermatcher

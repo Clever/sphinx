@@ -46,9 +46,5 @@ func ReMarshal(config interface{}, target interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = yaml.Unmarshal(data, target)
-	if err != nil {
-		return err
-	}
-	return nil
+	return yaml.Unmarshal(data, target)
 }
