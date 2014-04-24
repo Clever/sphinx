@@ -5,7 +5,6 @@ import (
 	"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/common"
 	"net/http"
-	"net/http/httputil"
 	"strconv"
 )
 
@@ -19,17 +18,17 @@ func parseRequest(r *http.Request) common.Request {
 
 type HTTPRateLimiter struct {
 	ratelimiter sphinx.RateLimiter
-	proxy       *httputil.ReverseProxy
+	proxy       http.Handler
 }
 
-func (hrl HTTPRateLimiter) Handle(w http.ResponseWriter, r *http.Request) {
-	buckets, err := hrl.ratelimiter.Add(parseRequest(r))
+func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	matches, err := hrl.ratelimiter.Add(parseRequest(r))
 	if err != nil && err != leakybucket.ErrorFull {
 		// TODO: Send to sentry.
 		w.WriteHeader(500)
 		return
 	}
-	addRateLimitHeaders(w, buckets)
+	addRateLimitHeaders(w, matches)
 	if err == leakybucket.ErrorFull {
 		w.WriteHeader(429)
 		return
@@ -52,4 +51,8 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
 		w.Header().Add("X-Rate-Limit-Remaining", uintToString(status.Remaining))
 		w.Header().Add("X-Rate-Limit-Bucket", status.Name)
 	}
+}
+
+func NewHTTPLimiter(ratelimiter sphinx.RateLimiter, proxy http.Handler) HTTPRateLimiter {
+	return HTTPRateLimiter{ratelimter: ratelimiter, proxy: proxy}
 }
