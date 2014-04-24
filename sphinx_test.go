@@ -44,7 +44,7 @@ func TestNewRateLimiter(t *testing.T) {
 
 	ratelimiter, err := NewRateLimiter(config)
 	if err != nil {
-		t.Error(fmt.Sprintf("Error while instantiating ratelimiter: %s", err.Error()))
+		t.Errorf("Error while instantiating ratelimiter: %s", err.Error())
 	}
 	if len(ratelimiter.Configuration().Limits) !=
 		len(ratelimiter.Limits()) {
@@ -69,8 +69,7 @@ limits:
 `)
 
 	// header matchers are verified
-	config_buf.WriteString(
-		`
+	config_buf.WriteString(`
     matches:
       headers:
         match_any:
@@ -86,7 +85,7 @@ limits:
 	if err == nil {
 		t.Error("Expected header matcher error, got none")
 	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
-		t.Error("Expected a InvalidMatcherConfig error, got different error", err.Error())
+		t.Errorf("Expected a InvalidMatcherConfig error, got different error: %s", err.Error())
 	}
 
 }

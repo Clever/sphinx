@@ -100,14 +100,12 @@ func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 }
 
 func NewConfiguration(path string) (Configuration, error) {
-	var config Configuration
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return config,
+		return Configuration{},
 			fmt.Errorf("Failed to read %s. Aborting with error: %s", path, err.Error())
 	}
-	config, load_err := loadAndValidateConfig(data)
-
-	return config, load_err
+	config, err := loadAndValidateConfig(data)
+	return config, err
 }

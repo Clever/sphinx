@@ -1,6 +1,7 @@
 package sphinx
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Clever/leakybucket"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
@@ -18,12 +19,12 @@ func LeakyBucketStore(config map[string]string) (leakybucket.Storage, error) {
 	switch config["type"] {
 	// default is leakybucket memory
 	default:
+		return nil, errors.New("Must specify one of 'redis' or 'memory' storage")
+	case "memory":
 		return leakybucketMemory.New(), nil
 	case "redis":
-		redisstore, err := leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
+		return leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
 			config["host"], config["port"]))
-
-		return redisstore, err
 	}
 }
 
@@ -87,12 +88,7 @@ func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 		return bucketstate, err
 	}
 
-	bucketstate, err = bucket.Add(1)
-	if err != nil {
-		return bucketstate, err
-	}
-
-	return bucketstate, nil
+	return bucket.Add(1)
 }
 
 func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) (*Limit, error) {

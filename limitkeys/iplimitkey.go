@@ -18,5 +18,5 @@ func (ilk IPLimitKey) Key(request common.Request) (string, error) {
 		return "", EmptyKeyError{ilk, "No remoteaddr key in request"}
 	}
 
-	return fmt.Sprintf("%s:%s", "ip", request["remoteaddr"]), nil
+	return fmt.Sprintf("ip:%s", request["remoteaddr"]), nil
 }
