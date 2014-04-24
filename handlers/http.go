@@ -64,7 +64,7 @@ func int64ToString(num int64) string {
 func initHeaders() map[string][]string {
 	headers := map[string][]string{}
 	for _, header := range []string{"Limit", "Reset", "Remaining", "Bucket"} {
-		headerName := "X-Rate-Limit-" + header
+		headerName := "X-Ratelimit-" + header
 		if headers[headerName] == nil {
 			headers[headerName] = []string{}
 		}
@@ -78,10 +78,10 @@ func getRateLimitHeaders(statuses []sphinx.Status) map[string][]string {
 	}
 	headers := initHeaders()
 	for _, status := range statuses {
-		headers["X-Rate-Limit-Limit"] = append(headers["X-Rate-Limit-Limit"], uintToString(status.Capacity))
-		headers["X-Rate-Limit-Reset"] = append(headers["X-Rate-Limit-Reset"], int64ToString(status.Reset.Unix()))
-		headers["X-Rate-Limit-Remaining"] = append(headers["X-Rate-Limit-Remaining"], uintToString(status.Remaining))
-		headers["X-Rate-Limit-Bucket"] = append(headers["X-Rate-Limit-Bucket"], status.Name)
+		headers["X-Ratelimit-Limit"] = append(headers["X-Ratelimit-Limit"], uintToString(status.Capacity))
+		headers["X-Ratelimit-Reset"] = append(headers["X-Ratelimit-Reset"], int64ToString(status.Reset.Unix()))
+		headers["X-Ratelimit-Remaining"] = append(headers["X-Ratelimit-Remaining"], uintToString(status.Remaining))
+		headers["X-Ratelimit-Bucket"] = append(headers["X-Ratelimit-Bucket"], status.Name)
 	}
 	return headers
 }

@@ -35,7 +35,7 @@ func compareStrings(t *testing.T, expected, actual string) {
 
 func compareHeader(t *testing.T, headers http.Header, key string, values []string) {
 	if headers[key] == nil {
-		t.Fatalf("header %s does not exist", key)
+		t.Fatalf("header '%s' does not exist, headers look like %#v", key, headers)
 	}
 	if len(headers[key]) != len(values) {
 		t.Fatalf("expected %d '%s' headers, received %d", len(values), key, len(headers[key]))
@@ -56,15 +56,15 @@ func compareStatusesToHeader(t *testing.T, header http.Header, statuses []sphinx
 		remainings = append(remainings, uintToString(status.Remaining))
 		buckets = append(buckets, status.Name)
 	}
-	compareHeader(t, header, "X-Rate-Limit-Limit", limits)
-	compareHeader(t, header, "X-Rate-Limit-Reset", resets)
-	compareHeader(t, header, "X-Rate-Limit-Remaining", remainings)
-	compareHeader(t, header, "X-Rate-Limit-Bucket", buckets)
+	compareHeader(t, header, "X-Ratelimit-Limit", limits)
+	compareHeader(t, header, "X-Ratelimit-Reset", resets)
+	compareHeader(t, header, "X-Ratelimit-Remaining", remainings)
+	compareHeader(t, header, "X-Ratelimit-Bucket", buckets)
 }
 
 func assertNoRateLimitHeaders(t *testing.T, header http.Header) {
 	for _, key := range []string{"Limit", "Reset", "Remaining", "Bucket"} {
-		val := header.Get(fmt.Sprintf("X-Rate-Limit-%s", key))
+		val := header.Get(fmt.Sprintf("X-Ratelimit-%s", key))
 		if val != "" {
 			t.Fatalf("expected nil for header %s, got %#v", key, val)
 		}
