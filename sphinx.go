@@ -17,7 +17,6 @@ import (
 func LeakyBucketStore(config map[string]string) (leakybucket.Storage, error) {
 
 	switch config["type"] {
-	// default is leakybucket memory
 	default:
 		return nil, errors.New("Must specify one of 'redis' or 'memory' storage")
 	case "memory":
