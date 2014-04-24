@@ -1,9 +1,11 @@
 package sphinx
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/Clever/sphinx/common"
+	"strings"
 	"testing"
 )
 
@@ -50,11 +52,48 @@ func TestNewRateLimiter(t *testing.T) {
 	}
 }
 
-func sssTestBadConfiguration(t *testing.T) {
+// test that matcher errors are bubbled up
+func TestBadConfiguration(t *testing.T) {
+
+	var config_buf = bytes.NewBufferString(`
+forward:
+  scheme: http
+  host: proxy.example.com
+  listen: 8080
+storage:
+  type: memory
+limits:
+  test:
+    interval: 15  # in seconds
+    max: 200
+`)
+
+	// header matchers are verified
+	config_buf.WriteString(
+		`
+    matches:
+      headers:
+        match_any:
+          - "Authorization": "Bearer.*"
+          - name: "X-Forwarded-For"
+`)
+	configuration, err := loadAndValidateConfig(config_buf.Bytes())
+	if err != nil {
+		t.Error("configuration failed with error", err)
+	}
+
+	_, err = NewRateLimiter(configuration)
+	if err == nil {
+		t.Error("Expected header matcher error, got none")
+	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
+		t.Error("Expected a InvalidMatcherConfig error, got different error", err.Error())
+	}
+
 }
 
 // adds different kinds of requests and checks limit Status
-func TestAdd(t *testing.T) {
+// focusses on single bucket adds
+func TestSimpleAdd(t *testing.T) {
 	config, err := NewConfiguration("./example.yaml")
 	if err != nil {
 		t.Error("could not load example configuration")

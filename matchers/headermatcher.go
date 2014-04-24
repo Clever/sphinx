@@ -79,8 +79,22 @@ func (hmf HeaderMatcherFactory) Create(config interface{}) (Matcher, error) {
 		return matcher, err
 	}
 
+	if len(matcherConfig.MatchAny) == 0 {
+		return matcher, ErrorMatcherConfig{
+			name:    hmf.Type(),
+			message: "missing key match_any",
+		}
+	}
+
 	var headers []HeaderMatch
 	for _, headerdetails := range matcherConfig.MatchAny {
+		if headerdetails.Name == "" {
+			return matcher, ErrorMatcherConfig{
+				name:    hmf.Type(),
+				message: "name required for headers",
+			}
+		}
+
 		headermatch, err := NewHeaderMatch(headerdetails.Name,
 			headerdetails.Match)
 		if err != nil {

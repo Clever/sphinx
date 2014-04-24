@@ -95,7 +95,7 @@ func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 	return bucketstate, nil
 }
 
-func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) *Limit {
+func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) (*Limit, error) {
 
 	limit := Limit{}
 	limit.Name = name
@@ -103,14 +103,21 @@ func NewLimit(name string, config LimitConfig, storage leakybucket.Storage) *Lim
 	limit.config = config
 
 	limit.matcher = RequestMatcher{}
-	var err error
-	limit.matcher.Matches, err = ResolveMatchers(config.Matches)
-	limit.matcher.Excludes, err = ResolveMatchers(config.Excludes)
+
+	matches, err := ResolveMatchers(config.Matches)
 	if err != nil {
-		log.Fatalf("Failed to load matchers.", err)
+		log.Printf("Failed to load matchers for LIMIT:%s, ERROR:%s", name, err)
+		return &limit, err
+	}
+	excludes, err := ResolveMatchers(config.Excludes)
+	if err != nil {
+		log.Printf("Failed to load excludes for LIMIT:%s, ERROR:%s.", name, err)
+		return &limit, err
 	}
 
-	return &limit
+	limit.matcher.Matches = matches
+	limit.matcher.Excludes = excludes
+	return &limit, nil
 }
 
 type Status struct {
@@ -184,7 +191,11 @@ func NewRateLimiter(config Configuration) (RateLimiter, error) {
 
 	var limits []*Limit
 	for name, config := range config.Limits {
-		limits = append(limits, NewLimit(name, config, storage))
+		limit, err := NewLimit(name, config, storage)
+		if err != nil {
+			return &rateLimiter, err
+		}
+		limits = append(limits, limit)
 	}
 	rateLimiter.SetLimits(limits)
 

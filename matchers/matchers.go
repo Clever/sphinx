@@ -1,14 +1,17 @@
 package matchers
 
 import (
+	"fmt"
 	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
 )
 
-var matcherFactories = [...]MatcherFactory{
-	PathMatcherFactory{},
-	HeaderMatcherFactory{},
-}
+var (
+	matcherFactories = [...]MatcherFactory{
+		PathMatcherFactory{},
+		HeaderMatcherFactory{},
+	}
+)
 
 func MatcherFactoryFinder(name string) MatcherFactory {
 	for _, factory := range matcherFactories {
@@ -17,6 +20,16 @@ func MatcherFactoryFinder(name string) MatcherFactory {
 		}
 	}
 	return nil
+}
+
+type ErrorMatcherConfig struct {
+	name    string
+	message string
+}
+
+func (emc ErrorMatcherConfig) Error() string {
+	return fmt.Sprintf("InvalidMatcherConfig: %s - %s",
+		emc.name, emc.message)
 }
 
 type Matcher interface {

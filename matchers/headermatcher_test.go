@@ -59,6 +59,34 @@ headers:
 	}
 }
 
+func TestHeaderMatcherFactoryBadData(t *testing.T) {
+	config := []byte(`
+headers:
+  match_any:
+    - "Authorization": "Bearer.*"
+    - name: "X-Forwarded-For"
+`)
+	var headerConfig TestHeaderConfig
+	yaml.Unmarshal(config, &headerConfig)
+
+	factory := HeaderMatcherFactory{}
+	_, err := factory.Create(headerConfig.Headers)
+	if err == nil {
+		t.Error("Expected error when headers have no name")
+	}
+
+	config = []byte(`
+headers:
+  - "Authorization": "Bearer.*"
+  - name: "X-Forwarded-For"
+`)
+	yaml.Unmarshal(config, &headerConfig)
+	_, err = factory.Create(headerConfig.Headers)
+	if err == nil {
+		t.Error("expected error when match_any is missing")
+	}
+}
+
 func TestRegexMatches(t *testing.T) {
 	config := []byte(`
 headers:

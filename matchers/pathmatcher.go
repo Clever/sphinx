@@ -44,6 +44,13 @@ func (pmf PathMatcherFactory) Create(config interface{}) (Matcher, error) {
 		return matcher, err
 	}
 
+	if len(matcherConfig.MatchAny) == 0 {
+		return matcher, ErrorMatcherConfig{
+			name:    pmf.Type(),
+			message: "missing key match_any or no paths",
+		}
+	}
+
 	for _, p := range matcherConfig.MatchAny {
 		compiled, err := regexp.Compile(p)
 		if err != nil {

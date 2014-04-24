@@ -48,6 +48,32 @@ paths:
 	}
 }
 
+func TestPathMatcherFactoryBadConfig(t *testing.T) {
+	config := []byte(`
+paths:
+  - "/v1.1/push/events/.*"
+  - "/v2.1/.*/events$"
+`)
+	var pathConfig TestPathMatcherConfig
+	yaml.Unmarshal(config, &pathConfig)
+
+	factory := PathMatcherFactory{}
+	_, err := factory.Create(pathConfig.Paths)
+	if err == nil {
+		t.Error("Expected error when headers have no name")
+	}
+
+	config = []byte(`
+paths:
+  match_any: "hello"
+`)
+	yaml.Unmarshal(config, &pathConfig)
+	_, err = factory.Create(pathConfig.Paths)
+	if err == nil {
+		t.Error("Expected error when headers have no name")
+	}
+}
+
 func TestPathMatcher(t *testing.T) {
 	config := []byte(`
 paths:
