@@ -1,6 +1,7 @@
 package http
 
 import (
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/common"
@@ -23,7 +24,10 @@ type HTTPRateLimiter struct {
 }
 
 func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	matches, err := hrl.ratelimiter.Add(parseRequest(r))
+	guid := uuid.New()
+	request := parseRequest(r)
+	log.Printf("[%s] REQUEST: %#v", guid, request)
+	matches, err := hrl.ratelimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		// TODO: Log to stderr
 		w.WriteHeader(500)
@@ -40,15 +44,18 @@ func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type HTTPRateLogger HTTPRateLimiter
 
 func (hrl HTTPRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	matches, err := hrl.ratelimiter.Add(parseRequest(r))
+	guid := uuid.New()
+	request := parseRequest(r)
+	log.Printf("[%s] REQUEST: %#v", guid, request)
+	matches, err := hrl.ratelimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
-		log.Printf("ERROR")
+		log.Printf("[%s] ERROR: %s", guid, err)
 		hrl.proxy.ServeHTTP(w, r)
 		return
 	}
-	log.Printf("RATE LIMIT HEADERS: %#v", getRateLimitHeaders(matches))
+	log.Printf("[%s] RATE LIMIT HEADERS: %#v", guid, getRateLimitHeaders(matches))
 	if err == leakybucket.ErrorFull {
-		log.Printf("FULL")
+		log.Printf("[%s] BUCKET FULL")
 	}
 	hrl.proxy.ServeHTTP(w, r)
 }
