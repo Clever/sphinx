@@ -29,7 +29,7 @@ func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[%s] REQUEST: %#v", guid, request)
 	matches, err := hrl.ratelimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
-		// TODO: Log to stderr
+		log.Printf("[%s] ERROR: %s", guid, err)
 		w.WriteHeader(500)
 		return
 	}
