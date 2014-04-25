@@ -55,7 +55,7 @@ func (hrl HTTPRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("[%s] RATE LIMIT HEADERS: %#v", guid, getRateLimitHeaders(matches))
 	if err == leakybucket.ErrorFull {
-		log.Printf("[%s] BUCKET FULL")
+		log.Printf("[%s] BUCKET FULL", guid)
 	}
 	hrl.proxy.ServeHTTP(w, r)
 }
