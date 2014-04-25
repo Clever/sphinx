@@ -120,4 +120,4 @@ LINT=1 make
 
 ## Credits
 
-* Sphinx logo by EricP from The Noun Project
+* [Sphinx](http://thenounproject.com/term/sphinx/20572/) logo by EricP from The Noun Project
