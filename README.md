@@ -7,7 +7,7 @@ The name for this project _"Sphinx"_ comes from the ancient Greek word sphingien
 Sphinx would stand by the road and stop passers by. She would then ask them a riddle. If they could not answer, 
 she would strangle them. Sphinx was thought of as a guardian often flanking the entrances to temples.
 
-![Ancient Greek sphinx from Delphi](https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/028MAD_Sphinx.jpg/173px-028MAD_Sphinx.jpg)
+![Sphinx](logo.png)
 
 ## Why
 
@@ -117,3 +117,7 @@ If you'd like to see lint your code, install golint (`go get github.com/golang/l
 ```
 LINT=1 make
 ```
+
+## Credits
+
+* Sphinx logo by EricP from The Noun Project
