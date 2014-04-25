@@ -1,7 +1,6 @@
 package matchers
 
 import (
-	//"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
 	"log"
@@ -20,7 +19,7 @@ func getHeaderMatcher(config []byte) Matcher {
 	factory := HeaderMatcherFactory{}
 	headermatcher, err := factory.Create(headerConfig.Headers)
 	if err != nil {
-		log.Fatalf("Failed to create HeaderMatcher", err)
+		t.Fatalf("Failed to create HeaderMatcher", err)
 	}
 
 	return headermatcher
@@ -42,18 +41,18 @@ headers:
 	headermatcher := getHeaderMatcher(config)
 
 	if len(headermatcher.(HeaderMatcher).headers) != 2 {
-		log.Panicf("Expected two Headers in HeaderMatcher found: %d",
+		t.Fatalf("Expected two Headers in HeaderMatcher found: %d",
 			len(headermatcher.(HeaderMatcher).headers))
 	}
 	for _, header := range headermatcher.(HeaderMatcher).headers {
 		if header.Name == "X-Forwarded-For" {
 			if header.Match != nil {
-				log.Panicf("Expected X-Forwarded-For match to be nil. Found:%s",
+				t.Fatalf("Expected X-Forwarded-For match to be nil. Found:%s",
 					header.Match.String())
 			}
 		} else {
 			if header.Match == nil {
-				log.Panicf("Expected Authorization header to have a match")
+				t.Fatalf("Expected Authorization header to have a match")
 			}
 		}
 	}
@@ -102,14 +101,14 @@ headers:
 	})
 
 	if !headermatcher.Match(request) {
-		log.Panicf("Should have matched Header Authorization")
+		t.Fatalf("Should have matched Header Authorization")
 	}
 
 	request = getRequest(map[string][]string{
 		"Authorization": []string{"Basic 12345"},
 	})
 	if headermatcher.Match(request) {
-		log.Panicf("Should NOT have matched Header Authorization Basic")
+		t.Fatalf("Should NOT have matched Header Authorization Basic")
 	}
 
 	request = getRequest(map[string][]string{
@@ -117,13 +116,13 @@ headers:
 		"Authorization":   []string{"Basic 12345"},
 	})
 	if !headermatcher.Match(request) {
-		log.Panicf("Should have matched X-Forwarded-For")
+		t.Fatalf("Should have matched X-Forwarded-For")
 	}
 	request = getRequest(map[string][]string{
 		"Authorization": []string{"Basic 12345"},
 	})
 	if headermatcher.Match(request) {
-		log.Panicf("Should NOT have matched Header Authorization Basic")
+		t.Fatalf("Should NOT have matched Header Authorization Basic")
 	}
 }
 
@@ -139,13 +138,13 @@ headers:
 		"Authorization": []string{"Bearer 12345"},
 	})
 	if !headermatcher.Match(request) {
-		log.Panicf("Should have matched Header Authorization")
+		t.Fatalf("Should have matched Header Authorization")
 	}
 
 	request = getRequest(map[string][]string{
 		"X-Forwarded-For": []string{"192.0.0.1"},
 	})
 	if headermatcher.Match(request) {
-		log.Panicf("Should NOT have matched Header X-Forwarded-For")
+		t.Fatalf("Should NOT have matched Header X-Forwarded-For")
 	}
 }
