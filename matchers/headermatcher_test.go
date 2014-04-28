@@ -3,7 +3,6 @@ package matchers
 import (
 	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
-	"log"
 	"testing"
 )
 
@@ -11,18 +10,13 @@ type TestHeaderConfig struct {
 	Headers interface{}
 }
 
-func getHeaderMatcher(config []byte) Matcher {
+func getHeaderMatcher(config []byte) (Matcher, error) {
 
 	var headerConfig TestHeaderConfig
 	yaml.Unmarshal(config, &headerConfig)
 
 	factory := HeaderMatcherFactory{}
-	headermatcher, err := factory.Create(headerConfig.Headers)
-	if err != nil {
-		t.Fatalf("Failed to create HeaderMatcher", err)
-	}
-
-	return headermatcher
+	return factory.Create(headerConfig.Headers)
 }
 
 func getRequest(headers map[string][]string) common.Request {
@@ -38,7 +32,10 @@ headers:
       match: "Bearer.*"
     - name: "X-Forwarded-For"
 `)
-	headermatcher := getHeaderMatcher(config)
+	headermatcher, err := getHeaderMatcher(config)
+	if err != nil {
+		t.Fatalf("Failed to create HeaderMatcher", err)
+	}
 
 	if len(headermatcher.(HeaderMatcher).headers) != 2 {
 		t.Fatalf("Expected two Headers in HeaderMatcher found: %d",
@@ -95,7 +92,10 @@ headers:
     - name: "X-Forwarded-For"
       match: "192.0.0.1"
 `)
-	headermatcher := getHeaderMatcher(config)
+	headermatcher, err := getHeaderMatcher(config)
+	if err != nil {
+		t.Fatalf("Failed to create HeaderMatcher", err)
+	}
 	request := getRequest(map[string][]string{
 		"Authorization": []string{"Bearer 12345"},
 	})
@@ -132,7 +132,10 @@ headers:
   match_any:
     - name: "Authorization"
 `)
-	headermatcher := getHeaderMatcher(config)
+	headermatcher, err := getHeaderMatcher(config)
+	if err != nil {
+		t.Fatalf("Failed to create HeaderMatcher", err)
+	}
 
 	request := getRequest(map[string][]string{
 		"Authorization": []string{"Bearer 12345"},

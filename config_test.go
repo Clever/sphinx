@@ -1,6 +1,7 @@
 package sphinx
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -34,6 +35,27 @@ func TestConfigurationFileLoading(t *testing.T) {
 		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
+	}
+}
+
+func TestInvalidConfigurationPath(t *testing.T) {
+	_, err := NewConfiguration("./does-not-exist.yaml")
+	if err == nil {
+		t.Error("Expected error for invalid config path")
+	}
+	if !strings.Contains(err.Error(), "no such file or directory") {
+		t.Errorf("Expected no file error got %s", err.Error())
+	}
+}
+
+func TestInvalidYaml(t *testing.T) {
+	invalid_yaml := []byte(`
+forward
+  host$$: proxy.example.com
+`)
+	_, err := loadAndValidateConfig(invalid_yaml)
+	if !strings.Contains(err.Error(), "YAML error:") {
+		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }
 

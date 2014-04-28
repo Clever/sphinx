@@ -3,14 +3,13 @@ package main
 import (
 	"flag"
 	"github.com/Clever/sphinx"
-	handlers "github.com/Clever/sphinx/handlers"
 	"net/http/httputil"
 	"net/url"
 )
 
 var (
-	configfile  = flag.String("config", "example.yaml", "/path/to/configuration.yaml")
-	checkconfig = flag.Bool("check-config", false, "Validate configuration and exit")
+	configfile = flag.String("config", "example.yaml", "/path/to/configuration.yaml")
+	validate   = flag.Bool("validate", false, "Validate configuration and exit")
 )
 
 func main() {
@@ -23,12 +22,12 @@ func main() {
 	if config.Forward.Scheme == "http" {
 		target, _ := url.Parse(config.Forward.Host)
 		proxy := httputil.NewSingleHostReverseProxy(target)
-		_ = handlers.HTTPRateLimiter{
+		//_ = handlers.HTTPRateLimiter{
 		//rateLimiter,
 		//proxy,
-		}
+		//}
 
-		if !*checkconfig {
+		if !*validate {
 			print("configuration is fine. not starting dameon.")
 			return
 		}
