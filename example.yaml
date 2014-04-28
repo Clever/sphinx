@@ -1,6 +1,6 @@
 forward:
   scheme: http
-  host: proxy.example.com
+  host: http://httpbin.org
   listen: 8080
 
 storage:

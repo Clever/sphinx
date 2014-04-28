@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/Clever/sphinx"
+	handlers "github.com/Clever/sphinx/handlers"
+	"log"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 )
@@ -15,25 +18,23 @@ var (
 func main() {
 
 	flag.Parse()
-	config, err := sphinx.NewConfiguration(*configfile)
-	rateLimiter, err := sphinx.NewRateLimiter(config)
+	config, _ := sphinx.NewConfiguration(*configfile)
+	ratelimiter, _ := sphinx.NewRateLimiter(config)
 
 	// if configuration says that use http
-	if config.Forward.Scheme == "http" {
-		target, _ := url.Parse(config.Forward.Host)
-		proxy := httputil.NewSingleHostReverseProxy(target)
-		//_ = handlers.HTTPRateLimiter{
-		//rateLimiter,
-		//proxy,
-		//}
-
-		if !*validate {
-			print("configuration is fine. not starting dameon.")
-			return
-		}
-
-		print(proxy, rateLimiter, err)
-
-		//http.ListenAndServe(config.Forward.Listen, http.Handler{})
+	if config.Forward.Scheme != "http" {
+		return
 	}
+
+	target, _ := url.Parse(config.Forward.Host)
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	httplimiter := handlers.NewHTTPLogger(ratelimiter, proxy)
+
+	if *validate {
+		print("configuration is fine. not starting dameon.")
+		return
+	}
+
+	println("listening on 8080")
+	log.Fatal(http.ListenAndServe(":8080", httplimiter))
 }
