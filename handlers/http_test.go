@@ -73,20 +73,20 @@ func assertNoRateLimitHeaders(t *testing.T, header http.Header) {
 
 type MockRateLimiter struct {
 	*mock.Mock
-	limits []sphinx.Limit
+	limits []*sphinx.Limit
 }
 
 func (r *MockRateLimiter) Configuration() sphinx.Configuration {
 	return sphinx.Configuration{}
 }
-func (r *MockRateLimiter) Limits() []sphinx.Limit {
+func (r *MockRateLimiter) Limits() []*sphinx.Limit {
 	return r.limits
 }
 func (r *MockRateLimiter) Add(request common.Request) ([]sphinx.Status, error) {
 	args := r.Mock.Called(request)
 	return args.Get(0).([]sphinx.Status), args.Error(1)
 }
-func (r *MockRateLimiter) SetLimits(limits []sphinx.Limit) {
+func (r *MockRateLimiter) SetLimits(limits []*sphinx.Limit) {
 	r.limits = limits
 }
 
