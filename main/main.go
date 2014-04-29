@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	//"os"
+	//"os/signal"
+	//"syscall"
 )
 
 var (
@@ -46,7 +49,7 @@ func NewDaemon(config sphinx.Configuration) (Daemon, error) {
 	case "httplogger":
 		httplimiter = handlers.NewHTTPLogger(ratelimiter, proxy)
 	default:
-		return Daemon{}, fmt.Errorf("Unrecognized handler %s", config.Proxy.Handler)
+		return Daemon{}, fmt.Errorf("Sphinx only supports the http handler")
 	}
 
 	return Daemon{
