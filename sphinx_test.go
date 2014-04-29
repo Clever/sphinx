@@ -56,8 +56,8 @@ func TestNewRateLimiter(t *testing.T) {
 func TestBadConfiguration(t *testing.T) {
 
 	var config_buf = bytes.NewBufferString(`
-forward:
-  scheme: http
+proxy:
+  handler: http
   host: proxy.example.com
   listen: 8080
 storage:

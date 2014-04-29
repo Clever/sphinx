@@ -13,8 +13,8 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("could not load example configuration")
 	}
 
-	if config.Forward.Scheme != "http" {
-		t.Error("expected http for Forward.Scheme")
+	if config.Proxy.Handler != "http" {
+		t.Error("expected http for Proxy.Handler")
 	}
 
 	if len(config.Limits) != 4 {

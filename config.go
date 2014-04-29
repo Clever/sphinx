@@ -10,15 +10,15 @@ import (
 )
 
 type Configuration struct {
-	Forward Forward
+	Proxy   Proxy
 	Limits  map[string]LimitConfig
 	Storage map[string]string
 }
 
-type Forward struct {
-	Scheme string
-	Host   string
-	Listen string
+type Proxy struct {
+	Handler string
+	Host    string
+	Listen  string
 }
 
 type LimitConfig struct {
@@ -37,14 +37,14 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 		return config, err
 	}
 
-	if config.Forward.Scheme == "" {
-		return config, fmt.Errorf("forward.scheme not set")
+	if config.Proxy.Handler == "" {
+		return config, fmt.Errorf("proxy.handler not set")
 	}
-	if config.Forward.Host == "" {
-		return config, fmt.Errorf("forward.host not set")
+	if config.Proxy.Host == "" {
+		return config, fmt.Errorf("proxy.host not set")
 	}
-	if _, err := url.Parse(config.Forward.Host); err != nil {
-		return config, fmt.Errorf("could not parse forward.host")
+	if _, err := url.Parse(config.Proxy.Host); err != nil {
+		return config, fmt.Errorf("could not parse proxy.host")
 	}
 	if len(config.Limits) < 1 {
 		return config, fmt.Errorf("No limits definied")

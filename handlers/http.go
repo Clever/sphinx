@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"code.google.com/p/go-uuid/uuid"

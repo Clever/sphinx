@@ -1,7 +1,7 @@
-forward:
-  scheme: http
+proxy:
+  handler: http
   host: http://httpbin.org
-  listen: 8080
+  listen: :8080
 
 storage:
   type: redis  # can be {redis,memory}

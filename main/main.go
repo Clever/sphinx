@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/Clever/sphinx"
-	handlers "github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/handlers"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -18,23 +18,29 @@ var (
 func main() {
 
 	flag.Parse()
-	config, _ := sphinx.NewConfiguration(*configfile)
-	ratelimiter, _ := sphinx.NewRateLimiter(config)
-
-	// if configuration says that use http
-	if config.Forward.Scheme != "http" {
-		return
+	config, err := sphinx.NewConfiguration(*configfile)
+	if err != nil {
+		log.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
+	}
+	ratelimiter, err := sphinx.NewRateLimiter(config)
+	if err != nil {
+		log.Fatalf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
 
-	target, _ := url.Parse(config.Forward.Host)
+	// if configuration says that use http
+	if config.Proxy.Handler != "http" {
+		log.Fatalf("Sphinx only supports the http handler")
+	}
+
+	target, _ := url.Parse(config.Proxy.Host)
 	proxy := httputil.NewSingleHostReverseProxy(target)
 	httplimiter := handlers.NewHTTPLogger(ratelimiter, proxy)
 
 	if *validate {
-		print("configuration is fine. not starting dameon.")
+		print("Configuration parsed and Sphinx loaded fine. not starting dameon.")
 		return
 	}
 
-	println("listening on 8080")
-	log.Fatal(http.ListenAndServe(":8080", httplimiter))
+	log.Printf("Listening on %s", config.Proxy.Listen)
+	log.Fatal(http.ListenAndServe(config.Proxy.Listen, httplimiter))
 }
