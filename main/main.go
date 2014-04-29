@@ -8,12 +8,26 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var (
 	configfile = flag.String("config", "example.yaml", "/path/to/configuration.yaml")
 	validate   = flag.Bool("validate", false, "Validate configuration and exit")
 )
+
+type Daemon struct {
+}
+
+func (d *Daemon) Reload(config Configuration) bool {
+
+}
+
+func (d *Daemon) Quit() bool {
+
+}
 
 func main() {
 
@@ -42,5 +56,5 @@ func main() {
 	}
 
 	log.Printf("Listening on %s", config.Proxy.Listen)
-	log.Fatal(http.ListenAndServe(config.Proxy.Listen, httplimiter))
+	log.Fatal(http.ListenAndServe(config.Proxy.Listen, wrapper))
 }
