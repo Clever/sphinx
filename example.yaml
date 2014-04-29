@@ -1,51 +1,71 @@
-forward:
-  scheme: http
-  host: proxy.example.com
+proxy:
+  handler: http
+  host: http://httpbin.org
+  listen: :8080
 
-buckets:
+storage:
+  type: redis  # can be {redis,memory}
+  host: localhost  # not required for memory
+  port: 6379  # not required for memory
+
+limits:
   bearer/events:
-    interval: 15
-    limit: 200
+    interval: 15  # in seconds
+    max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
+      - ip: "127.0.0.1"
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        match_any:
+          - name: "Authorization"
+            match: "Bearer.*"
+          - name: "X-Forwarded-For"
       paths:
-        - "/v1.1/push/events/.*"
-        - "/v1.1/.*/events$"
+        match_any:
+          - "/v1.1/push/events/.*"
+          - "/v2.1/.*/events$"
 
   basic/events:
     interval: 15
-    limit: 200
+    max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
       headers:
-        - "Authentication: Basic .*"
+        match_any:
+          - name: Authentication
+            match: "Basic.*"
 
   bearer/main:
     interval: 15
-    limit: 200
+    max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       headers:
-        - "Authentication: Bearer .*"
+        match_any:
+          - name: "Authentication"
+            match: bearer
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
 
   basic/main:
     interval: 15
-    limit: 200
+    max: 200
     keys:
-      - 'header:authentication'
+      - header: "Authentication"
     matches:
       headers:
-        - "Authentication: Basic .*"
+        match_any:
+          - name: "Authorization"
+            match: "Basic.*"
     excludes:
       paths:
-        - "/v1.1/push/events/.*"
+        match_any:
+          - "/v1.1/push/events/.*"
