@@ -3,9 +3,9 @@
 _Sphinx_ is a _rate limiting_ HTTP proxy implemented in Go built using 
 [leaky buckets](https://github.com/Clever/leakybucket).
 
-The name for this project _"Sphinx"_ comes from the ancient Greek word sphingien, which means "to squeeze" or "to strangle." 
+*The name for this project _"Sphinx"_ comes from the ancient Greek word sphingien, which means "to squeeze" or "to strangle." 
 Sphinx would stand by the road and stop passers by. She would then ask them a riddle. If they could not answer, 
-she would strangle them. Sphinx was thought of as a guardian often flanking the entrances to temples.
+she would strangle them. Sphinx was thought of as a guardian often flanking the entrances to temples.*
 
 ![Ancient Greek sphinx from Delphi](https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/028MAD_Sphinx.jpg/173px-028MAD_Sphinx.jpg)
 
@@ -24,27 +24,30 @@ many actions including routing, request/response re-writing, rate-limiting.
 ## What Sphinx is not?
 
 * This service is NOT focused on preventing Denial of Service (DoS)
-attacks or requests from malicious clients. The goal is to allow the API to
-transparently exposing rate limiting information to clients and enforce
-balanced use by partners.
+attacks or requests from malicious clients. The goal is to expose rate limiting information to clients and 
+enforce balanced use by API clients.
 
 * Sphinx only allows for very simplistic forwarding. This would
 primarily be forwarding to a single host per instance of the rate limiter. Any
 advanced routing or request handling should be handled by a _real_ proxy (eg.
 Nginx, HAProxy).
 
+* _Sphinx_ does not currently listen over _HTTPS_, this keeps the burden of
+configuring _SSL certificates_ and security outside of _Sphinx_. Hopefully there is real load balancing and
+HTTPS termination before a request hits _Sphinx_.
 
 ## Rate Limit Headers and Errors
 
-_Sphinx_ will update the headers on HTTP responses to include details
-about the rate limit status along with the response from the backend.
+_Sphinx_ will update HTTP response headers for requests that *match limits* to include details
+about the rate limit status. Headers are _[canonicalized](http://golang.org/pkg/net/http/#CanonicalHeaderKey)_, 
+but clients should assume [header names are case insensitive](http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2).
 
- - _X-Rate-Limit-Reset_: Unix timestamp when the rate limit counter will be reset.
- - _X-Rate-Limit-Limit_: The total number of requests allowed in a time period. 
- - _X-Rate-Limit-Remaining_: Number of requests that can be made until the reset time.
- - _X-Rate-Limit-Bucket_: Name of the rate-limit bucket this request belongs to in the configuration.
+ - _X-RateLimit-Reset_: Unix timestamp when the rate limit counter will be reset.
+ - _X-RateLimit-Limit_: The total number of requests allowed in a time period. 
+ - _X-RateLimit-Remaining_: Number of requests that can be made until the reset time.
+ - _X-RateLimit-Bucket_: Name of the rate-limit bucket this request belongs to in the configuration.
 
-_bucket names_ and _response body_ can be set in the _Sphinx Configuration_.
+_limit names_ and _response body_ can be set in the _Sphinx Configuration_.
 
 Request:
 
@@ -55,10 +58,10 @@ Request:
 Response Headers:
 
     Status: 200 OK
-    X-Rate-Limit-Limit: 200
-    X-Rate-Limit-Remaining: 199
-    X-Rate-Limit-Reset: 1394506274
-    X-Rate-Limit-Bucket: authorized-users
+    X-RateLimit-Limit: 200
+    X-RateLimit-Remaining: 199
+    X-RateLimit-Reset: 1394506274
+    X-RateLimit-Bucket: authorized-users
 
 In case your application hits a rate limit, a HTTP Status Code `429 Too Many
 Requests` with an error message will be returned.
@@ -72,10 +75,10 @@ Request:
 Response Headers:
 
     Status: 429 Too Many Requests
-    X-Rate-Limit-Limit: 200
-    X-Rate-Limit-Remaining: 0
-    X-Rate-Limit-Reset: 1394506274
-    X-Rate-Limit-Bucket: authorized-users
+    X-RateLimit-Limit: 200
+    X-RateLimit-Remaining: 0
+    X-RateLimit-Reset: 1394506274
+    X-RateLimit-Bucket: authorized-users
 
 Response body:
 
@@ -85,7 +88,8 @@ Response body:
 
 ## Documentation
 
-[![GoDoc](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket).
+[![LeakyBucket](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket).
+[![Sphinx](https://godoc.org/github.com/Clever/sphinx?status.png)](https://godoc.org/github.com/Clever/sphinx).
 
 ## Tests
 
