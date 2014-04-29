@@ -6,7 +6,9 @@ import (
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/url"
+	"strings"
 )
 
 type Configuration struct {
@@ -43,8 +45,14 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	if config.Proxy.Host == "" {
 		return config, fmt.Errorf("proxy.host not set")
 	}
-	if _, err := url.Parse(config.Proxy.Host); err != nil {
-		return config, fmt.Errorf("could not parse proxy.host")
+	if _, _, err := net.SplitHostPort(config.Proxy.Listen); err != nil {
+		return config, fmt.Errorf("invalid proxy.listen. Should be like host:port or :port")
+	}
+
+	if _, err := url.ParseRequestURI(config.Proxy.Host); err != nil {
+		return config,
+			fmt.Errorf("Could not parse proxy.host. " +
+				"Must include scheme (eg. https://example.com)")
 	}
 	if len(config.Limits) < 1 {
 		return config, fmt.Errorf("No limits definied")
@@ -61,17 +69,17 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 
 	store, ok := config.Storage["type"]
 	if !ok {
-		return config, fmt.Errorf("leakybucket:store must be set.")
+		return config, fmt.Errorf("Storage type must be set.")
 	}
-	switch store {
+	switch strings.ToLower(store) {
 	default:
 		return config, fmt.Errorf("Storage type needs to be memory or redis")
 	case "redis":
 		if _, ok := config.Storage["host"]; !ok {
-			config.Storage["host"] = "localhost"
+			return config, fmt.Errorf("Storage host must be set for Redis")
 		}
 		if _, ok := config.Storage["port"]; !ok {
-			config.Storage["port"] = "6379"
+			return config, fmt.Errorf("Storage port must be set for Redis")
 		}
 	case "memory":
 		// nothing to do here

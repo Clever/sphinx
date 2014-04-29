@@ -55,11 +55,11 @@ func TestNewRateLimiter(t *testing.T) {
 // test that matcher errors are bubbled up
 func TestBadConfiguration(t *testing.T) {
 
-	var config_buf = bytes.NewBufferString(`
+	var configBuf = bytes.NewBufferString(`
 proxy:
   handler: http
-  host: proxy.example.com
-  listen: 8080
+  host: http://proxy.example.com
+  listen: :8080
 storage:
   type: memory
 limits:
@@ -69,14 +69,14 @@ limits:
 `)
 
 	// header matchers are verified
-	config_buf.WriteString(`
+	configBuf.WriteString(`
     matches:
       headers:
         match_any:
           - "Authorization": "Bearer.*"
           - name: "X-Forwarded-For"
 `)
-	configuration, err := loadAndValidateConfig(config_buf.Bytes())
+	configuration, err := loadAndValidateConfig(configBuf.Bytes())
 	if err != nil {
 		t.Error("configuration failed with error", err)
 	}
