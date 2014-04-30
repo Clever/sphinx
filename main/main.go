@@ -2,15 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/handlers"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
-	"os/signal"
-	"syscall"
+	//"os"
+	//"os/signal"
+	//"syscall"
 )
 
 var (
@@ -19,42 +20,71 @@ var (
 )
 
 type Daemon struct {
+	config      sphinx.Configuration
+	ratelimiter sphinx.RateLimiter
+	proxy       httputil.ReverseProxy
+	handler     http.Handler
 }
 
-func (d *Daemon) Reload(config Configuration) bool {
+//func (d *Daemon) Reload(config Configuration) bool {
+//}
 
+func (d *Daemon) Start() {
+	log.Printf("Listening on %s", d.config.Proxy.Listen)
+	log.Fatal(http.ListenAndServe(d.config.Proxy.Listen, d.handler))
+	return
 }
 
-func (d *Daemon) Quit() bool {
+//func (d *Daemon) Quit() bool {
+
+//}
+
+func NewDaemon(config sphinx.Configuration) (Daemon, error) {
+
+	ratelimiter, err := sphinx.NewRateLimiter(config)
+	if err != nil {
+		return Daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
+	}
+
+	target, _ := url.Parse(config.Proxy.Host) // already tested for invalid Host
+	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	var httplimiter http.Handler
+	switch config.Proxy.Handler {
+	case "http":
+		httplimiter = handlers.NewHTTPLogger(ratelimiter, proxy)
+	case "httplogger":
+		httplimiter = handlers.NewHTTPLimiter(ratelimiter, proxy)
+	default:
+		return Daemon{}, fmt.Errorf("Sphinx only supports the http handler")
+	}
+
+	return Daemon{
+		config:      config,
+		ratelimiter: ratelimiter,
+		handler:     httplimiter,
+	}, nil
 
 }
 
 func main() {
 
 	flag.Parse()
+
 	config, err := sphinx.NewConfiguration(*configfile)
 	if err != nil {
 		log.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
-	ratelimiter, err := sphinx.NewRateLimiter(config)
+
+	daemon, err := NewDaemon(config)
 	if err != nil {
-		log.Fatalf("SPHINX_INIT_FAILED: %s", err.Error())
+		log.Fatal(err)
 	}
-
-	// if configuration says that use http
-	if config.Proxy.Handler != "http" {
-		log.Fatalf("Sphinx only supports the http handler")
-	}
-
-	target, _ := url.Parse(config.Proxy.Host)
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	httplimiter := handlers.NewHTTPLogger(ratelimiter, proxy)
 
 	if *validate {
 		print("Configuration parsed and Sphinx loaded fine. not starting dameon.")
 		return
 	}
 
-	log.Printf("Listening on %s", config.Proxy.Listen)
-	log.Fatal(http.ListenAndServe(config.Proxy.Listen, wrapper))
+	daemon.Start()
 }
