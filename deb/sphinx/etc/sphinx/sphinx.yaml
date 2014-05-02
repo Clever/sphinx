@@ -1,7 +1,7 @@
 proxy:
   handler: http
-  host: http://httpbin.org
-  listen: :8080
+  host: https://api.clever.com
+  listen: :6634
 
 storage:
   type: redis  # can be {redis,memory}
@@ -9,12 +9,11 @@ storage:
   port: 6379  # not required for memory
 
 limits:
-  bearer-special:
+  bearer/events:
     interval: 15  # in seconds
-    max: 200
+    max: 100
     keys:
-      - header: "Authentication"
-      - ip: "127.0.0.1"
+      - header: "Authorization"
     matches:
       headers:
         match_any:
@@ -23,42 +22,43 @@ limits:
           - name: "X-Forwarded-For"
       paths:
         match_any:
-          - "/v1.1/special/resources/.*"
+          - "/v1.1/push/events/.*"
+          - "/v1.1/.*/events$"
 
-  basic-special:
+  basic/events:
     interval: 15
-    max: 200
+    max: 100
     keys:
-      - header: "Authentication"
+      - header: "Authorization"
     matches:
       paths:
         match_any:
-          - "/v1.1/special/resources/.*"
+          - "/v1.1/push/events/.*"
       headers:
         match_any:
-          - name: "Authentication"
+          - name: "Authorization"
             match: "Basic.*"
 
-  bearer-easy:
+  bearer/main:
     interval: 15
     max: 200
     keys:
-      - header: "Authentication"
+      - header: "Authorization"
     matches:
       headers:
         match_any:
-          - name: "Authentication"
+          - name: "Authorization"
             match: bearer
     excludes:
       paths:
         match_any:
-          - "/v1.1/special/resources/.*"
+          - "/v1.1/push/events/.*"
 
-  basic-easy:
+  basic/main:
     interval: 15
     max: 200
     keys:
-      - header: "Authentication"
+      - header: "Authorization"
     matches:
       headers:
         match_any:
@@ -67,4 +67,4 @@ limits:
     excludes:
       paths:
         match_any:
-          - "/v1.1/special/resources/.*"
+          - "/v1.1/push/events/.*"

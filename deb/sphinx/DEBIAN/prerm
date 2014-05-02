@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+set -u
+
+case "$1" in
+  remove|remove-in-favour|deconfigure|deconfigure-in-favour)
+    if [ -f /etc/init/sphinx.conf ]; then
+      echo "Stopping. Bringing down the Sphinx..."
+      service sphinx stop || exit $?
+      echo "Stopped. Sphinx no longer offering riddles."
+    fi
+    ;;
+
+  upgrade|failed-upgrade)
+    ;;
+
+  *)
+    echo "prerm called with unknown argument \`$1'" >&2
+    exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
