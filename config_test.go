@@ -22,15 +22,15 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected 4 bucket definitions")
 	}
 
-	for _, limit := range config.Limits {
+	for name, limit := range config.Limits {
 		if limit.Interval < 1 {
-			t.Error("limit interval should be greator than 1")
+			t.Errorf("limit interval should be greator than 1 for limit: %s", name)
 		}
 		if limit.Max < 1 {
-			t.Error("limit max should be greator than 1")
+			t.Errorf("limit max should be greator than 1 for limit: %s", name)
 		}
-		if limit.Keys != nil {
-			t.Error("limit was expected to have atleast 1 key")
+		if limit.Keys == nil {
+			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
 		}
 
 		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
@@ -110,7 +110,8 @@ storage:
 limits:
   bearer/events:
     keys:
-      - 'header:authentication'
+      headers: 
+        - 'Authentication'
 `)
 	_, err := loadAndValidateConfig(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "interval") {
@@ -123,7 +124,8 @@ limits:
   bearer/events:
     interval: 10
     keys:
-      - 'header:authentication'
+      headers: 
+        - 'Authentication'
 `)
 	_, err = loadAndValidateConfig(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "max") {
@@ -139,6 +141,9 @@ proxy:
   listen: localhost:8080
 limits:
   test:
+    keys:
+      headers:
+        - Authorization
     interval: 15  # in seconds
     max: 200
 `)

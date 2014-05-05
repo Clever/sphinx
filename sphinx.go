@@ -65,16 +65,16 @@ func (l *Limit) match(request common.Request) bool {
 		}
 	}
 
-	// At least one matcher in Matches should return true
+	// All Matchers should return true
 	for _, matcher := range l.matcher.Matches {
 		match := matcher.Match(request)
-		if match {
-			return true
+		if !match {
+			return false
 		}
 	}
 
 	// does not apply to any matcher in this limit
-	return false
+	return true
 }
 
 func (l *Limit) add(request common.Request) (leakybucket.BucketState, error) {
@@ -109,9 +109,15 @@ func newLimit(name string, config limitConfig, storage leakybucket.Storage) (*Li
 		log.Printf("Failed to load excludes for LIMIT:%s, ERROR:%s.", name, err)
 		return &limit, err
 	}
+	limitkeys, err := ResolveLimitKeys(config.Keys)
+	if err != nil {
+		log.Printf("Failed to load keys for LIMIT:%s, ERROR:%s.", name, err)
+		return &limit, err
+	}
 
 	limit.matcher.Matches = matches
 	limit.matcher.Excludes = excludes
+	limit.keys = limitkeys
 	return &limit, nil
 }
 

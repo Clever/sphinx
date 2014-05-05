@@ -21,9 +21,12 @@ func checkStatusForRequests(ratelimiter RateLimiter,
 		}
 	}
 
-	if len(statuses) != len(expectedStatuses) {
-		return fmt.Errorf("expected to match %d buckets. Got: %d",
-			len(expectedStatuses), len(statuses))
+	if len(statuses) != len(expected_statuses) {
+		for _, status := range statuses {
+			println("request", request["path"], status.Name)
+		}
+		return errors.New(fmt.Sprintf("expected to match %d buckets. Got: %d",
+			len(expected_statuses), len(statuses)))
 	}
 	for i, status := range expectedStatuses {
 		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
@@ -71,6 +74,9 @@ limits:
 
 	// header matchers are verified
 	configBuf.WriteString(`
+    keys:
+      headers:
+        - Authorization
     matches:
       headers:
         match_any:
@@ -101,7 +107,7 @@ func TestSimpleAdd(t *testing.T) {
 	ratelimiter, err := NewRateLimiter(config)
 
 	request := common.Request{
-		"path": "/v1.1/events/students/123",
+		"path": "/v1.1/special/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
 			"Authorization":   []string{"Bearer 12345"},
 			"X-Forwarded-For": []string{"IP1", "IP2"},
@@ -128,6 +134,7 @@ func TestSimpleAdd(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 type NeverMatch struct{}
 
 func (m NeverMatch) Match(req common.Request) bool {
@@ -191,4 +198,67 @@ func BenchmarkAdd1(b *testing.B) {
 
 func BenchmarkAdd100(b *testing.B) {
 	benchAdd(b, 100)
+=======
+// assert that the right bucket keys are generated for requests
+func TestLimitKeys(t *testing.T) {
+	keys, err := ResolveLimitKeys(map[string]interface{}{
+		"headers": []string{"Authorization", "X-Forwarded-For"},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Errorf("Error while creating limitkeys for test", err)
+	}
+
+	limit := Limit{
+		Name: "test-limit",
+		keys: keys,
+	}
+
+	request := common.Request{
+		"path": "/v1.1/students/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic 12345"},
+		}).Header,
+	}
+	if limit.BucketName(request) != "test-limit-Authorization:Basic 12345" {
+		t.Errorf("Invalid bucketname for test-limit: %s",
+			limit.BucketName(request))
+	}
+
+	// creating compound keys from multiple limitkeys
+	request = common.Request{
+		"path":       "/v1.1/students/123",
+		"remoteaddr": "127.0.0.1",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization":   []string{"Basic 12345"},
+			"X-Forwarded-For": []string{"192.0.0.1"},
+		}).Header,
+	}
+	if limit.BucketName(request) !=
+		"test-limit-Authorization:Basic 12345-X-Forwarded-For:192.0.0.1-ip:127.0.0.1" {
+		t.Errorf("Invalid compound bucketname for test-limit: %s",
+			limit.BucketName(request))
+	}
+
+	// works when headers are empty
+	request = common.Request{
+		"path":       "/v1.1/students/123",
+		"remoteaddr": "127.0.0.1",
+		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+	}
+	if limit.BucketName(request) !=
+		"test-limit-ip:127.0.0.1" {
+		t.Errorf("Invalid bucketname with no headers for test-limit: %s",
+			limit.BucketName(request))
+	}
+	request = common.Request{
+		"path":    "/v1.1/students/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+	}
+	if limit.BucketName(request) !=
+		"test-limit-" {
+		t.Errorf("Invalid bucketname with no valid request data for test-limit: %s",
+			limit.BucketName(request))
+	}
+>>>>>>> e568370... fix limitkeys implementation and add tests
 }

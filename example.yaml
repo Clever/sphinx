@@ -13,8 +13,9 @@ limits:
     interval: 15  # in seconds
     max: 200
     keys:
-      - header: "Authentication"
-      - ip: "127.0.0.1"
+      headers: 
+        - "Authorization"
+      ip:
     matches:
       headers:
         match_any:
@@ -29,25 +30,27 @@ limits:
     interval: 15
     max: 200
     keys:
-      - header: "Authentication"
+      headers:
+        - "Authorization"
     matches:
       paths:
         match_any:
           - "/v1.1/special/resources/.*"
       headers:
         match_any:
-          - name: "Authentication"
+          - name: "Authorization"
             match: "Basic.*"
 
   bearer-easy:
     interval: 15
     max: 200
     keys:
-      - header: "Authentication"
+      headers:
+        - "Authorization"
     matches:
       headers:
         match_any:
-          - name: "Authentication"
+          - name: "Authorization"
             match: bearer
     excludes:
       paths:
@@ -58,7 +61,8 @@ limits:
     interval: 15
     max: 200
     keys:
-      - header: "Authentication"
+      headers:
+        - "Authorization"
     matches:
       headers:
         match_any:

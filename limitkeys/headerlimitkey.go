@@ -8,7 +8,7 @@ import (
 )
 
 type HeaderLimitKey struct {
-	name string
+	Name string
 }
 
 func (hlk HeaderLimitKey) Type() string {
@@ -23,11 +23,11 @@ func (hlk HeaderLimitKey) Key(request common.Request) (string, error) {
 
 	headers := request["headers"].(http.Header)
 
-	if _, ok := headers[hlk.name]; !ok {
+	if _, ok := headers[hlk.Name]; !ok {
 		return "", EmptyKeyError{hlk,
-			fmt.Sprintf("Header %s not found in request", hlk.name)}
+			fmt.Sprintf("Header %s not found in request", hlk.Name)}
 	}
 
-	return fmt.Sprintf("%s:%s", hlk.name,
-		strings.Join(headers[hlk.name], ";")), nil
+	return fmt.Sprintf("%s:%s", hlk.Name,
+		strings.Join(headers[hlk.Name], ";")), nil
 }
