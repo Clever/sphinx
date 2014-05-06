@@ -8,9 +8,9 @@ PKGS = $(PKG) $(SUBPKGS)
 .PHONY: test $(PKGS)
 
 test: $(PKGS)
-all: build test
+build: bin/sphinxd
 
-build:
+bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)dev-$(SHA)" $(PKG)/main
 
 $(PKGS):
@@ -27,19 +27,19 @@ endif
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
-dpkg:
+deb: build test
 	mkdir -p deb/sphinx/usr/local/bin
 	mkdir -p deb/sphinx/var/lib/sphinx
 	mkdir -p deb/sphinx/var/cache/sphinx
 	cp bin/sphinxd deb/sphinx/usr/local/bin
 	-dpkg-deb --build deb/sphinx
 
-run:
-	bin/sphinxd --config="./exmaple.yaml"
+run: build
+	bin/sphinxd --config="./example.yaml"
 
 clean:
-	rm -rf bin/sphinxd
-	rm -rf main/main
-	rm -rf deb/sphind.deb
 	rm -rf deb/sphinx/usr
 	rm -rf deb/var
+	rm -f bin/sphinxd
+	rm -f main/main
+	rm -f deb/sphind.deb

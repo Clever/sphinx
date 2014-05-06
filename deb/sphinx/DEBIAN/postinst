@@ -11,12 +11,12 @@ case "$1" in
     ;;
 esac
 
-echo "Starting drone ..."
+echo "Bringing up the Sphinx..."
 if [ -f /etc/init/sphinx.conf ]; then
     if pidof /usr/local/bin/sphinxd >/dev/null; then
         service sphinx stop || exit $?
     fi
-    service sphinx start && echo "Started. Spinx now on guard."
+    service sphinx start && echo "Started. Sphinx now on guard."
 fi
 
 #DEBHELPER#

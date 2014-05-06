@@ -23,18 +23,11 @@ type Daemon struct {
 	handler     http.Handler
 }
 
-//func (d *Daemon) Reload(config Configuration) bool {
-//}
-
 func (d *Daemon) Start() {
 	log.Printf("Listening on %s", d.config.Proxy.Listen)
 	log.Fatal(http.ListenAndServe(d.config.Proxy.Listen, d.handler))
 	return
 }
-
-//func (d *Daemon) Quit() bool {
-
-//}
 
 func NewDaemon(config sphinx.Configuration) (Daemon, error) {
 

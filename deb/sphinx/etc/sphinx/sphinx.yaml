@@ -1,10 +1,10 @@
 proxy:
-  handler: http   # can be {http. httplogger}
-  host: http://httpbin.org
+  handler: http  # can be {http, httplogger}
+  host: https://httpbin.org
   listen: :6634
 
 storage:
-  type: redis     # can be {redis,memory}
+  type: redis     # can be {redis, memory}
   host: localhost # not required for memory
   port: 6379      # not required for memory
 
@@ -33,5 +33,5 @@ limits:
           - name: "X-Forwarded-For"
       paths:
         match_any:
-          - "/specia/resources/.*"
+          - "/special/resources/.*"
           - "/resources/.*/special$"
