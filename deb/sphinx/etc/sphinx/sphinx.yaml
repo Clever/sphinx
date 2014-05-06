@@ -1,20 +1,31 @@
 proxy:
-  handler: http
-  host: https://api.clever.com
+  handler: http   # can be {http. httplogger}
+  host: http://httpbin.org
   listen: :6634
 
 storage:
-  type: redis  # can be {redis,memory}
-  host: localhost  # not required for memory
-  port: 6379  # not required for memory
+  type: redis     # can be {redis,memory}
+  host: localhost # not required for memory
+  port: 6379      # not required for memory
 
 limits:
-  bearer/events:
+  sample-limit:
     interval: 15  # in seconds
-    max: 100
+    max: 100      # number of requests allowed in interval
     keys:
-      - header: "Authorization"
+      # buckets are keyed on concatnated values of these params
+      headers: 
+        - "Authorization" 
+        - "X-Forwarded-For"
+      ip: ""      # ip keys require no configuration
+     excludes:
+       # excludes are evaluated before matches and requests that 
+       # match excludes are ignored
+       paths:
+         match_any:
+           - "/static/.*"
     matches:
+      # both headers and paths matches should be true for limit to apply
       headers:
         match_any:
           - name: "Authorization"
@@ -22,49 +33,5 @@ limits:
           - name: "X-Forwarded-For"
       paths:
         match_any:
-          - "/v1.1/push/events/.*"
-          - "/v1.1/.*/events$"
-
-  basic/events:
-    interval: 15
-    max: 100
-    keys:
-      - header: "Authorization"
-    matches:
-      paths:
-        match_any:
-          - "/v1.1/push/events/.*"
-      headers:
-        match_any:
-          - name: "Authorization"
-            match: "Basic.*"
-
-  bearer/main:
-    interval: 15
-    max: 200
-    keys:
-      - header: "Authorization"
-    matches:
-      headers:
-        match_any:
-          - name: "Authorization"
-            match: bearer
-    excludes:
-      paths:
-        match_any:
-          - "/v1.1/push/events/.*"
-
-  basic/main:
-    interval: 15
-    max: 200
-    keys:
-      - header: "Authorization"
-    matches:
-      headers:
-        match_any:
-          - name: "Authorization"
-            match: "Basic.*"
-    excludes:
-      paths:
-        match_any:
-          - "/v1.1/push/events/.*"
+          - "/specia/resources/.*"
+          - "/resources/.*/special$"
