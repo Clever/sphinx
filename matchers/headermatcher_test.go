@@ -154,6 +154,8 @@ headers:
 	}
 }
 
+// Benchmarks HeaderMatcher.MatchAny with a config with numHeaders headers and
+// requests with numHeaders headers, where none of the headers match.
 var benchHeader = func(b *testing.B, numHeaders int) {
 	config := "headers:\n  match_any:\n"
 	headers := map[string][]string{}
