@@ -1,8 +1,10 @@
 package matchers
 
 import (
+	"fmt"
 	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
+	"strconv"
 	"testing"
 )
 
@@ -150,4 +152,32 @@ headers:
 	if headermatcher.Match(request) {
 		t.Fatalf("Should NOT have matched Header X-Forwarded-For")
 	}
+}
+
+var benchHeader = func(b *testing.B, numHeaders int) {
+	config := "headers:\n  match_any:\n"
+	headers := map[string][]string{}
+	for i := 0; i < numHeaders; i++ {
+		str := strconv.Itoa(i)
+		config += fmt.Sprintf("    - name: \"%s\"\n      match: \"%s\"\n", str, str)
+		strPlus := strconv.Itoa(i + 1)
+		headers[str] = []string{strPlus}
+	}
+	headermatcher, err := getHeaderMatcher([]byte(config))
+	if err != nil {
+		b.Fatal(err)
+	}
+	request := getRequest(headers)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		headermatcher.Match(request)
+	}
+}
+
+func Benchmark1Header(b *testing.B) {
+	benchHeader(b, 1)
+}
+
+func Benchmark100Headers(b *testing.B) {
+	benchHeader(b, 10)
 }
