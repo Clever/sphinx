@@ -107,7 +107,7 @@ func TestSimpleAdd(t *testing.T) {
 	ratelimiter, err := NewRateLimiter(config)
 
 	request := common.Request{
-		"path": "/v1.1/special/resources/123",
+		"path": "/special/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
 			"Authorization":   []string{"Bearer 12345"},
 			"X-Forwarded-For": []string{"IP1", "IP2"},
@@ -121,7 +121,7 @@ func TestSimpleAdd(t *testing.T) {
 	}
 
 	request = common.Request{
-		"path": "/v1.1/students/123",
+		"path": "/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
 			"Authorization": []string{"Basic 12345"},
 		}).Header,
@@ -129,7 +129,7 @@ func TestSimpleAdd(t *testing.T) {
 
 	if err = checkStatusForRequests(
 		ratelimiter, request, 1, []Status{
-			Status{Remaining: 195, Name: "basic-easy"}}); err != nil {
+			Status{Remaining: 195, Name: "basic-simple"}}); err != nil {
 		t.Error(err)
 	}
 }
@@ -215,7 +215,7 @@ func TestLimitKeys(t *testing.T) {
 	}
 
 	request := common.Request{
-		"path": "/v1.1/students/123",
+		"path": "/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
 			"Authorization": []string{"Basic 12345"},
 		}).Header,
@@ -227,7 +227,7 @@ func TestLimitKeys(t *testing.T) {
 
 	// creating compound keys from multiple limitkeys
 	request = common.Request{
-		"path":       "/v1.1/students/123",
+		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
 			"Authorization":   []string{"Basic 12345"},
@@ -242,7 +242,7 @@ func TestLimitKeys(t *testing.T) {
 
 	// works when headers are empty
 	request = common.Request{
-		"path":       "/v1.1/students/123",
+		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
 		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
@@ -252,7 +252,7 @@ func TestLimitKeys(t *testing.T) {
 			limit.BucketName(request))
 	}
 	request = common.Request{
-		"path":    "/v1.1/students/123",
+		"path":    "/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
 	if limit.BucketName(request) !=
@@ -261,4 +261,53 @@ func TestLimitKeys(t *testing.T) {
 			limit.BucketName(request))
 	}
 >>>>>>> e568370... fix limitkeys implementation and add tests
+}
+
+// ensures that Limit.Match exhibits expected behavior
+func TestLimitMatch(t *testing.T) {
+	config, err := NewConfiguration("./example.yaml")
+	if err != nil {
+		t.Error("could not load example configuration")
+	}
+
+	// matches name: Authorization, match: bearer (from example.yaml)
+	matchers, err := ResolveMatchers(config.Limits["basic-simple"].Matches)
+	// excludes path: /special/resoures/.*
+	excludes, err := ResolveMatchers(config.Limits["basic-simple"].Excludes)
+
+	limit := Limit{
+		Name: "test-limit",
+		matcher: RequestMatcher{
+			Matches:  matchers,
+			Excludes: excludes,
+		},
+	}
+
+	request := common.Request{
+		"path": "/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic 12345"},
+		}).Header,
+	}
+	if !limit.Match(request) {
+		t.Error("Expected basic-easy to match request")
+	}
+
+	request = common.Request{
+		"path": "/special/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic 12345"},
+		}).Header,
+	}
+	if limit.Match(request) {
+		t.Error("Request with Excludes path should NOT match basic-easy")
+	}
+
+	request = common.Request{
+		"path":    "/special/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+	}
+	if limit.Match(request) {
+		t.Error("Request without Auth header should NOT match basic-easy")
+	}
 }
