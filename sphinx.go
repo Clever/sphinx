@@ -46,13 +46,11 @@ func (l *Limit) BucketName(request common.Request) string {
 	var keyNames []string
 	for _, key := range l.keys {
 		keyString, err := key.Key(request)
-		println("keystring", keyString)
 		if err != nil {
 			continue
 		}
 		keyNames = append(keyNames, keyString)
 	}
-	println("BucketKey", keyNames, l.Name)
 	return fmt.Sprintf("%s-%s", l.Name, strings.Join(keyNames, "-"))
 }
 
@@ -82,7 +80,6 @@ func (l *Limit) Add(request common.Request) (leakybucket.BucketState, error) {
 
 	var bucketstate leakybucket.BucketState
 	expiry := time.Duration(l.config.Interval) * time.Second
-	println("BUCKETNAME", l.BucketName(request))
 	bucket, err := l.bucketStore.Create(l.BucketName(request),
 		l.config.Max, expiry)
 	if err != nil {
