@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/matchers"
 	"strings"
 	"testing"
 )
@@ -125,4 +126,69 @@ func TestSimpleAdd(t *testing.T) {
 			Status{Remaining: 195, Name: "basic-easy"}}); err != nil {
 		t.Error(err)
 	}
+}
+
+type NeverMatch struct{}
+
+func (m NeverMatch) Match(req common.Request) bool {
+	return false
+}
+
+func createLimit(numMatchers int) *Limit {
+	neverMatchers := []matchers.Matcher{}
+	for i := 0; i < numMatchers; i++ {
+		neverMatchers = append(neverMatchers, NeverMatch{})
+	}
+	limit := &Limit{
+		matcher: requestMatcher{
+			Matches:  neverMatchers,
+			Excludes: neverMatchers,
+		},
+	}
+	return limit
+}
+
+var benchMatch = func(b *testing.B, numMatchers int) {
+	limit := createLimit(numMatchers)
+	request := common.Request{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		limit.match(request)
+	}
+}
+
+func BenchmarkMatch1(b *testing.B) {
+	benchMatch(b, 1)
+}
+
+func BenchmarkMatch100(b *testing.B) {
+	benchMatch(b, 100)
+}
+
+func createRateLimiter(numLimits int) RateLimiter {
+	limit := createLimit(1)
+	rateLimiter := &sphinxRateLimiter{}
+	limits := []*Limit{}
+	for i := 0; i < numLimits; i++ {
+		limits = append(limits, limit)
+	}
+	rateLimiter.limits = limits
+	return rateLimiter
+}
+
+var benchAdd = func(b *testing.B, numLimits int) {
+	rateLimiter := createRateLimiter(numLimits)
+	request := common.Request{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rateLimiter.Add(request)
+	}
+}
+
+func BenchmarkAdd1(b *testing.B) {
+	benchAdd(b, 1)
+}
+
+func BenchmarkAdd100(b *testing.B) {
+	benchAdd(b, 100)
 }

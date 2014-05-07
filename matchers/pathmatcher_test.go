@@ -1,9 +1,11 @@
 package matchers
 
 import (
+	"fmt"
 	"github.com/Clever/sphinx/common"
 	"gopkg.in/v1/yaml"
 	"log"
+	"strconv"
 	"testing"
 )
 
@@ -97,4 +99,28 @@ paths:
 	if pathmatcher.Match(request) {
 		log.Panicf("Do not expect resource request to match config")
 	}
+}
+
+// Benchmarks PathMatcher.Match with a config with numPaths paths and
+// requests with numPaths paths, where none of the paths match.
+var benchPath = func(b *testing.B, numPaths int) {
+	config := "paths:\n  match_any:\n"
+	for i := 0; i < numPaths; i++ {
+		str := strconv.Itoa(i)
+		config += fmt.Sprintf("    - \"/v1.1/path/%s\"\n", str)
+	}
+	pathMatcher := getPathMatcher([]byte(config))
+	request := getRequestForPath("/v1.1/path/" + strconv.Itoa(numPaths))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		pathMatcher.Match(request)
+	}
+}
+
+func Benchmark1Path(b *testing.B) {
+	benchPath(b, 1)
+}
+
+func Benchmark100Paths(b *testing.B) {
+	benchPath(b, 100)
 }
