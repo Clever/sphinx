@@ -15,7 +15,7 @@ func getPathMatcher(config []byte) Matcher {
 	var pathConfig TestPathMatcherConfig
 	yaml.Unmarshal(config, &pathConfig)
 
-	factory := PathMatcherFactory{}
+	factory := pathMatcherFactory{}
 	pathmatcher, err := factory.Create(pathConfig.Paths)
 	if err != nil {
 		log.Panicf("Failed to create PathMatcher", err)
@@ -42,9 +42,9 @@ paths:
 
 	pathmatcher := getPathMatcher(config)
 
-	if len(pathmatcher.(PathMatcher).Paths) != 2 {
+	if len(pathmatcher.(pathMatcher).Paths) != 2 {
 		log.Panicf("Expected two regexps in PathMatcher. Found: %d",
-			len(pathmatcher.(PathMatcher).Paths))
+			len(pathmatcher.(pathMatcher).Paths))
 	}
 }
 
@@ -57,7 +57,7 @@ paths:
 	var pathConfig TestPathMatcherConfig
 	yaml.Unmarshal(config, &pathConfig)
 
-	factory := PathMatcherFactory{}
+	factory := pathMatcherFactory{}
 	_, err := factory.Create(pathConfig.Paths)
 	if err == nil {
 		t.Error("Expected error when headers have no name")

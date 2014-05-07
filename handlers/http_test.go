@@ -16,14 +16,14 @@ import (
 )
 
 func constructMockRequestWithHeaders(headers map[string][]string) *http.Request {
-	testUrl, err := url.Parse("https://google.com/trolling/path")
+	testURL, err := url.Parse("https://google.com/trolling/path")
 	if err != nil {
 		panic(err)
 	}
 
 	return &http.Request{
 		Header: headers,
-		URL:    testUrl,
+		URL:    testURL,
 	}
 }
 
@@ -99,8 +99,8 @@ func (p *MockProxy) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	_ = p.Mock.Called(rw, r)
 }
 
-func constructHTTPRateLimiter() HTTPRateLimiter {
-	return HTTPRateLimiter{
+func constructHTTPRateLimiter() httpRateLimiter {
+	return httpRateLimiter{
 		ratelimiter: &MockRateLimiter{Mock: new(mock.Mock)},
 		proxy:       &MockProxy{Mock: new(mock.Mock)},
 	}

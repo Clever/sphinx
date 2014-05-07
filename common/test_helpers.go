@@ -5,7 +5,8 @@ import (
 	"net/url"
 )
 
-func HttpToSphinxRequest(r *http.Request) Request {
+// HTTPToSphinxRequest converts an http.Request to a Request
+func HTTPToSphinxRequest(r *http.Request) Request {
 	return map[string]interface{}{
 		"path":       r.URL.Path,
 		"headers":    r.Header,
@@ -13,14 +14,15 @@ func HttpToSphinxRequest(r *http.Request) Request {
 	}
 }
 
+// ConstructMockRequestWithHeaders constructs an http.Request with the given headers
 func ConstructMockRequestWithHeaders(headers map[string][]string) *http.Request {
-	testUrl, err := url.Parse("https://google.com/trolling/path")
+	testURL, err := url.Parse("https://google.com/trolling/path")
 	if err != nil {
 		panic(err)
 	}
 
 	return &http.Request{
 		Header: headers,
-		URL:    testUrl,
+		URL:    testURL,
 	}
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func checkStatusForRequests(ratelimiter RateLimiter,
-	request common.Request, num int, expected_statuses []Status) error {
+	request common.Request, num int, expectedStatuses []Status) error {
 
 	var statuses []Status
 	var err error
@@ -21,13 +21,13 @@ func checkStatusForRequests(ratelimiter RateLimiter,
 		}
 	}
 
-	if len(statuses) != len(expected_statuses) {
-		return errors.New(fmt.Sprintf("expected to match %d buckets. Got: %d",
-			len(expected_statuses), len(statuses)))
+	if len(statuses) != len(expectedStatuses) {
+		return fmt.Errorf("expected to match %d buckets. Got: %d",
+			len(expectedStatuses), len(statuses))
 	}
-	for i, status := range expected_statuses {
+	for i, status := range expectedStatuses {
 		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
-			return errors.New("Expected 5 requests for the 'bearer/events' limits")
+			return errors.New("expected 5 requests for the 'bearer/events' limits")
 		}
 	}
 
