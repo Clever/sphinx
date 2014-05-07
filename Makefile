@@ -3,15 +3,16 @@ PKG = github.com/Clever/sphinx
 VERSION := 0.1
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 SUBPKGS = $(addprefix $(PKG)/,common handlers limitkeys matchers main)
 PKGS = $(PKG) $(SUBPKGS)
-.PHONY: test $(PKGS)
+.PHONY: test $(PKGS) run clean
 
 test: $(PKGS)
 build: bin/sphinxd
 
 bin/sphinxd: *.go **/*.go
-	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)dev-$(SHA)" $(PKG)/main
+	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
 
 $(PKGS):
 ifeq ($(LINT),1)
