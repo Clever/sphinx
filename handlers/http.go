@@ -10,14 +10,6 @@ import (
 	"strconv"
 )
 
-func parseRequest(r *http.Request) common.Request {
-	return map[string]interface{}{
-		"path":       r.URL.Path,
-		"headers":    r.Header,
-		"remoteaddr": r.RemoteAddr,
-	}
-}
-
 type httpRateLimiter struct {
 	rateLimiter sphinx.RateLimiter
 	proxy       http.Handler
@@ -25,7 +17,7 @@ type httpRateLimiter struct {
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
-	request := parseRequest(r)
+	request := common.HTTPToSphinxRequest(r)
 	log.Printf("[%s] REQUEST: %#v", guid, request)
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
@@ -45,7 +37,7 @@ type httpRateLogger httpRateLimiter
 
 func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
-	request := parseRequest(r)
+	request := common.HTTPToSphinxRequest(r)
 	log.Printf("[%s] REQUEST: %#v", guid, request)
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {

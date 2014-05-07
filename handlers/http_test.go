@@ -107,7 +107,7 @@ func constructHTTPRateLimiter() httpRateLimiter {
 }
 
 func TestParsesHeaders(t *testing.T) {
-	request := parseRequest(constructMockRequestWithHeaders(map[string][]string{
+	request := common.HTTPToSphinxRequest(constructMockRequestWithHeaders(map[string][]string{
 		"Authorization":   []string{"Bearer 12345"},
 		"X-Forwarded-For": []string{"IP1", "IP2"},
 	}))

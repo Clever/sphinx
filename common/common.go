@@ -1,5 +1,9 @@
 package common
 
+import (
+	"net/http"
+)
+
 // Request contains any info necessary to ratelimit a request
 type Request map[string]interface{}
 
@@ -11,4 +15,13 @@ func InSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// HTTPToSphinxRequest converts an http.Request to a Request
+func HTTPToSphinxRequest(r *http.Request) Request {
+	return map[string]interface{}{
+		"path":       r.URL.Path,
+		"headers":    r.Header,
+		"remoteaddr": r.RemoteAddr,
+	}
 }

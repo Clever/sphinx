@@ -9,26 +9,31 @@ import (
 	"testing"
 )
 
-func checkStatusForRequests(ratelimiter RateLimiter,
-	request common.Request, num int, expectedStatuses []Status) error {
-
-	var statuses []Status
+func returnLastAddStatus(rateLimiter RateLimiter, request common.Request, numAdds int) ([]Status, error) {
+	statuses := []Status{}
 	var err error
-	for i := 0; i < num; i++ {
-		statuses, err = ratelimiter.Add(request)
-		if err != nil {
-			return err
+	for i := 0; i < numAdds; i++ {
+		if statuses, err = rateLimiter.Add(request); err != nil {
+			return nil, err
 		}
 	}
+	return statuses, nil
+}
 
-	if len(statuses) != len(expectedStatuses) {
-		return fmt.Errorf("expected to match %d buckets. Got: %d",
-			len(expectedStatuses), len(statuses))
-	}
-	for i, status := range expectedStatuses {
-		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
-			return fmt.Errorf("expected %d remaining for the %s limit. Found: %d Remaining, %s Limit",
-				statuses[i].Remaining, statuses[i].Name, status.Remaining, status.Name)
+func checkLastStatusForRequests(ratelimiter RateLimiter,
+	request common.Request, numAdds int, expectedStatuses []Status) error {
+
+	if statuses, err := returnLastAddStatus(ratelimiter, request, numAdds); err != nil {
+		return err
+	} else if len(statuses) != len(expectedStatuses) {
+		return fmt.Errorf("expected to match %d buckets. Got: %d", len(expectedStatuses),
+			len(statuses))
+	} else {
+		for i, status := range expectedStatuses {
+			if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
+				return fmt.Errorf("expected %d remaining for the %s limit. Found: %d Remaining, %s Limit",
+					statuses[i].Remaining, statuses[i].Name, status.Remaining, status.Name)
+			}
 		}
 	}
 
@@ -47,8 +52,7 @@ func TestNewRateLimiter(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while instantiating ratelimiter: %s", err.Error())
 	}
-	if len(ratelimiter.Configuration().Limits) !=
-		len(ratelimiter.Limits()) {
+	if len(ratelimiter.Configuration().Limits) != len(ratelimiter.Limits()) {
 		t.Error("expected number of limits in configuration to match instantiated limits")
 	}
 }
@@ -56,7 +60,7 @@ func TestNewRateLimiter(t *testing.T) {
 // test that matcher errors are bubbled up
 func TestBadConfiguration(t *testing.T) {
 
-	var configBuf = bytes.NewBufferString(`
+	configBuf := bytes.NewBufferString(`
 proxy:
   handler: http
   host: http://proxy.example.com
@@ -82,8 +86,7 @@ limits:
 		t.Error("configuration failed with error", err)
 	}
 
-	_, err = NewRateLimiter(configuration)
-	if err == nil {
+	if _, err := NewRateLimiter(configuration); err == nil {
 		t.Error("Expected header matcher error, got none")
 	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
 		t.Errorf("Expected a InvalidMatcherConfig error, got different error: %s", err.Error())
@@ -108,7 +111,7 @@ func TestSimpleAdd(t *testing.T) {
 		}).Header,
 		"remoteaddr": "127.0.0.1",
 	}
-	if err = checkStatusForRequests(
+	if err = checkLastStatusForRequests(
 		ratelimiter, request, 5, []Status{
 			Status{Remaining: 195, Name: "bearer-special"}}); err != nil {
 		t.Error(err)
@@ -121,7 +124,7 @@ func TestSimpleAdd(t *testing.T) {
 		}).Header,
 	}
 
-	if err = checkStatusForRequests(
+	if err = checkLastStatusForRequests(
 		ratelimiter, request, 1, []Status{
 			Status{Remaining: 195, Name: "basic-easy"}}); err != nil {
 		t.Error(err)

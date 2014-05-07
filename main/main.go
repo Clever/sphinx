@@ -18,7 +18,7 @@ var (
 
 type Daemon struct {
 	config      sphinx.Configuration
-	ratelimiter sphinx.RateLimiter
+	rateLimiter sphinx.RateLimiter
 	proxy       httputil.ReverseProxy
 	handler     http.Handler
 }
@@ -31,7 +31,7 @@ func (d *Daemon) Start() {
 
 func NewDaemon(config sphinx.Configuration) (Daemon, error) {
 
-	ratelimiter, err := sphinx.NewRateLimiter(config)
+	rateLimiter, err := sphinx.NewRateLimiter(config)
 	if err != nil {
 		return Daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
@@ -39,22 +39,20 @@ func NewDaemon(config sphinx.Configuration) (Daemon, error) {
 	target, _ := url.Parse(config.Proxy.Host) // already tested for invalid Host
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
-	var httplimiter http.Handler
+	daemon := Daemon{
+		config:      config,
+		rateLimiter: rateLimiter,
+	}
 	switch config.Proxy.Handler {
 	case "http":
-		httplimiter = handlers.NewHTTPLimiter(ratelimiter, proxy)
+		daemon.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
 	case "httplogger":
-		httplimiter = handlers.NewHTTPLogger(ratelimiter, proxy)
+		daemon.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
 	default:
 		return Daemon{}, fmt.Errorf("Unrecognized handler %s", config.Proxy.Handler)
 	}
 
-	return Daemon{
-		config:      config,
-		ratelimiter: ratelimiter,
-		handler:     httplimiter,
-	}, nil
-
+	return daemon, nil
 }
 
 func main() {

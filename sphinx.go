@@ -44,7 +44,7 @@ type Limit struct {
 
 func (l *Limit) bucketName(request common.Request) string {
 
-	var keyNames []string
+	keyNames := []string{}
 	for _, key := range l.keys {
 		keyString, err := key.Key(request)
 		if err != nil {
@@ -59,32 +59,28 @@ func (l *Limit) match(request common.Request) bool {
 
 	// Request does NOT apply if any matcher in Excludes returns true
 	for _, matcher := range l.matcher.Excludes {
-		match := matcher.Match(request)
-		if match {
+		if matcher.Match(request) {
 			return false
 		}
 	}
 
 	// At least one matcher in Matches should return true
 	for _, matcher := range l.matcher.Matches {
-		match := matcher.Match(request)
-		if match {
+		if matcher.Match(request) {
 			return true
 		}
 	}
 
-	// does not apply to any matcher in this limit
+	// Does not apply to any matcher in this limit
 	return false
 }
 
 func (l *Limit) add(request common.Request) (leakybucket.BucketState, error) {
 
-	var bucketstate leakybucket.BucketState
 	expiry := time.Duration(l.config.Interval) * time.Second
-	bucket, err := l.bucketStore.Create(l.bucketName(request),
-		l.config.Max, expiry)
+	bucket, err := l.bucketStore.Create(l.bucketName(request), l.config.Max, expiry)
 	if err != nil {
-		return bucketstate, err
+		return leakybucket.BucketState{}, err
 	}
 
 	return bucket.Add(1)
@@ -92,27 +88,26 @@ func (l *Limit) add(request common.Request) (leakybucket.BucketState, error) {
 
 func newLimit(name string, config limitConfig, storage leakybucket.Storage) (*Limit, error) {
 
-	limit := Limit{}
-	limit.Name = name
-	limit.bucketStore = storage
-	limit.config = config
+	limit := &Limit{
+		Name:        name,
+		bucketStore: storage,
+		config:      config,
+		matcher:     requestMatcher{},
+	}
 
-	limit.matcher = requestMatcher{}
-
-	matches, err := resolveMatchers(config.Matches)
-	if err != nil {
+	if matches, err := resolveMatchers(config.Matches); err != nil {
 		log.Printf("Failed to load matchers for LIMIT:%s, ERROR:%s", name, err)
-		return &limit, err
+		return limit, err
+	} else {
+		limit.matcher.Matches = matches
 	}
-	excludes, err := resolveMatchers(config.Excludes)
-	if err != nil {
+	if excludes, err := resolveMatchers(config.Excludes); err != nil {
 		log.Printf("Failed to load excludes for LIMIT:%s, ERROR:%s.", name, err)
-		return &limit, err
+		return limit, err
+	} else {
+		limit.matcher.Excludes = excludes
 	}
-
-	limit.matcher.Matches = matches
-	limit.matcher.Excludes = excludes
-	return &limit, nil
+	return limit, nil
 }
 
 // Status contains the status of a limit.
@@ -162,17 +157,17 @@ func (r *sphinxRateLimiter) SetLimits(limits []*Limit) {
 }
 
 func (r *sphinxRateLimiter) Add(request common.Request) ([]Status, error) {
-	var status []Status
+	status := []Status{}
 	for _, limit := range r.Limits() {
-		if match := limit.match(request); match {
-			bucketstate, err := limit.add(request)
-			if err != nil {
-				return status,
-					fmt.Errorf("error while adding to Limit: %s. %s",
-						limit.Name, err.Error())
-			}
-			status = append(status, NewStatus(limit.Name, bucketstate))
+		if !limit.match(request) {
+			continue
 		}
+		bucketstate, err := limit.add(request)
+		if err != nil {
+			return status, fmt.Errorf("error while adding to Limit: %s. %s",
+				limit.Name, err.Error())
+		}
+		status = append(status, NewStatus(limit.Name, bucketstate))
 	}
 	return status, nil
 }
@@ -180,23 +175,23 @@ func (r *sphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 // NewRateLimiter returns a new RateLimiter based on the given configuration.
 func NewRateLimiter(config Configuration) (RateLimiter, error) {
 
-	rateLimiter := sphinxRateLimiter{
+	rateLimiter := &sphinxRateLimiter{
 		configuration: config,
 	}
 	storage, err := leakyBucketStore(config.Storage)
 	if err != nil {
-		return &rateLimiter, err
+		return rateLimiter, err
 	}
 
-	var limits []*Limit
+	limits := []*Limit{}
 	for name, config := range config.Limits {
 		limit, err := newLimit(name, config, storage)
 		if err != nil {
-			return &rateLimiter, err
+			return rateLimiter, err
 		}
 		limits = append(limits, limit)
 	}
 	rateLimiter.SetLimits(limits)
 
-	return &rateLimiter, nil
+	return rateLimiter, nil
 }
