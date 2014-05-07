@@ -3,6 +3,8 @@ package sphinx
 import (
 	"bytes"
 	"fmt"
+	"github.com/Clever/leakybucket"
+	"github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/matchers"
 	"strings"
@@ -309,5 +311,65 @@ func TestLimitMatch(t *testing.T) {
 	}
 	if limit.Match(request) {
 		t.Error("Request without Auth header should NOT match basic-easy")
+	}
+}
+
+// Make sure limit.Add adds requests to different buckets
+func TestLimitAdd(t *testing.T) {
+	config, err := NewConfiguration("./example.yaml")
+	if err != nil {
+		t.Error("could not load example configuration")
+	}
+
+	limitconfig := LimitConfig{
+		Interval: 100,
+		Max:      3,
+		// matches name: Authorization, match: bearer (from example.yaml)
+		Matches: config.Limits["basic-simple"].Matches,
+		// excludes path: /special/resoures/.*
+		Excludes: config.Limits["basic-simple"].Excludes,
+		Keys:     config.Limits["basic-simple"].Keys,
+	}
+
+	limit, err := NewLimit("test-limit", limitconfig, memory.New())
+	if err != nil {
+		t.Error("Could not initialize test-limit")
+	}
+
+	request := common.Request{
+		"path": "/special/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic 12345"},
+		}).Header,
+	}
+	for i := uint(1); i < 4; i++ {
+		bucketStatus, err := limit.Add(request)
+		if err != nil {
+			t.Errorf("Error while adding to limit test-limit: %s", err.Error())
+		}
+		if bucketStatus.Remaining != limitconfig.Max-i {
+			t.Errorf("Expected remaining %d, found: %d",
+				limitconfig.Max-i, bucketStatus.Remaining)
+		}
+	}
+
+	bucketStatus, err := limit.Add(request)
+	if err == nil || err != leakybucket.ErrorFull {
+		t.Errorf("Expected leakybucket.ErrorFull error, got: %s", err.Error())
+	}
+
+	request2 := common.Request{
+		"path": "/special/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization": []string{"Basic ABC"},
+		}).Header,
+	}
+	bucketStatus, err = limit.Add(request2)
+	if err != nil {
+		t.Errorf("Error while adding to limit test-limit: %s", err.Error())
+	}
+	if bucketStatus.Remaining != 2 {
+		t.Errorf("Expected remaining %d, found: %d",
+			2, bucketStatus.Remaining)
 	}
 }
