@@ -181,5 +181,5 @@ func Benchmark1Header(b *testing.B) {
 }
 
 func Benchmark100Headers(b *testing.B) {
-	benchHeader(b, 10)
+	benchHeader(b, 100)
 }

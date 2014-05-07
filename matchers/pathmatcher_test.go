@@ -122,5 +122,5 @@ func Benchmark1Path(b *testing.B) {
 }
 
 func Benchmark100Paths(b *testing.B) {
-	benchPath(b, 10)
+	benchPath(b, 100)
 }
