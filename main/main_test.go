@@ -16,7 +16,7 @@ var host = "http://localhost:8081"
 type Handler struct{}
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, _ = w.Write([]byte{})
+	w.Write([]byte{})
 }
 
 func setUpLocalServer() {
@@ -73,6 +73,6 @@ func BenchmarkReasonableConfig(b *testing.B) {
 	log.SetOutput(ioutil.Discard)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = makeRequestTo(":8082")
+		makeRequestTo(":8082")
 	}
 }

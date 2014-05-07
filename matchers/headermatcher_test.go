@@ -165,14 +165,14 @@ var benchHeader = func(b *testing.B, numHeaders int) {
 		strPlus := strconv.Itoa(i + 1)
 		headers[str] = []string{strPlus}
 	}
-	headermatcher, err := getHeaderMatcher([]byte(config))
+	headerMatcher, err := getHeaderMatcher([]byte(config))
 	if err != nil {
 		b.Fatal(err)
 	}
 	request := getRequest(headers)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		headermatcher.Match(request)
+		headerMatcher.Match(request)
 	}
 }
 
