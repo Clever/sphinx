@@ -50,11 +50,11 @@ func TestInvalidConfigurationPath(t *testing.T) {
 }
 
 func TestInvalidYaml(t *testing.T) {
-	invalid_yaml := []byte(`
+	invalidYaml := []byte(`
 forward
   host$$: proxy.example.com
 `)
-	_, err := loadAndValidateConfig(invalid_yaml)
+	_, err := loadAndValidateConfig(invalidYaml)
 	if !strings.Contains(err.Error(), "YAML error:") {
 		t.Errorf("expected yaml error, got %s", err.Error())
 	}
@@ -63,32 +63,32 @@ forward
 // Incorrect configuration file should return errors
 func TestInvalidProxyConfig(t *testing.T) {
 
-	invalid_config := []byte(`
+	invalidConfig := []byte(`
 proxy:
   host: http://proxy.example.com
 `)
-	_, err := loadAndValidateConfig(invalid_config)
+	_, err := loadAndValidateConfig(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "handler") {
 		t.Errorf("Expected proxy handler error. Got: %s", err.Error())
 	}
 
-	invalid_config = []byte(`
+	invalidConfig = []byte(`
 proxy:
   handler: http
   host: proxy.example.com
 `)
-	_, err = loadAndValidateConfig(invalid_config)
+	_, err = loadAndValidateConfig(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "host:port") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
 
-	invalid_config = []byte(`
+	invalidConfig = []byte(`
 proxy:
   handler: http
   host: proxy.example.com
   listen: :8000
 `)
-	_, err = loadAndValidateConfig(invalid_config)
+	_, err = loadAndValidateConfig(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "proxy") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
@@ -113,7 +113,7 @@ limits:
       - 'header:authentication'
 `)
 	_, err := loadAndValidateConfig(configBuf.Bytes())
-	if err == nil || !strings.Contains(err.Error(), "Interval") {
+	if err == nil || !strings.Contains(err.Error(), "interval") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
 
@@ -126,7 +126,7 @@ limits:
       - 'header:authentication'
 `)
 	_, err = loadAndValidateConfig(configBuf.Bytes())
-	if err == nil || !strings.Contains(err.Error(), "Max") {
+	if err == nil || !strings.Contains(err.Error(), "max") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
 }
@@ -144,7 +144,7 @@ limits:
 `)
 
 	_, err := loadAndValidateConfig(baseBuf.Bytes())
-	if err == nil || !strings.Contains(err.Error(), "Storage type must be set") {
+	if err == nil || !strings.Contains(err.Error(), "storage type must be set") {
 		t.Errorf("Expected Storage error. Got: %s", err.Error())
 	}
 

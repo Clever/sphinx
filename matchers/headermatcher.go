@@ -1,7 +1,6 @@
 package matchers
 
 import (
-	_ "fmt"
 	"github.com/Clever/sphinx/common"
 	"net/http"
 	"regexp"
@@ -17,7 +16,7 @@ type matcherItem struct {
 	Match string
 }
 
-type HeaderMatcher struct {
+type headerMatcher struct {
 	headers []headerMatch
 }
 
@@ -26,7 +25,7 @@ type headerMatch struct {
 	Match *regexp.Regexp
 }
 
-func NewHeaderMatch(name string, value string) (headerMatch, error) {
+func newHeaderMatch(name string, value string) (headerMatch, error) {
 
 	matcher := headerMatch{Name: name}
 	if value == "" {
@@ -38,7 +37,7 @@ func NewHeaderMatch(name string, value string) (headerMatch, error) {
 	return matcher, err
 }
 
-func (hm HeaderMatcher) Match(request common.Request) bool {
+func (hm headerMatcher) Match(request common.Request) bool {
 
 	// should have an header with hm.Name
 	if _, ok := request["headers"]; !ok {
@@ -65,22 +64,22 @@ func (hm HeaderMatcher) Match(request common.Request) bool {
 	return false
 }
 
-type HeaderMatcherFactory struct{}
+type headerMatcherFactory struct{}
 
-func (hmf HeaderMatcherFactory) Type() string {
+func (hmf headerMatcherFactory) Type() string {
 	return "headers"
 }
 
-func (hmf HeaderMatcherFactory) Create(config interface{}) (Matcher, error) {
+func (hmf headerMatcherFactory) Create(config interface{}) (Matcher, error) {
 	var headermatcherconfig matcherConfig
 
-	err := ReMarshal(config, &headermatcherconfig)
+	err := reMarshal(config, &headermatcherconfig)
 	if err != nil {
-		return HeaderMatcher{}, err
+		return headerMatcher{}, err
 	}
 
 	if len(headermatcherconfig.MatchAny) == 0 {
-		return HeaderMatcher{}, ErrorMatcherConfig{
+		return headerMatcher{}, errorMatcherConfig{
 			name:    hmf.Type(),
 			message: "missing key match_any",
 		}
@@ -89,18 +88,18 @@ func (hmf HeaderMatcherFactory) Create(config interface{}) (Matcher, error) {
 	var headers []headerMatch
 	for _, headerdetails := range headermatcherconfig.MatchAny {
 		if headerdetails.Name == "" {
-			return HeaderMatcher{}, ErrorMatcherConfig{
+			return headerMatcher{}, errorMatcherConfig{
 				name:    hmf.Type(),
 				message: "name required for headers",
 			}
 		}
 
-		headermatch, err := NewHeaderMatch(headerdetails.Name,
+		headermatch, err := newHeaderMatch(headerdetails.Name,
 			headerdetails.Match)
 		if err != nil {
-			return HeaderMatcher{}, err
+			return headerMatcher{}, err
 		}
 		headers = append(headers, headermatch)
 	}
-	return HeaderMatcher{headers: headers}, nil
+	return headerMatcher{headers: headers}, nil
 }

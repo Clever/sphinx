@@ -11,19 +11,21 @@ import (
 	"strings"
 )
 
+// Configuration holds current Sphinx configuration
 type Configuration struct {
-	Proxy   Proxy
-	Limits  map[string]LimitConfig
+	Proxy   proxy
+	Limits  map[string]limitConfig
 	Storage map[string]string
 }
 
-type Proxy struct {
+type proxy struct {
 	Handler string
 	Host    string
 	Listen  string
 }
 
-type LimitConfig struct {
+// LimitConfig contains configuration for a Limit
+type limitConfig struct {
 	Interval uint
 	Max      uint
 	Keys     map[string]string
@@ -55,31 +57,31 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 				"Must include scheme (eg. https://example.com)")
 	}
 	if len(config.Limits) < 1 {
-		return config, fmt.Errorf("No limits definied")
+		return config, fmt.Errorf("no limits definied")
 	}
 
 	for name, limit := range config.Limits {
 		if limit.Interval < 1 {
-			return config, fmt.Errorf("Interval must be set > 1 for limit: %s", name)
+			return config, fmt.Errorf("interval must be set > 1 for limit: %s", name)
 		}
 		if limit.Max < 1 {
-			return config, fmt.Errorf("Max must be set > 1 for limit: %s", name)
+			return config, fmt.Errorf("max must be set > 1 for limit: %s", name)
 		}
 	}
 
 	store, ok := config.Storage["type"]
 	if !ok {
-		return config, fmt.Errorf("Storage type must be set.")
+		return config, fmt.Errorf("storage type must be set")
 	}
 	switch strings.ToLower(store) {
 	default:
-		return config, fmt.Errorf("Storage type needs to be memory or redis")
+		return config, fmt.Errorf("storage type needs to be memory or redis")
 	case "redis":
 		if _, ok := config.Storage["host"]; !ok {
-			return config, fmt.Errorf("Storage host must be set for Redis")
+			return config, fmt.Errorf("storage host must be set for Redis")
 		}
 		if _, ok := config.Storage["port"]; !ok {
-			return config, fmt.Errorf("Storage port must be set for Redis")
+			return config, fmt.Errorf("storage port must be set for Redis")
 		}
 	case "memory":
 		// nothing to do here
@@ -88,7 +90,7 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	return config, nil
 }
 
-func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher, error) {
+func resolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher, error) {
 
 	resolvedMatchers := []matchers.Matcher{}
 
@@ -96,7 +98,7 @@ func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 	for key, config := range matchersConfig {
 		factory := matchers.MatcherFactoryFinder(key)
 		if factory == nil {
-			return resolvedMatchers, fmt.Errorf("Could not find matcher for %s", key)
+			return resolvedMatchers, fmt.Errorf("could not find matcher for %s", key)
 		}
 		matcher, err := factory.Create(config)
 		if err != nil {
@@ -107,12 +109,13 @@ func ResolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 	return resolvedMatchers, nil
 }
 
+// NewConfiguration takes in a path to a configuration yaml and returns a Configuration.
 func NewConfiguration(path string) (Configuration, error) {
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return Configuration{},
-			fmt.Errorf("Failed to read %s. Aborting with error: %s", path, err.Error())
+			fmt.Errorf("failed to read %s. Aborting with error: %s", path, err.Error())
 	}
 	config, err := loadAndValidateConfig(data)
 	return config, err

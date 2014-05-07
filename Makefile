@@ -14,16 +14,27 @@ build: bin/sphinxd
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
 
-$(PKGS):
-ifeq ($(LINT),1)
-	golint $(GOPATH)/src/$@*/**.go
-endif
+golint:
+	go get github.com/golang/lint/golint
+
+$(PKGS): PATH := $(PATH):$(GOPATH)/bin
+$(PKGS): golint
+	@echo ""
+	@echo "FORMATTING $@..."
 	go get -d -t $@
+	gofmt -w=true $(GOPATH)/src/$@*/**.go
+	@echo ""
+ifneq ($(NOLINT),1)
+	@echo "LINTING $@..."
+	golint $(GOPATH)/src/$@*/**.go
+	@echo ""
+endif
 ifeq ($(COVERAGE),1)
 	go test -cover -coverprofile=$(GOPATH)/src/$@/c.out $@ -test.v
 	go tool cover -html=$(GOPATH)/src/$@/c.out
 else
-	go test $@ -test.v
+	@echo "TESTING $@..."
+	go test $@
 endif
 
 # creates a debian package for sphinx
