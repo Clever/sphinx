@@ -5,15 +5,15 @@ import (
 	"regexp"
 )
 
-type PathMatcherConfig struct {
+type pathMatcherConfig struct {
 	MatchAny []string `yaml:"match_any"`
 }
 
-type PathMatcher struct {
+type pathMatcher struct {
 	Paths []*regexp.Regexp
 }
 
-func (pm PathMatcher) Match(request common.Request) bool {
+func (pm pathMatcher) Match(request common.Request) bool {
 
 	if _, ok := request["path"]; !ok {
 		return false
@@ -29,23 +29,23 @@ func (pm PathMatcher) Match(request common.Request) bool {
 	return false
 }
 
-type PathMatcherFactory struct{}
+type pathMatcherFactory struct{}
 
-func (pmf PathMatcherFactory) Type() string {
+func (pmf pathMatcherFactory) Type() string {
 	return "paths"
 }
 
-func (pmf PathMatcherFactory) Create(config interface{}) (Matcher, error) {
-	matcherConfig := PathMatcherConfig{}
-	var matcher PathMatcher
+func (pmf pathMatcherFactory) Create(config interface{}) (Matcher, error) {
+	matcherConfig := pathMatcherConfig{}
+	var matcher pathMatcher
 
-	err := ReMarshal(config, &matcherConfig)
+	err := reMarshal(config, &matcherConfig)
 	if err != nil {
 		return matcher, err
 	}
 
 	if len(matcherConfig.MatchAny) == 0 {
-		return matcher, ErrorMatcherConfig{
+		return matcher, errorMatcherConfig{
 			name:    pmf.Type(),
 			message: "missing key match_any or no paths",
 		}

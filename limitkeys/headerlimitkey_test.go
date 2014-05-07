@@ -7,7 +7,7 @@ import (
 
 func getRequest(headers map[string][]string) common.Request {
 	httprequest := common.ConstructMockRequestWithHeaders(headers)
-	return common.HttpToSphinxRequest(httprequest)
+	return common.HTTPToSphinxRequest(httprequest)
 }
 
 func TestKeysWithHeaders(t *testing.T) {

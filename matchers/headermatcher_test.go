@@ -15,13 +15,13 @@ func getHeaderMatcher(config []byte) (Matcher, error) {
 	var headerConfig TestHeaderConfig
 	yaml.Unmarshal(config, &headerConfig)
 
-	factory := HeaderMatcherFactory{}
+	factory := headerMatcherFactory{}
 	return factory.Create(headerConfig.Headers)
 }
 
 func getRequest(headers map[string][]string) common.Request {
 	httprequest := common.ConstructMockRequestWithHeaders(headers)
-	return common.HttpToSphinxRequest(httprequest)
+	return common.HTTPToSphinxRequest(httprequest)
 }
 
 func TestHeaderMatcherFactory(t *testing.T) {
@@ -37,11 +37,11 @@ headers:
 		t.Fatalf("Failed to create HeaderMatcher", err)
 	}
 
-	if len(headermatcher.(HeaderMatcher).headers) != 2 {
+	if len(headermatcher.(headerMatcher).headers) != 2 {
 		t.Fatalf("Expected two Headers in HeaderMatcher found: %d",
-			len(headermatcher.(HeaderMatcher).headers))
+			len(headermatcher.(headerMatcher).headers))
 	}
-	for _, header := range headermatcher.(HeaderMatcher).headers {
+	for _, header := range headermatcher.(headerMatcher).headers {
 		if header.Name == "X-Forwarded-For" {
 			if header.Match != nil {
 				t.Fatalf("Expected X-Forwarded-For match to be nil. Found:%s",
@@ -65,7 +65,7 @@ headers:
 	var headerConfig TestHeaderConfig
 	yaml.Unmarshal(config, &headerConfig)
 
-	factory := HeaderMatcherFactory{}
+	factory := headerMatcherFactory{}
 	_, err := factory.Create(headerConfig.Headers)
 	if err == nil {
 		t.Error("Expected error when headers have no name")

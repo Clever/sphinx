@@ -18,16 +18,16 @@ func parseRequest(r *http.Request) common.Request {
 	}
 }
 
-type HTTPRateLimiter struct {
-	ratelimiter sphinx.RateLimiter
+type httpRateLimiter struct {
+	rateLimiter sphinx.RateLimiter
 	proxy       http.Handler
 }
 
-func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := parseRequest(r)
 	log.Printf("[%s] REQUEST: %#v", guid, request)
-	matches, err := hrl.ratelimiter.Add(request)
+	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
 		w.WriteHeader(500)
@@ -41,13 +41,13 @@ func (hrl HTTPRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hrl.proxy.ServeHTTP(w, r)
 }
 
-type HTTPRateLogger HTTPRateLimiter
+type httpRateLogger httpRateLimiter
 
-func (hrl HTTPRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := parseRequest(r)
 	log.Printf("[%s] REQUEST: %#v", guid, request)
-	matches, err := hrl.ratelimiter.Add(request)
+	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
 		hrl.proxy.ServeHTTP(w, r)
@@ -101,10 +101,13 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
 	}
 }
 
-func NewHTTPLimiter(ratelimiter sphinx.RateLimiter, proxy http.Handler) HTTPRateLimiter {
-	return HTTPRateLimiter{ratelimiter: ratelimiter, proxy: proxy}
+// NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
+func NewHTTPLimiter(rateLimiter sphinx.RateLimiter, proxy http.Handler) http.Handler {
+	return httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy}
 }
 
-func NewHTTPLogger(ratelimiter sphinx.RateLimiter, proxy http.Handler) HTTPRateLogger {
-	return HTTPRateLogger{ratelimiter: ratelimiter, proxy: proxy}
+// NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but
+// actually proxies everything.
+func NewHTTPLogger(rateLimiter sphinx.RateLimiter, proxy http.Handler) http.Handler {
+	return httpRateLogger{rateLimiter: rateLimiter, proxy: proxy}
 }
