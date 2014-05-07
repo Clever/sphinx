@@ -2,7 +2,6 @@ package sphinx
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/Clever/sphinx/common"
 	"strings"
@@ -27,7 +26,8 @@ func checkStatusForRequests(ratelimiter RateLimiter,
 	}
 	for i, status := range expectedStatuses {
 		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
-			return errors.New("expected 5 requests for the 'bearer/events' limits")
+			return fmt.Errorf("expected %d remaining for the %s limit. Found: %d Remaining, %s Limit",
+				statuses[i].Remaining, statuses[i].Name, status.Remaining, status.Name)
 		}
 	}
 
@@ -109,7 +109,7 @@ func TestSimpleAdd(t *testing.T) {
 	}
 	if err = checkStatusForRequests(
 		ratelimiter, request, 5, []Status{
-			Status{Remaining: 195, Name: "bearer/events"}}); err != nil {
+			Status{Remaining: 195, Name: "bearer-special"}}); err != nil {
 		t.Error(err)
 	}
 
@@ -122,7 +122,7 @@ func TestSimpleAdd(t *testing.T) {
 
 	if err = checkStatusForRequests(
 		ratelimiter, request, 1, []Status{
-			Status{Remaining: 195, Name: "basic/main"}}); err != nil {
+			Status{Remaining: 195, Name: "basic-easy"}}); err != nil {
 		t.Error(err)
 	}
 }
