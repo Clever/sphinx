@@ -1,0 +1,9 @@
+image: go1.2
+script:
+  - make test
+services:
+  - redis:2.6
+notify:
+  email:
+    recipients:
+      - drone@clever.com
