@@ -52,7 +52,6 @@ func (l *Limit) bucketName(request common.Request) string {
 		}
 		keyNames = append(keyNames, keyString)
 	}
-
 	return fmt.Sprintf("%s-%s", l.Name, strings.Join(keyNames, "-"))
 }
 

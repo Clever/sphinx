@@ -9,7 +9,7 @@ storage:
   port: 6379  # not required for memory
 
 limits:
-  bearer/events:
+  bearer-special:
     interval: 15  # in seconds
     max: 200
     keys:
@@ -23,10 +23,9 @@ limits:
           - name: "X-Forwarded-For"
       paths:
         match_any:
-          - "/v1.1/push/events/.*"
-          - "/v2.1/.*/events$"
+          - "/v1.1/special/resources/.*"
 
-  basic/events:
+  basic-special:
     interval: 15
     max: 200
     keys:
@@ -34,13 +33,13 @@ limits:
     matches:
       paths:
         match_any:
-          - "/v1.1/push/events/.*"
+          - "/v1.1/special/resources/.*"
       headers:
         match_any:
-          - name: Authentication
+          - name: "Authentication"
             match: "Basic.*"
 
-  bearer/main:
+  bearer-easy:
     interval: 15
     max: 200
     keys:
@@ -53,9 +52,9 @@ limits:
     excludes:
       paths:
         match_any:
-          - "/v1.1/push/events/.*"
+          - "/v1.1/special/resources/.*"
 
-  basic/main:
+  basic-easy:
     interval: 15
     max: 200
     keys:
@@ -68,4 +67,4 @@ limits:
     excludes:
       paths:
         match_any:
-          - "/v1.1/push/events/.*"
+          - "/v1.1/special/resources/.*"

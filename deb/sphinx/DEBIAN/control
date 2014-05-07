@@ -1,0 +1,7 @@
+Package: sphinx
+Version: 0.1
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: Clever Dev <dev@clever.com>
+Description: Sphinx API Rate Limiting Service
