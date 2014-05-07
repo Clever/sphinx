@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/matchers"
 	"strings"
 	"testing"
 )
@@ -125,4 +126,41 @@ func TestSimpleAdd(t *testing.T) {
 			Status{Remaining: 195, Name: "basic/main"}}); err != nil {
 		t.Error(err)
 	}
+}
+
+type NeverMatch struct{}
+
+func (m NeverMatch) Match(req common.Request) bool {
+	return false
+}
+
+func createLimit(numMatchers int) *Limit {
+	neverMatchers := []matchers.Matcher{}
+	for i := 0; i < numMatchers; i++ {
+		neverMatchers = append(neverMatchers, NeverMatch{})
+	}
+	limit := &Limit{
+		matcher: requestMatcher{
+			Matches:  neverMatchers,
+			Excludes: neverMatchers,
+		},
+	}
+	return limit
+}
+
+var benchMatch = func(b *testing.B, numMatchers int) {
+	limit := createLimit(numMatchers)
+	request := common.Request{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		limit.match(request)
+	}
+}
+
+func BenchmarkMatch1(b *testing.B) {
+	benchMatch(b, 1)
+}
+
+func BenchmarkMatch100(b *testing.B) {
+	benchMatch(b, 100)
 }
