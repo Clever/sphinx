@@ -101,7 +101,7 @@ func (p *MockProxy) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func constructHTTPRateLimiter() httpRateLimiter {
 	return httpRateLimiter{
-		ratelimiter: &MockRateLimiter{Mock: new(mock.Mock)},
+		rateLimiter: &MockRateLimiter{Mock: new(mock.Mock)},
 		proxy:       &MockProxy{Mock: new(mock.Mock)},
 	}
 }
@@ -164,7 +164,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	}
 	statuses := []sphinx.Status{sphinxStatus}
 
-	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, nil).Once()
 
 	proxyMock := limiter.proxy.(*MockProxy).Mock
@@ -187,7 +187,7 @@ func TestHandleWhenFull(t *testing.T) {
 	}
 	statuses := []sphinx.Status{sphinxStatus}
 
-	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, leakybucket.ErrorFull).Once()
 
 	limiter.ServeHTTP(w, r)
@@ -209,7 +209,7 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	}
 	statuses := []sphinx.Status{sphinxStatus}
 
-	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
 	limiter.ServeHTTP(w, r)
@@ -231,7 +231,7 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	}
 	statuses := []sphinx.Status{}
 
-	limitMock := limiter.ratelimiter.(*MockRateLimiter).Mock
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
 
 	limiter.ServeHTTP(w, r)
