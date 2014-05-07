@@ -119,7 +119,7 @@ func newLimit(name string, config limitConfig, storage leakybucket.Storage) (*Li
 		log.Printf("Failed to load excludes for LIMIT:%s, ERROR:%s.", name, err)
 		return &limit, err
 	}
-	limitkeys, err := ResolveLimitKeys(config.Keys)
+	limitkeys, err := resolveLimitKeys(config.Keys)
 	if err != nil {
 		log.Printf("Failed to load keys for LIMIT:%s, ERROR:%s.", name, err)
 		return &limit, err

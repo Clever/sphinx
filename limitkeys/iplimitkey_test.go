@@ -5,7 +5,7 @@ import (
 )
 
 func TestIPLimitKey(t *testing.T) {
-	limitkey := IPLimitKey{}
+	limitkey := ipLimitKey{}
 
 	request := map[string]interface{}{
 		"remoteaddr": "127.0.0.1",
@@ -18,7 +18,7 @@ func TestIPLimitKey(t *testing.T) {
 
 // returns correct error when remoteaddr is not set
 func TestIPLimitKeyNoRemoteAddr(t *testing.T) {
-	limitkey := IPLimitKey{}
+	limitkey := ipLimitKey{}
 
 	request := map[string]interface{}{
 		"headers": "boo",

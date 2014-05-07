@@ -23,12 +23,12 @@ func checkStatusForRequests(ratelimiter RateLimiter,
 		}
 	}
 
-	if len(statuses) != len(expected_statuses) {
+	if len(statuses) != len(expectedStatuses) {
 		for _, status := range statuses {
 			println("request", request["path"], status.Name)
 		}
-		return errors.New(fmt.Sprintf("expected to match %d buckets. Got: %d",
-			len(expected_statuses), len(statuses)))
+		return fmt.Errorf("expected to match %d buckets. Got: %d",
+			len(expectedStatuses), len(statuses))
 	}
 	for i, status := range expectedStatuses {
 		if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
@@ -136,7 +136,6 @@ func TestSimpleAdd(t *testing.T) {
 	}
 }
 
-<<<<<<< HEAD
 type NeverMatch struct{}
 
 func (m NeverMatch) Match(req common.Request) bool {
@@ -200,10 +199,11 @@ func BenchmarkAdd1(b *testing.B) {
 
 func BenchmarkAdd100(b *testing.B) {
 	benchAdd(b, 100)
-=======
+}
+
 // assert that the right bucket keys are generated for requests
 func TestLimitKeys(t *testing.T) {
-	keys, err := ResolveLimitKeys(map[string]interface{}{
+	keys, err := resolveLimitKeys(map[string]interface{}{
 		"headers": []string{"Authorization", "X-Forwarded-For"},
 		"ip":      []string{""},
 	})
@@ -222,9 +222,9 @@ func TestLimitKeys(t *testing.T) {
 			"Authorization": []string{"Basic 12345"},
 		}).Header,
 	}
-	if limit.BucketName(request) != "test-limit-Authorization:Basic 12345" {
+	if limit.bucketName(request) != "test-limit-Authorization:Basic 12345" {
 		t.Errorf("Invalid bucketname for test-limit: %s",
-			limit.BucketName(request))
+			limit.bucketName(request))
 	}
 
 	// creating compound keys from multiple limitkeys
@@ -236,10 +236,10 @@ func TestLimitKeys(t *testing.T) {
 			"X-Forwarded-For": []string{"192.0.0.1"},
 		}).Header,
 	}
-	if limit.BucketName(request) !=
+	if limit.bucketName(request) !=
 		"test-limit-Authorization:Basic 12345-X-Forwarded-For:192.0.0.1-ip:127.0.0.1" {
 		t.Errorf("Invalid compound bucketname for test-limit: %s",
-			limit.BucketName(request))
+			limit.bucketName(request))
 	}
 
 	// works when headers are empty
@@ -248,21 +248,20 @@ func TestLimitKeys(t *testing.T) {
 		"remoteaddr": "127.0.0.1",
 		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
-	if limit.BucketName(request) !=
+	if limit.bucketName(request) !=
 		"test-limit-ip:127.0.0.1" {
 		t.Errorf("Invalid bucketname with no headers for test-limit: %s",
-			limit.BucketName(request))
+			limit.bucketName(request))
 	}
 	request = common.Request{
 		"path":    "/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
-	if limit.BucketName(request) !=
+	if limit.bucketName(request) !=
 		"test-limit-" {
 		t.Errorf("Invalid bucketname with no valid request data for test-limit: %s",
-			limit.BucketName(request))
+			limit.bucketName(request))
 	}
->>>>>>> e568370... fix limitkeys implementation and add tests
 }
 
 // ensures that Limit.Match exhibits expected behavior
@@ -273,13 +272,13 @@ func TestLimitMatch(t *testing.T) {
 	}
 
 	// matches name: Authorization, match: bearer (from example.yaml)
-	matchers, err := ResolveMatchers(config.Limits["basic-simple"].Matches)
+	matchers, err := resolveMatchers(config.Limits["basic-simple"].Matches)
 	// excludes path: /special/resoures/.*
-	excludes, err := ResolveMatchers(config.Limits["basic-simple"].Excludes)
+	excludes, err := resolveMatchers(config.Limits["basic-simple"].Excludes)
 
 	limit := Limit{
 		Name: "test-limit",
-		matcher: RequestMatcher{
+		matcher: requestMatcher{
 			Matches:  matchers,
 			Excludes: excludes,
 		},
@@ -291,7 +290,7 @@ func TestLimitMatch(t *testing.T) {
 			"Authorization": []string{"Basic 12345"},
 		}).Header,
 	}
-	if !limit.Match(request) {
+	if !limit.match(request) {
 		t.Error("Expected basic-easy to match request")
 	}
 
@@ -301,7 +300,7 @@ func TestLimitMatch(t *testing.T) {
 			"Authorization": []string{"Basic 12345"},
 		}).Header,
 	}
-	if limit.Match(request) {
+	if limit.match(request) {
 		t.Error("Request with Excludes path should NOT match basic-easy")
 	}
 
@@ -309,7 +308,7 @@ func TestLimitMatch(t *testing.T) {
 		"path":    "/special/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
-	if limit.Match(request) {
+	if limit.match(request) {
 		t.Error("Request without Auth header should NOT match basic-easy")
 	}
 }
@@ -321,7 +320,7 @@ func TestLimitAdd(t *testing.T) {
 		t.Error("could not load example configuration")
 	}
 
-	limitconfig := LimitConfig{
+	limitconfig := limitConfig{
 		Interval: 100,
 		Max:      3,
 		// matches name: Authorization, match: bearer (from example.yaml)
@@ -331,7 +330,7 @@ func TestLimitAdd(t *testing.T) {
 		Keys:     config.Limits["basic-simple"].Keys,
 	}
 
-	limit, err := NewLimit("test-limit", limitconfig, memory.New())
+	limit, err := newLimit("test-limit", limitconfig, memory.New())
 	if err != nil {
 		t.Error("Could not initialize test-limit")
 	}
@@ -343,7 +342,7 @@ func TestLimitAdd(t *testing.T) {
 		}).Header,
 	}
 	for i := uint(1); i < 4; i++ {
-		bucketStatus, err := limit.Add(request)
+		bucketStatus, err := limit.add(request)
 		if err != nil {
 			t.Errorf("Error while adding to limit test-limit: %s", err.Error())
 		}
@@ -353,7 +352,7 @@ func TestLimitAdd(t *testing.T) {
 		}
 	}
 
-	bucketStatus, err := limit.Add(request)
+	bucketStatus, err := limit.add(request)
 	if err == nil || err != leakybucket.ErrorFull {
 		t.Errorf("Expected leakybucket.ErrorFull error, got: %s", err.Error())
 	}
@@ -364,7 +363,7 @@ func TestLimitAdd(t *testing.T) {
 			"Authorization": []string{"Basic ABC"},
 		}).Header,
 	}
-	bucketStatus, err = limit.Add(request2)
+	bucketStatus, err = limit.add(request2)
 	if err != nil {
 		t.Errorf("Error while adding to limit test-limit: %s", err.Error())
 	}

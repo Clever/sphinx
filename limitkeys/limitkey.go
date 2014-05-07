@@ -5,11 +5,14 @@ import (
 	"github.com/Clever/sphinx/common"
 )
 
+// A LimitKey returns a string key based on the request for creating bucketnames.
 type LimitKey interface {
 	Key(common.Request) (string, error)
 	Type() string
 }
 
+// A EmptyKeyError signifies that the request does not contain enough information
+// to create a key.
 type EmptyKeyError struct {
 	limitkey LimitKey
 	message  string

@@ -63,7 +63,7 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 
 	for name, limit := range config.Limits {
 		if len(limit.Keys) == 0 {
-			return config, fmt.Errorf("Must set at least one key for limit: %s", name)
+			return config, fmt.Errorf("must set at least one key for limit: %s", name)
 		}
 		if limit.Interval < 1 {
 			return config, fmt.Errorf("interval must be set > 1 for limit: %s", name)
@@ -113,7 +113,7 @@ func resolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 	return resolvedMatchers, nil
 }
 
-func ResolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.LimitKey, error) {
+func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.LimitKey, error) {
 
 	resolvedLimitkeys := []limitkeys.LimitKey{}
 
@@ -124,13 +124,13 @@ func ResolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.Limit
 			matchers.ReMarshal(values, &headernames)
 			for _, headername := range headernames {
 				resolvedLimitkeys = append(resolvedLimitkeys,
-					limitkeys.HeaderLimitKey{headername})
+					limitkeys.NewHeaderLimitKey(headername))
 			}
 		case "ip":
-			resolvedLimitkeys = append(resolvedLimitkeys, limitkeys.IPLimitKey{})
+			resolvedLimitkeys = append(resolvedLimitkeys, limitkeys.NewIPLimitKey())
 		default:
 			return []limitkeys.LimitKey{},
-				fmt.Errorf("Only header and ip limitkeys allowed. Found: %s", name)
+				fmt.Errorf("only header and ip limitkeys allowed. Found: %s", name)
 		}
 	}
 

@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-type HeaderLimitKey struct {
+type headerLimitKey struct {
 	Name string
 }
 
-func (hlk HeaderLimitKey) Type() string {
+func (hlk headerLimitKey) Type() string {
 	return "header"
 }
 
-func (hlk HeaderLimitKey) Key(request common.Request) (string, error) {
+func (hlk headerLimitKey) Key(request common.Request) (string, error) {
 
 	if _, ok := request["headers"]; !ok {
 		return "", EmptyKeyError{hlk, "No headers in request"}
@@ -30,4 +30,9 @@ func (hlk HeaderLimitKey) Key(request common.Request) (string, error) {
 
 	return fmt.Sprintf("%s:%s", hlk.Name,
 		strings.Join(headers[hlk.Name], ";")), nil
+}
+
+// NewHeaderLimitKey creates a headerLimitKey that keys on the named request header
+func NewHeaderLimitKey(name string) headerLimitKey {
+	return headerLimitKey{name}
 }
