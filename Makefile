@@ -12,10 +12,12 @@ golint:
 
 $(PKGS): PATH := $(PATH):$(GOPATH)/bin
 $(PKGS): golint
+	@echo ""
+	@echo "FORMATTING $@..."
 	go get -d -t $@
 	gofmt -w=true $(GOPATH)/src/$@*/**.go
-ifneq ($(NOLINT),1)
 	@echo ""
+ifneq ($(NOLINT),1)
 	@echo "LINTING $@..."
 	golint $(GOPATH)/src/$@*/**.go
 	@echo ""
