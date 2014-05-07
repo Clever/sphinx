@@ -13,6 +13,7 @@ build: bin/sphinxd
 
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
+all: build test
 
 golint:
 	go get github.com/golang/lint/golint

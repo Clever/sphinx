@@ -9,9 +9,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	//"os"
-	//"os/signal"
-	//"syscall"
 )
 
 var (
