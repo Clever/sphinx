@@ -34,7 +34,7 @@ ifeq ($(COVERAGE),1)
 	go tool cover -html=$(GOPATH)/src/$@/c.out
 else
 	@echo "TESTING $@..."
-	go test $@
+	go test -v -bench=. $@
 endif
 
 # creates a debian package for sphinx
