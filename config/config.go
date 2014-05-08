@@ -35,6 +35,7 @@ type Limit struct {
 }
 
 // LoadYaml loads byte data for a yaml file into a Config
+// TODO (z): These should all be private, but right now tests depend on parsing bytes into yaml
 func LoadYaml(data []byte) (Config, error) {
 	config := Config{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
@@ -45,6 +46,7 @@ func LoadYaml(data []byte) (Config, error) {
 }
 
 // ValidateConfig validates that a Config has all the required fields
+// TODO (z): These should all be private, but right now tests depend on parsing bytes into yaml
 func ValidateConfig(config Config) error {
 	if config.Proxy.Handler == "" {
 		return fmt.Errorf("proxy.handler not set")
