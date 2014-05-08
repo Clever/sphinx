@@ -25,14 +25,6 @@ func stringifyRequest(req common.Request) string {
 	return out
 }
 
-func parseRequest(r *http.Request) common.Request {
-	return map[string]interface{}{
-		"path":       r.URL.Path,
-		"headers":    r.Header,
-		"remoteaddr": r.RemoteAddr,
-	}
-}
-
 type httpRateLimiter struct {
 	rateLimiter sphinx.RateLimiter
 	proxy       http.Handler
