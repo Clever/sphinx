@@ -2,6 +2,7 @@ package sphinx
 
 import (
 	"fmt"
+	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
 	"gopkg.in/v1/yaml"
@@ -121,7 +122,7 @@ func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.Limit
 		switch name {
 		case "headers":
 			headernames := []string{}
-			matchers.ReMarshal(values, &headernames)
+			common.ReMarshal(values, &headernames)
 			for _, headername := range headernames {
 				resolvedLimitkeys = append(resolvedLimitkeys,
 					limitkeys.NewHeaderLimitKey(headername))

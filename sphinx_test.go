@@ -24,9 +24,6 @@ func checkStatusForRequests(ratelimiter RateLimiter,
 	}
 
 	if len(statuses) != len(expectedStatuses) {
-		for _, status := range statuses {
-			println("request", request["path"], status.Name)
-		}
 		return fmt.Errorf("expected to match %d buckets. Got: %d",
 			len(expectedStatuses), len(statuses))
 	}
@@ -210,7 +207,6 @@ func TestLimitKeys(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while creating limitkeys for test", err)
 	}
-
 	limit := Limit{
 		Name: "test-limit",
 		keys: keys,
@@ -226,9 +222,23 @@ func TestLimitKeys(t *testing.T) {
 		t.Errorf("Invalid bucketname for test-limit: %s",
 			limit.bucketName(request))
 	}
+}
 
-	// creating compound keys from multiple limitkeys
-	request = common.Request{
+// limit.bucketName creates compound keys from multiple limitkeys
+func TestCompoundLimitKeys(t *testing.T) {
+	keys, err := resolveLimitKeys(map[string]interface{}{
+		"headers": []string{"Authorization", "X-Forwarded-For"},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Errorf("Error while creating limitkeys for test", err)
+	}
+	limit := Limit{
+		Name: "test-limit",
+		keys: keys,
+	}
+
+	request := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
@@ -241,9 +251,23 @@ func TestLimitKeys(t *testing.T) {
 		t.Errorf("Invalid compound bucketname for test-limit: %s",
 			limit.bucketName(request))
 	}
+}
 
-	// works when headers are empty
-	request = common.Request{
+// limit.BucketName works when headers are empty
+func TestLimitKeyWithEmptyHeaders(t *testing.T) {
+	keys, err := resolveLimitKeys(map[string]interface{}{
+		"headers": []string{"Authorization", "X-Forwarded-For"},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Errorf("Error while creating limitkeys for test", err)
+	}
+	limit := Limit{
+		Name: "test-limit",
+		keys: keys,
+	}
+
+	request := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
 		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,

@@ -84,8 +84,7 @@ func (l *Limit) match(request common.Request) bool {
 			return false
 		}
 	}
-
-	// does not apply to any matcher in this limit
+	// All matchers returned true
 	return true
 }
 

@@ -33,6 +33,6 @@ func (hlk headerLimitKey) Key(request common.Request) (string, error) {
 }
 
 // NewHeaderLimitKey creates a headerLimitKey that keys on the named request header
-func NewHeaderLimitKey(name string) headerLimitKey {
+func NewHeaderLimitKey(name string) LimitKey {
 	return headerLimitKey{name}
 }

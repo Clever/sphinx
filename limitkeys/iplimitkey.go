@@ -22,6 +22,6 @@ func (ilk ipLimitKey) Key(request common.Request) (string, error) {
 }
 
 // NewIPLimitKey creates a ipLimitKey that returns a key based on request remoteaddr
-func NewIPLimitKey() ipLimitKey {
+func NewIPLimitKey() LimitKey {
 	return ipLimitKey{}
 }
