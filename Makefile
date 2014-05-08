@@ -10,6 +10,7 @@ PKGS = $(PKG) $(SUBPKGS)
 
 test: $(PKGS)
 build: bin/sphinxd
+all: build test
 
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main

@@ -73,7 +73,7 @@ func (hmf headerMatcherFactory) Type() string {
 func (hmf headerMatcherFactory) Create(config interface{}) (Matcher, error) {
 	var headermatcherconfig matcherConfig
 
-	err := reMarshal(config, &headermatcherconfig)
+	err := common.ReMarshal(config, &headermatcherconfig)
 	if err != nil {
 		return headerMatcher{}, err
 	}

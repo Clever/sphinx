@@ -2,6 +2,8 @@ package sphinx
 
 import (
 	"fmt"
+	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
 	"gopkg.in/v1/yaml"
 	"io/ioutil"
@@ -28,7 +30,7 @@ type proxy struct {
 type limitConfig struct {
 	Interval uint
 	Max      uint
-	Keys     map[string]string
+	Keys     map[string]interface{}
 	Matches  map[string]interface{}
 	Excludes map[string]interface{}
 }
@@ -61,6 +63,9 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 	}
 
 	for name, limit := range config.Limits {
+		if len(limit.Keys) == 0 {
+			return config, fmt.Errorf("must set at least one key for limit: %s", name)
+		}
 		if limit.Interval < 1 {
 			return config, fmt.Errorf("interval must be set > 1 for limit: %s", name)
 		}
@@ -107,6 +112,30 @@ func resolveMatchers(matchersConfig map[string]interface{}) ([]matchers.Matcher,
 		resolvedMatchers = append(resolvedMatchers, matcher)
 	}
 	return resolvedMatchers, nil
+}
+
+func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.LimitKey, error) {
+
+	resolvedLimitkeys := []limitkeys.LimitKey{}
+
+	for name, values := range limitkeysConfig {
+		switch name {
+		case "headers":
+			headernames := []string{}
+			common.ReMarshal(values, &headernames)
+			for _, headername := range headernames {
+				resolvedLimitkeys = append(resolvedLimitkeys,
+					limitkeys.NewHeaderLimitKey(headername))
+			}
+		case "ip":
+			resolvedLimitkeys = append(resolvedLimitkeys, limitkeys.NewIPLimitKey())
+		default:
+			return []limitkeys.LimitKey{},
+				fmt.Errorf("only header and ip limitkeys allowed. Found: %s", name)
+		}
+	}
+
+	return resolvedLimitkeys, nil
 }
 
 // NewConfiguration takes in a path to a configuration yaml and returns a Configuration.

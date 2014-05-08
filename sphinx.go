@@ -47,12 +47,24 @@ func (l *Limit) bucketName(request common.Request) string {
 	var keyNames []string
 	for _, key := range l.keys {
 		keyString, err := key.Key(request)
+
 		if err != nil {
+			if _, ok := err.(limitkeys.EmptyKeyError); !ok {
+				log.Printf("ERROR: Unhandled error while evaluating %s for limit %s. Error: %s",
+					key.Type(), l.Name, err.Error())
+			}
+			// EmptyKeyError is expected for certain requests that do not
+			// contain all headerkeys defined in the configuration.
+			log.Printf("INFO: %s, %s", l.Name, err.Error())
 			continue
 		}
 		keyNames = append(keyNames, keyString)
 	}
 	return fmt.Sprintf("%s-%s", l.Name, strings.Join(keyNames, "-"))
+}
+
+func (l *Limit) expiry() time.Duration {
+	return time.Duration(l.config.Interval) * time.Second
 }
 
 func (l *Limit) match(request common.Request) bool {
@@ -65,26 +77,23 @@ func (l *Limit) match(request common.Request) bool {
 		}
 	}
 
-	// At least one matcher in Matches should return true
+	// All Matchers should return true
 	for _, matcher := range l.matcher.Matches {
 		match := matcher.Match(request)
-		if match {
-			return true
+		if !match {
+			return false
 		}
 	}
-
-	// does not apply to any matcher in this limit
-	return false
+	// All matchers returned true
+	return true
 }
 
 func (l *Limit) add(request common.Request) (leakybucket.BucketState, error) {
 
-	var bucketstate leakybucket.BucketState
-	expiry := time.Duration(l.config.Interval) * time.Second
 	bucket, err := l.bucketStore.Create(l.bucketName(request),
-		l.config.Max, expiry)
+		l.config.Max, l.expiry())
 	if err != nil {
-		return bucketstate, err
+		return leakybucket.BucketState{}, err
 	}
 
 	return bucket.Add(1)
@@ -109,9 +118,15 @@ func newLimit(name string, config limitConfig, storage leakybucket.Storage) (*Li
 		log.Printf("Failed to load excludes for LIMIT:%s, ERROR:%s.", name, err)
 		return &limit, err
 	}
+	limitkeys, err := resolveLimitKeys(config.Keys)
+	if err != nil {
+		log.Printf("Failed to load keys for LIMIT:%s, ERROR:%s.", name, err)
+		return &limit, err
+	}
 
 	limit.matcher.Matches = matches
 	limit.matcher.Excludes = excludes
+	limit.keys = limitkeys
 	return &limit, nil
 }
 
