@@ -107,7 +107,7 @@ func (m NeverMatch) Add(common.Request) (leakybucket.BucketState, error) {
 
 func createRateLimiter(numLimits int) RateLimiter {
 	limit := &NeverMatch{}
-	rateLimiter := &sphinxRateLimiter{}
+	rateLimiter := &rateLimiter{}
 	limits := []config.Limit{}
 	for i := 0; i < numLimits; i++ {
 		limits = append(limits, limit)

@@ -36,20 +36,20 @@ type RateLimiter interface {
 	Limits() []config.Limit
 }
 
-type sphinxRateLimiter struct {
+type rateLimiter struct {
 	config config.Configuration
 	limits []config.Limit
 }
 
-func (r *sphinxRateLimiter) Limits() []config.Limit {
+func (r *rateLimiter) Limits() []config.Limit {
 	return r.limits
 }
 
-func (r *sphinxRateLimiter) Configuration() config.Configuration {
+func (r *rateLimiter) Configuration() config.Configuration {
 	return r.config
 }
 
-func (r *sphinxRateLimiter) Add(request common.Request) ([]Status, error) {
+func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 	status := []Status{}
 	for _, limit := range r.Limits() {
 		if !limit.Match(request) {
@@ -68,6 +68,6 @@ func (r *sphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 // NewRateLimiter returns a new RateLimiter based on the given configuration.
 func NewRateLimiter(config config.Configuration) (RateLimiter, error) {
 
-	rateLimiter := &sphinxRateLimiter{config: config, limits: config.Limits()}
+	rateLimiter := &rateLimiter{config: config, limits: config.Limits()}
 	return rateLimiter, nil
 }
