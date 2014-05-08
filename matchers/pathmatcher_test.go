@@ -13,8 +13,8 @@ type TestPathMatcherConfig struct {
 	Paths interface{}
 }
 
-func getPathMatcher(config []byte) Matcher {
-	var pathConfig TestPathMatcherConfig
+func getPathMatcher(config []byte) pathMatcher {
+	pathConfig := TestPathMatcherConfig{}
 	yaml.Unmarshal(config, &pathConfig)
 
 	factory := pathMatcherFactory{}
@@ -23,7 +23,7 @@ func getPathMatcher(config []byte) Matcher {
 		log.Panicf("Failed to create PathMatcher", err)
 	}
 
-	return pathmatcher
+	return pathmatcher.(pathMatcher)
 }
 
 func getRequestForPath(path string) common.Request {
@@ -44,9 +44,9 @@ paths:
 
 	pathmatcher := getPathMatcher(config)
 
-	if len(pathmatcher.(pathMatcher).Paths) != 2 {
+	if len(pathmatcher.Paths) != 2 {
 		log.Panicf("Expected two regexps in PathMatcher. Found: %d",
-			len(pathmatcher.(pathMatcher).Paths))
+			len(pathmatcher.Paths))
 	}
 }
 
@@ -56,7 +56,7 @@ paths:
   - "/v1.1/push/events/.*"
   - "/v2.1/.*/events$"
 `)
-	var pathConfig TestPathMatcherConfig
+	pathConfig := TestPathMatcherConfig{}
 	yaml.Unmarshal(config, &pathConfig)
 
 	factory := pathMatcherFactory{}

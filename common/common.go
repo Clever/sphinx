@@ -2,6 +2,7 @@ package common
 
 import (
 	"gopkg.in/v1/yaml"
+	"net/http"
 )
 
 // Request contains any info necessary to ratelimit a request
@@ -24,4 +25,13 @@ func ReMarshal(config interface{}, target interface{}) error {
 		return err
 	}
 	return yaml.Unmarshal(data, target)
+}
+
+// HTTPToSphinxRequest converts an http.Request to a Request
+func HTTPToSphinxRequest(r *http.Request) Request {
+	return map[string]interface{}{
+		"path":       r.URL.Path,
+		"headers":    r.Header,
+		"remoteaddr": r.RemoteAddr,
+	}
 }

@@ -32,7 +32,6 @@ func TestConfigurationFileLoading(t *testing.T) {
 		if limit.Keys == nil {
 			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
 		}
-
 		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
@@ -40,12 +39,10 @@ func TestConfigurationFileLoading(t *testing.T) {
 }
 
 func TestInvalidConfigurationPath(t *testing.T) {
-	_, err := NewConfiguration("./does-not-exist.yaml")
-	if err == nil {
-		t.Error("Expected error for invalid config path")
-	}
-	if !strings.Contains(err.Error(), "no such file or directory") {
-		t.Errorf("Expected no file error got %s", err.Error())
+	if _, err := NewConfiguration("./does-not-exist.yaml"); err == nil {
+		t.Fatalf("Expected error for invalid config path")
+	} else if !strings.Contains(err.Error(), "no such file or directory") {
+		t.Fatalf("Expected no file error got %s", err.Error())
 	}
 }
 
@@ -54,8 +51,8 @@ func TestInvalidYaml(t *testing.T) {
 forward
   host$$: proxy.example.com
 `)
-	_, err := loadAndValidateConfig(invalidYaml)
-	if !strings.Contains(err.Error(), "YAML error:") {
+
+	if _, err := loadAndValidateConfig(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
 		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }

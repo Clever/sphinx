@@ -71,10 +71,8 @@ func (hmf headerMatcherFactory) Type() string {
 }
 
 func (hmf headerMatcherFactory) Create(config interface{}) (Matcher, error) {
-	var headermatcherconfig matcherConfig
-
-	err := common.ReMarshal(config, &headermatcherconfig)
-	if err != nil {
+	headermatcherconfig := matcherConfig{}
+	if err := common.ReMarshal(config, &headermatcherconfig); err != nil {
 		return headerMatcher{}, err
 	}
 
@@ -85,7 +83,7 @@ func (hmf headerMatcherFactory) Create(config interface{}) (Matcher, error) {
 		}
 	}
 
-	var headers []headerMatch
+	headers := []headerMatch{}
 	for _, headerdetails := range headermatcherconfig.MatchAny {
 		if headerdetails.Name == "" {
 			return headerMatcher{}, errorMatcherConfig{
@@ -94,8 +92,7 @@ func (hmf headerMatcherFactory) Create(config interface{}) (Matcher, error) {
 			}
 		}
 
-		headermatch, err := newHeaderMatch(headerdetails.Name,
-			headerdetails.Match)
+		headermatch, err := newHeaderMatch(headerdetails.Name, headerdetails.Match)
 		if err != nil {
 			return headerMatcher{}, err
 		}

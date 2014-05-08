@@ -1,7 +1,6 @@
 package limitkeys
 
 import (
-	"fmt"
 	"github.com/Clever/sphinx/common"
 )
 
@@ -18,7 +17,7 @@ func (ilk ipLimitKey) Key(request common.Request) (string, error) {
 		return "", EmptyKeyError{ilk, "No remoteaddr key in request"}
 	}
 
-	return fmt.Sprintf("ip:%s", request["remoteaddr"]), nil
+	return "ip:" + request["remoteaddr"].(string), nil
 }
 
 // NewIPLimitKey creates a ipLimitKey that returns a key based on request remoteaddr

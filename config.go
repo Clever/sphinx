@@ -1,6 +1,7 @@
 package sphinx
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limitkeys"
@@ -55,7 +56,7 @@ func loadAndValidateConfig(data []byte) (Configuration, error) {
 
 	if _, err := url.ParseRequestURI(config.Proxy.Host); err != nil {
 		return config,
-			fmt.Errorf("Could not parse proxy.host. " +
+			errors.New("Could not parse proxy.host. " +
 				"Must include scheme (eg. https://example.com)")
 	}
 	if len(config.Limits) < 1 {
@@ -146,6 +147,5 @@ func NewConfiguration(path string) (Configuration, error) {
 		return Configuration{},
 			fmt.Errorf("failed to read %s. Aborting with error: %s", path, err.Error())
 	}
-	config, err := loadAndValidateConfig(data)
-	return config, err
+	return loadAndValidateConfig(data)
 }

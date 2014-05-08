@@ -14,7 +14,7 @@ type TestHeaderConfig struct {
 
 func getHeaderMatcher(config []byte) (Matcher, error) {
 
-	var headerConfig TestHeaderConfig
+	headerConfig := TestHeaderConfig{}
 	yaml.Unmarshal(config, &headerConfig)
 
 	factory := headerMatcherFactory{}
@@ -49,10 +49,8 @@ headers:
 				t.Fatalf("Expected X-Forwarded-For match to be nil. Found:%s",
 					header.Match.String())
 			}
-		} else {
-			if header.Match == nil {
-				t.Fatalf("Expected Authorization header to have a match")
-			}
+		} else if header.Match == nil {
+			t.Fatalf("Expected Authorization header to have a match")
 		}
 	}
 }
@@ -64,12 +62,11 @@ headers:
     - "Authorization": "Bearer.*"
     - name: "X-Forwarded-For"
 `)
-	var headerConfig TestHeaderConfig
+	headerConfig := TestHeaderConfig{}
 	yaml.Unmarshal(config, &headerConfig)
 
 	factory := headerMatcherFactory{}
-	_, err := factory.Create(headerConfig.Headers)
-	if err == nil {
+	if _, err := factory.Create(headerConfig.Headers); err == nil {
 		t.Error("Expected error when headers have no name")
 	}
 
@@ -79,8 +76,7 @@ headers:
   - name: "X-Forwarded-For"
 `)
 	yaml.Unmarshal(config, &headerConfig)
-	_, err = factory.Create(headerConfig.Headers)
-	if err == nil {
+	if _, err := factory.Create(headerConfig.Headers); err == nil {
 		t.Error("expected error when match_any is missing")
 	}
 }

@@ -37,10 +37,8 @@ func (pmf pathMatcherFactory) Type() string {
 
 func (pmf pathMatcherFactory) Create(config interface{}) (Matcher, error) {
 	matcherConfig := pathMatcherConfig{}
-	var matcher pathMatcher
-
-	err := common.ReMarshal(config, &matcherConfig)
-	if err != nil {
+	matcher := pathMatcher{}
+	if err := common.ReMarshal(config, &matcherConfig); err != nil {
 		return matcher, err
 	}
 
