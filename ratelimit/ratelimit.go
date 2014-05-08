@@ -1,10 +1,14 @@
 package ratelimit
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Clever/leakybucket"
+	leakybucketMemory "github.com/Clever/leakybucket/memory"
+	leakybucketRedis "github.com/Clever/leakybucket/redis"
 	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/limit"
+	"github.com/Clever/sphinx/yaml"
 	"time"
 )
 
@@ -28,29 +32,31 @@ func newStatus(name string, bucket leakybucket.BucketState) Status {
 	return status
 }
 
+func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
+
+	switch config["type"] {
+	default:
+		return nil, errors.New("must specify one of 'redis' or 'memory' storage")
+	case "memory":
+		return leakybucketMemory.New(), nil
+	case "redis":
+		return leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
+			config["host"], config["port"]))
+	}
+}
+
 // RateLimiter rate limits requests based on given configuration and limits.
 type RateLimiter interface {
 	Add(request common.Request) ([]Status, error)
-	Configuration() config.Configuration
-	Limits() []config.Limit
 }
 
 type rateLimiter struct {
-	config config.Configuration
-	limits []config.Limit
-}
-
-func (r *rateLimiter) Limits() []config.Limit {
-	return r.limits
-}
-
-func (r *rateLimiter) Configuration() config.Configuration {
-	return r.config
+	limits []limit.Limit
 }
 
 func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 	status := []Status{}
-	for _, limit := range r.Limits() {
+	for _, limit := range r.limits {
 		if !limit.Match(request) {
 			continue
 		}
@@ -65,8 +71,22 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 }
 
 // NewRateLimiter returns a new RateLimiter based on the given configuration.
-func NewRateLimiter(config config.Configuration) (RateLimiter, error) {
+func NewRateLimiter(config yaml.Config) (RateLimiter, error) {
 
-	rateLimiter := &rateLimiter{config: config, limits: config.Limits()}
+	storage, err := resolveBucketStore(config.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	limits := []limit.Limit{}
+	for name, config := range config.Limits {
+		limit, err := limit.NewLimit(name, config, storage)
+		if err != nil {
+			return nil, err
+		}
+		limits = append(limits, limit)
+	}
+
+	rateLimiter := &rateLimiter{limits: limits}
 	return rateLimiter, nil
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/limit"
 	"testing"
 )
 
@@ -47,11 +48,12 @@ func TestNewRateLimiter(t *testing.T) {
 		t.Error("could not load example configuration")
 	}
 
-	ratelimiter, err := NewRateLimiter(config)
+	rater, err := NewRateLimiter(config)
+	ratelimiter := rater.(*rateLimiter)
 	if err != nil {
 		t.Errorf("Error while instantiating ratelimiter: %s", err.Error())
 	}
-	if len(ratelimiter.Configuration().Limits()) != len(ratelimiter.Limits()) {
+	if len(ratelimiter.limits) != len(config.Limits) {
 		t.Error("expected number of limits in configuration to match instantiated limits")
 	}
 }
@@ -106,9 +108,9 @@ func (m NeverMatch) Add(common.Request) (leakybucket.BucketState, error) {
 }
 
 func createRateLimiter(numLimits int) RateLimiter {
-	limit := &NeverMatch{}
 	rateLimiter := &rateLimiter{}
-	limits := []config.Limit{}
+	limits := []limit.Limit{}
+	limit := &NeverMatch{}
 	for i := 0; i < numLimits; i++ {
 		limits = append(limits, limit)
 	}

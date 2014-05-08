@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/limit"
 	"github.com/Clever/sphinx/ratelimit"
 	"github.com/stretchr/testify/mock"
 	"net/http"
@@ -72,26 +72,11 @@ func assertNoRateLimitHeaders(t *testing.T, header http.Header) {
 	}
 }
 
-type MockConfiguration struct{}
-
-func (m MockConfiguration) Proxy() config.Proxy {
-	return config.Proxy{}
-}
-func (m MockConfiguration) Limits() []config.Limit {
-	return []config.Limit{}
-}
-
 type MockRateLimiter struct {
 	*mock.Mock
-	limits []config.Limit
+	limits []limit.Limit
 }
 
-func (r *MockRateLimiter) Configuration() config.Configuration {
-	return &MockConfiguration{}
-}
-func (r *MockRateLimiter) Limits() []config.Limit {
-	return r.limits
-}
 func (r *MockRateLimiter) Add(request common.Request) ([]ratelimit.Status, error) {
 	args := r.Mock.Called(request)
 	return args.Get(0).([]ratelimit.Status), args.Error(1)
