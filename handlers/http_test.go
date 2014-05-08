@@ -6,7 +6,7 @@ import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limit"
-	"github.com/Clever/sphinx/ratelimit"
+	"github.com/Clever/sphinx/ratelimiter"
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
@@ -46,7 +46,7 @@ func compareHeader(t *testing.T, headers http.Header, key string, values []strin
 	}
 }
 
-func compareStatusesToHeader(t *testing.T, header http.Header, statuses []ratelimit.Status) {
+func compareStatusesToHeader(t *testing.T, header http.Header, statuses []ratelimiter.Status) {
 	limits := []string{}
 	resets := []string{}
 	remainings := []string{}
@@ -77,9 +77,9 @@ type MockRateLimiter struct {
 	limits []limit.Limit
 }
 
-func (r *MockRateLimiter) Add(request common.Request) ([]ratelimit.Status, error) {
+func (r *MockRateLimiter) Add(request common.Request) ([]ratelimiter.Status, error) {
 	args := r.Mock.Called(request)
-	return args.Get(0).([]ratelimit.Status), args.Error(1)
+	return args.Get(0).([]ratelimiter.Status), args.Error(1)
 }
 
 type MockProxy struct {
@@ -114,14 +114,14 @@ func TestParsesHeaders(t *testing.T) {
 
 func TestAddHeadersNoStatus(t *testing.T) {
 	w := httptest.NewRecorder()
-	statuses := []ratelimit.Status{}
+	statuses := []ratelimiter.Status{}
 	addRateLimitHeaders(w, statuses)
 	assertNoRateLimitHeaders(t, w.Header())
 }
 
 func TestAddHeadersOneStatus(t *testing.T) {
 	w := httptest.NewRecorder()
-	statuses := []ratelimit.Status{
+	statuses := []ratelimiter.Status{
 		{Capacity: uint(10), Reset: time.Now(), Remaining: uint(10), Name: "test"},
 	}
 	addRateLimitHeaders(w, statuses)
@@ -130,7 +130,7 @@ func TestAddHeadersOneStatus(t *testing.T) {
 
 func TestAddHeadersMultipleStatus(t *testing.T) {
 	w := httptest.NewRecorder()
-	statuses := []ratelimit.Status{
+	statuses := []ratelimiter.Status{
 		{Capacity: uint(10), Reset: time.Now(), Remaining: uint(10), Name: "test1"},
 		{Capacity: uint(100), Reset: time.Now(), Remaining: uint(100), Name: "test2"},
 		{Capacity: uint(1000), Reset: time.Now(), Remaining: uint(1000), Name: "test3"},
@@ -140,7 +140,7 @@ func TestAddHeadersMultipleStatus(t *testing.T) {
 }
 
 var anyRequest = mock.AnythingOfTypeArgument("common.Request")
-var sphinxStatus = ratelimit.Status{
+var sphinxStatus = ratelimiter.Status{
 	Capacity:  uint(10),
 	Reset:     time.Now(),
 	Remaining: uint(10),
@@ -154,7 +154,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []ratelimit.Status{sphinxStatus}
+	statuses := []ratelimiter.Status{sphinxStatus}
 
 	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, nil).Once()
@@ -177,7 +177,7 @@ func TestHandleWhenFull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []ratelimit.Status{sphinxStatus}
+	statuses := []ratelimiter.Status{sphinxStatus}
 
 	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, leakybucket.ErrorFull).Once()
@@ -199,7 +199,7 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []ratelimit.Status{sphinxStatus}
+	statuses := []ratelimiter.Status{sphinxStatus}
 
 	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()
@@ -221,7 +221,7 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	statuses := []ratelimit.Status{}
+	statuses := []ratelimiter.Status{}
 
 	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 	limitMock.On("Add", anyRequest).Return(statuses, errors.New("random error")).Once()

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
-	"github.com/Clever/sphinx/ratelimit"
+	"github.com/Clever/sphinx/ratelimiter"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,7 +29,7 @@ func setUpHTTPLimiter(b *testing.B) {
 	if err != nil {
 		b.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
-	rateLimiter, err := ratelimit.New(config)
+	rateLimiter, err := ratelimiter.New(config)
 	if err != nil {
 		b.Fatalf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
