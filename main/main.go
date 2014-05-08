@@ -24,8 +24,8 @@ type daemon struct {
 }
 
 func (d *daemon) Start() {
-	log.Printf("Listening on %s", d.config.Proxy.Listen)
-	log.Fatal(http.ListenAndServe(d.config.Proxy.Listen, d.handler))
+	log.Printf("Listening on %s", d.config.Proxy().Listen)
+	log.Fatal(http.ListenAndServe(d.config.Proxy().Listen, d.handler))
 	return
 }
 
@@ -37,20 +37,20 @@ func NewDaemon(config sphinx.Configuration) (daemon, error) {
 		return daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
 
-	target, _ := url.Parse(config.Proxy.Host) // already tested for invalid Host
+	target, _ := url.Parse(config.Proxy().Host) // already tested for invalid Host
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
 	out := daemon{
 		config:      config,
 		rateLimiter: rateLimiter,
 	}
-	switch config.Proxy.Handler {
+	switch config.Proxy().Handler {
 	case "http":
 		out.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
 	case "httplogger":
 		out.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
 	default:
-		return daemon{}, fmt.Errorf("unrecognized handler %s", config.Proxy.Handler)
+		return daemon{}, fmt.Errorf("unrecognized handler %s", config.Proxy().Handler)
 	}
 
 	return out, nil

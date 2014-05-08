@@ -9,30 +9,35 @@ import (
 // test example config file is loaded correctly
 func TestConfigurationFileLoading(t *testing.T) {
 
-	config, err := NewConfiguration("./example.yaml")
+	conf, err := NewConfiguration("./example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := conf.(*configuration)
 	if err != nil {
 		t.Error("could not load example configuration")
 	}
 
-	if config.Proxy.Handler != "http" {
+	if config.Proxy().Handler != "http" {
 		t.Error("expected http for Proxy.Handler")
 	}
 
-	if len(config.Limits) != 4 {
+	if len(config.Limits()) != 4 {
 		t.Error("expected 4 bucket definitions")
 	}
 
-	for name, limit := range config.Limits {
-		if limit.Interval < 1 {
+	for name, lim := range config.Limits() {
+		limit := lim.(*limit)
+		if limit.config.Interval < 1 {
 			t.Errorf("limit interval should be greator than 1 for limit: %s", name)
 		}
-		if limit.Max < 1 {
+		if limit.config.Max < 1 {
 			t.Errorf("limit max should be greator than 1 for limit: %s", name)
 		}
-		if limit.Keys == nil {
+		if limit.config.Keys == nil {
 			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
 		}
-		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
+		if limit.config.Matches["headers"] == nil && limit.config.Matches["paths"] == nil {
 			t.Error("One of paths or headers was expected to be set for matches")
 		}
 	}

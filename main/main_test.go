@@ -34,7 +34,7 @@ func setUpHTTPLimiter(b *testing.B) {
 	}
 
 	// if configuration says that use http
-	if config.Proxy.Handler != "http" {
+	if config.Proxy().Handler != "http" {
 		b.Fatalf("sphinx only supports the http handler")
 	}
 
@@ -43,8 +43,7 @@ func setUpHTTPLimiter(b *testing.B) {
 	proxy := httputil.NewSingleHostReverseProxy(target)
 	httpLimiter := handlers.NewHTTPLimiter(rateLimiter, proxy)
 
-	config.Proxy.Listen = ":8082"
-	go http.ListenAndServe(config.Proxy.Listen, httpLimiter)
+	go http.ListenAndServe(":8082", httpLimiter)
 }
 
 func makeRequestTo(port string) error {
