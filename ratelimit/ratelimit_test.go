@@ -1,4 +1,4 @@
-package sphinx
+package ratelimit
 
 import (
 	"fmt"

@@ -4,14 +4,14 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/sphinx"
+	"github.com/Clever/sphinx/ratelimit"
 	"log"
 	"net/http"
 	"strconv"
 )
 
 type httpRateLimiter struct {
-	rateLimiter sphinx.RateLimiter
+	rateLimiter ratelimit.RateLimiter
 	proxy       http.Handler
 }
 
@@ -71,7 +71,7 @@ func initHeaders() map[string][]string {
 	return headers
 }
 
-func getRateLimitHeaders(statuses []sphinx.Status) map[string][]string {
+func getRateLimitHeaders(statuses []ratelimit.Status) map[string][]string {
 	if len(statuses) == 0 {
 		return map[string][]string{}
 	}
@@ -85,7 +85,7 @@ func getRateLimitHeaders(statuses []sphinx.Status) map[string][]string {
 	return headers
 }
 
-func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
+func addRateLimitHeaders(w http.ResponseWriter, statuses []ratelimit.Status) {
 	for header, values := range getRateLimitHeaders(statuses) {
 		for _, value := range values {
 			w.Header().Add(header, value)
@@ -94,12 +94,12 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []sphinx.Status) {
 }
 
 // NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
-func NewHTTPLimiter(rateLimiter sphinx.RateLimiter, proxy http.Handler) http.Handler {
+func NewHTTPLimiter(rateLimiter ratelimit.RateLimiter, proxy http.Handler) http.Handler {
 	return httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy}
 }
 
 // NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but
 // actually proxies everything.
-func NewHTTPLogger(rateLimiter sphinx.RateLimiter, proxy http.Handler) http.Handler {
+func NewHTTPLogger(rateLimiter ratelimit.RateLimiter, proxy http.Handler) http.Handler {
 	return httpRateLogger{rateLimiter: rateLimiter, proxy: proxy}
 }

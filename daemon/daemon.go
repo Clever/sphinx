@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
-	"github.com/Clever/sphinx/sphinx"
+	"github.com/Clever/sphinx/ratelimit"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -17,7 +17,7 @@ type Daemon interface {
 
 type daemon struct {
 	config      config.Configuration
-	rateLimiter sphinx.RateLimiter
+	rateLimiter ratelimit.RateLimiter
 	proxy       httputil.ReverseProxy
 	handler     http.Handler
 }
@@ -31,7 +31,7 @@ func (d *daemon) Start() {
 // NewDaemon takes in config.Configuration and creates a sphinx listener
 func NewDaemon(config config.Configuration) (Daemon, error) {
 
-	rateLimiter, err := sphinx.NewRateLimiter(config)
+	rateLimiter, err := ratelimit.NewRateLimiter(config)
 	if err != nil {
 		return &daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
