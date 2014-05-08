@@ -1,6 +1,7 @@
 package common
 
 import (
+	"gopkg.in/v1/yaml"
 	"net/http"
 )
 
@@ -15,6 +16,15 @@ func InSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// ReMarshal parses interface{} into concrete types
+func ReMarshal(config interface{}, target interface{}) error {
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(data, target)
 }
 
 // HTTPToSphinxRequest converts an http.Request to a Request

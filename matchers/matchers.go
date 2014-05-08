@@ -3,7 +3,6 @@ package matchers
 import (
 	"fmt"
 	"github.com/Clever/sphinx/common"
-	"gopkg.in/v1/yaml"
 )
 
 var (
@@ -42,12 +41,4 @@ type Matcher interface {
 type MatcherFactory interface {
 	Type() string
 	Create(config interface{}) (Matcher, error)
-}
-
-func reMarshal(config interface{}, target interface{}) error {
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return err
-	}
-	return yaml.Unmarshal(data, target)
 }

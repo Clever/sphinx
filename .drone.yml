@@ -1,0 +1,7 @@
+image: go1.2
+script:
+  - make test
+notify:
+  email:
+    recipients:
+      - drone@clever.com

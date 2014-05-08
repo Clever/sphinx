@@ -16,43 +16,44 @@ var (
 	validate   = flag.Bool("validate", false, "Validate configuration and exit")
 )
 
-type Daemon struct {
+type daemon struct {
 	config      sphinx.Configuration
 	rateLimiter sphinx.RateLimiter
 	proxy       httputil.ReverseProxy
 	handler     http.Handler
 }
 
-func (d *Daemon) Start() {
+func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.config.Proxy.Listen)
 	log.Fatal(http.ListenAndServe(d.config.Proxy.Listen, d.handler))
 	return
 }
 
-func NewDaemon(config sphinx.Configuration) (Daemon, error) {
+// NewDaemon takes in sphinx.Configuration and creates a sphinx listener
+func NewDaemon(config sphinx.Configuration) (daemon, error) {
 
 	rateLimiter, err := sphinx.NewRateLimiter(config)
 	if err != nil {
-		return Daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
+		return daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
 
 	target, _ := url.Parse(config.Proxy.Host) // already tested for invalid Host
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
-	daemon := Daemon{
+	out := daemon{
 		config:      config,
 		rateLimiter: rateLimiter,
 	}
 	switch config.Proxy.Handler {
 	case "http":
-		daemon.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
+		out.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
 	case "httplogger":
-		daemon.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
+		out.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
 	default:
-		return Daemon{}, fmt.Errorf("Unrecognized handler %s", config.Proxy.Handler)
+		return daemon{}, fmt.Errorf("unrecognized handler %s", config.Proxy.Handler)
 	}
 
-	return daemon, nil
+	return out, nil
 }
 
 func main() {
@@ -64,15 +65,15 @@ func main() {
 		log.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
 
-	daemon, err := NewDaemon(config)
+	sphinxd, err := NewDaemon(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if *validate {
-		print("Configuration parsed and Sphinx loaded fine. not starting dameon.")
+		print("configuration parsed and Sphinx loaded fine. not starting dameon.")
 		return
 	}
 
-	daemon.Start()
+	sphinxd.Start()
 }
