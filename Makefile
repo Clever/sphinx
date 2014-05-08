@@ -1,14 +1,15 @@
 SHELL := /bin/bash
-PKG = github.com/Clever/sphinx
+PKG := github.com/Clever/sphinx
 VERSION := 0.1
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
-SUBPKGS = $(addprefix $(PKG)/,common handlers limitkeys matchers main)
-PKGS = $(PKG) $(SUBPKGS)
+TESTS := $(shell find . -name "*_test.go")
+BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean
 
-test: $(PKGS)
+test: $(TESTS)
+bench: $(BENCHES)
 build: bin/sphinxd
 all: build test
 
@@ -18,29 +19,38 @@ bin/sphinxd: *.go **/*.go
 golint:
 	go get github.com/golang/lint/golint
 
-$(PKGS): PATH := $(PATH):$(GOPATH)/bin
-$(PKGS): golint
+$(TESTS): PATH := $(PATH):$(GOPATH)/bin
+$(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
+$(TESTS): golint
 	@echo ""
 	@echo "FORMATTING $@..."
-	go get -d -t $@
-	gofmt -w=true $(GOPATH)/src/$@*/**.go
+	go get -d -t $(THE_PKG)
+	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 ifneq ($(NOLINT),1)
 	@echo "LINTING $@..."
-	golint $(GOPATH)/src/$@*/**.go
+	golint $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 endif
 ifeq ($(COVERAGE),1)
-	go test -cover -coverprofile=$(GOPATH)/src/$@/c.out $@ -test.v
-	go tool cover -html=$(GOPATH)/src/$@/c.out
+	@echo "TESTING COVERAGE $@..."
+	go test -cover -coverprofile=$(GOPATH)/src/$(THE_PKG)/c.out $(THE_PKG) -test.v
+	go tool cover -html=$(GOPATH)/src/$(THE_PKG)/c.out
 else
 	@echo "TESTING $@..."
-	go test -v -bench=. $@
+	go test -v $(THE_PKG)
 endif
+
+$(BENCHES): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
+$(BENCHES): READABLE_NAME = $(shell echo $@ | sed s/_bench//)
+$(BENCHES):
+	@echo ""
+	@echo "BENCHMARKING $(READABLE_NAME)..."
+	go test -bench=. $(THE_PKG)
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
-deb: build test
+deb: build test bench
 	mkdir -p deb/sphinx/usr/local/bin
 	mkdir -p deb/sphinx/var/lib/sphinx
 	mkdir -p deb/sphinx/var/cache/sphinx
