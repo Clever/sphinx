@@ -70,8 +70,8 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 	return status, nil
 }
 
-// NewRateLimiter returns a new RateLimiter based on the given configuration.
-func NewRateLimiter(config config.Config) (RateLimiter, error) {
+// New returns a new RateLimiter based on the given configuration.
+func New(config config.Config) (RateLimiter, error) {
 
 	storage, err := resolveBucketStore(config.Storage)
 	if err != nil {
@@ -80,7 +80,7 @@ func NewRateLimiter(config config.Config) (RateLimiter, error) {
 
 	limits := []limit.Limit{}
 	for name, config := range config.Limits {
-		limit, err := limit.NewLimit(name, config, storage)
+		limit, err := limit.New(name, config, storage)
 		if err != nil {
 			return nil, err
 		}

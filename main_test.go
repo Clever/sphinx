@@ -25,11 +25,11 @@ func setUpLocalServer() {
 }
 
 func setUpHTTPLimiter(b *testing.B) {
-	config, err := config.NewConfiguration("../example.yaml")
+	config, err := config.New("../example.yaml")
 	if err != nil {
 		b.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
-	rateLimiter, err := ratelimit.NewRateLimiter(config)
+	rateLimiter, err := ratelimit.New(config)
 	if err != nil {
 		b.Fatalf("SPHINX_INIT_FAILED: %s", err.Error())
 	}

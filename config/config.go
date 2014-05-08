@@ -108,8 +108,8 @@ func LoadAndValidateYaml(data []byte) (Config, error) {
 	return config, nil
 }
 
-// NewConfiguration takes in a path to a configuration yaml and returns a Configuration.
-func NewConfiguration(path string) (Config, error) {
+// New takes in a path to a configuration yaml and returns a Configuration.
+func New(path string) (Config, error) {
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

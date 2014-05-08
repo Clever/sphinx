@@ -92,8 +92,8 @@ func (l limit) expiry() time.Duration {
 	return time.Duration(l.interval) * time.Second
 }
 
-// NewLimit creates a new Limit
-func NewLimit(name string, config config.Limit, storage leakybucket.Storage) (Limit, error) {
+// New creates a new Limit
+func New(name string, config config.Limit, storage leakybucket.Storage) (Limit, error) {
 
 	limit := &limit{
 		name:     name,

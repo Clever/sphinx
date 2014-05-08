@@ -51,7 +51,7 @@ limits:
 		t.Fatal(err)
 	}
 
-	if _, err := NewLimit("test", config.Limits["test"], Storage{}); err == nil {
+	if _, err := New("test", config.Limits["test"], Storage{}); err == nil {
 		t.Fatal("expected error")
 	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
 		t.Errorf("Expected a InvalidMatcherConfig error, got different error: %s", err.Error())
@@ -222,7 +222,7 @@ func TestLimitAdd(t *testing.T) {
 		Keys:     conf.Limits["basic-simple"].Keys,
 	}
 
-	lim, err := NewLimit("test-limit", limitconfig, memory.New())
+	lim, err := New("test-limit", limitconfig, memory.New())
 	limit := lim.(*limit)
 	if err != nil {
 		t.Error("Could not initialize test-limit")

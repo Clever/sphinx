@@ -16,12 +16,12 @@ func main() {
 
 	flag.Parse()
 
-	config, err := config.NewConfiguration(*configfile)
+	config, err := config.New(*configfile)
 	if err != nil {
 		log.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
 
-	sphinxd, err := daemon.NewDaemon(config)
+	sphinxd, err := daemon.New(config)
 	if err != nil {
 		log.Fatal(err)
 	}

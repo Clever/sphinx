@@ -41,14 +41,14 @@ func checkLastStatusForRequests(ratelimiter RateLimiter,
 }
 
 // ratelimiter is initialized properly based on config
-func TestNewRateLimiter(t *testing.T) {
+func TestNew(t *testing.T) {
 
-	config, err := config.NewConfiguration("../example.yaml")
+	config, err := config.New("../example.yaml")
 	if err != nil {
 		t.Error("could not load example configuration")
 	}
 
-	rater, err := NewRateLimiter(config)
+	rater, err := New(config)
 	ratelimiter := rater.(*rateLimiter)
 	if err != nil {
 		t.Errorf("Error while instantiating ratelimiter: %s", err.Error())
@@ -61,11 +61,11 @@ func TestNewRateLimiter(t *testing.T) {
 // adds different kinds of requests and checks limit Status
 // focusses on single bucket adds
 func TestSimpleAdd(t *testing.T) {
-	config, err := config.NewConfiguration("../example.yaml")
+	config, err := config.New("../example.yaml")
 	if err != nil {
 		t.Error("could not load example configuration")
 	}
-	ratelimiter, err := NewRateLimiter(config)
+	ratelimiter, err := New(config)
 
 	request := common.Request{
 		"path": "/special/resources/123",

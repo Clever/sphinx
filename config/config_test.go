@@ -9,7 +9,7 @@ import (
 // test example config file is loaded correctly
 func TestConfigurationFileLoading(t *testing.T) {
 
-	config, err := NewConfiguration("../example.yaml")
+	config, err := New("../example.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestConfigurationFileLoading(t *testing.T) {
 }
 
 func TestInvalidConfigurationPath(t *testing.T) {
-	if _, err := NewConfiguration("./does-not-exist.yaml"); err == nil {
+	if _, err := New("./does-not-exist.yaml"); err == nil {
 		t.Fatalf("Expected error for invalid config path")
 	} else if !strings.Contains(err.Error(), "no such file or directory") {
 		t.Fatalf("Expected no file error got %s", err.Error())

@@ -28,9 +28,9 @@ func (d *daemon) Start() {
 }
 
 // NewDaemon takes in config.Configuration and creates a sphinx listener
-func NewDaemon(config config.Config) (Daemon, error) {
+func New(config config.Config) (Daemon, error) {
 
-	rateLimiter, err := ratelimit.NewRateLimiter(config)
+	rateLimiter, err := ratelimit.New(config)
 	if err != nil {
 		return &daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
