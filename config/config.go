@@ -9,6 +9,7 @@ import (
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
+	"github.com/Clever/sphinx/yaml"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -48,11 +49,12 @@ func (c configuration) Limits() []Limit {
 }
 
 type limit struct {
-	name    string
-	storage leakybucket.Storage
-	config  limitYaml
-	keys    []limitkeys.LimitKey
-	matcher requestMatcher
+	name     string
+	storage  leakybucket.Storage
+	keys     []limitkeys.LimitKey
+	matcher  requestMatcher
+	max      uint
+	interval uint
 }
 
 func (l limit) Name() string {
@@ -81,7 +83,7 @@ func (l limit) Match(request common.Request) bool {
 func (l limit) Add(request common.Request) (leakybucket.BucketState, error) {
 
 	bucket, err := l.storage.Create(l.bucketName(request),
-		l.config.Max, l.expiry())
+		l.max, l.expiry())
 	if err != nil {
 		return leakybucket.BucketState{}, err
 	}
@@ -111,16 +113,17 @@ func (l limit) bucketName(request common.Request) string {
 }
 
 func (l limit) expiry() time.Duration {
-	return time.Duration(l.config.Interval) * time.Second
+	return time.Duration(l.interval) * time.Second
 }
 
-func newLimit(name string, config limitYaml, storage leakybucket.Storage) (Limit, error) {
+func newLimit(name string, config yaml.Limit, storage leakybucket.Storage) (Limit, error) {
 
 	limit := &limit{
-		name:    name,
-		storage: storage,
-		config:  config,
-		matcher: requestMatcher{},
+		name:     name,
+		storage:  storage,
+		interval: config.Interval,
+		max:      config.Max,
+		matcher:  requestMatcher{},
 	}
 
 	matches, err := resolveMatchers(config.Matches)
@@ -207,7 +210,7 @@ func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
 	}
 }
 
-func parseYaml(config configYaml) (Configuration, error) {
+func parseYaml(config yaml.Config) (Configuration, error) {
 	storage, err := resolveBucketStore(config.Storage)
 	if err != nil {
 		return nil, err
@@ -223,7 +226,7 @@ func parseYaml(config configYaml) (Configuration, error) {
 	}
 
 	return &configuration{
-		proxy:  config.Proxy,
+		proxy:  Proxy(config.Proxy),
 		limits: limits,
 	}, nil
 }
@@ -236,7 +239,7 @@ func NewConfiguration(path string) (Configuration, error) {
 		return nil,
 			fmt.Errorf("failed to read %s. Aborting with error: %s", path, err.Error())
 	}
-	yaml, err := loadAndValidateYaml(data)
+	yaml, err := yaml.LoadAndValidateYaml(data)
 	if err != nil {
 		return nil, err
 	}

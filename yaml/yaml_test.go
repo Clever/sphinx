@@ -1,4 +1,4 @@
-package config
+package yaml
 
 import (
 	"bytes"
@@ -6,53 +6,13 @@ import (
 	"testing"
 )
 
-// test that matcher errors are bubbled up
-func TestBadConfiguration(t *testing.T) {
-
-	configBuf := bytes.NewBufferString(`
-proxy:
-  handler: http
-  host: http://proxy.example.com
-  listen: :8080
-storage:
-  type: memory
-limits:
-  test:
-    interval: 15  # in seconds
-    max: 200
-`)
-
-	// header matchers are verified
-	configBuf.WriteString(`
-    keys:
-      headers:
-        - Authorization
-    matches:
-      headers:
-        match_any:
-          - "Authorization": "Bearer.*"
-          - name: "X-Forwarded-For"
-`)
-	config, err := loadAndValidateYaml(configBuf.Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := parseYaml(config); err == nil {
-		t.Fatal("expected error")
-	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
-		t.Errorf("Expected a InvalidMatcherConfig error, got different error: %s", err.Error())
-	}
-
-}
-
 func TestInvalidYaml(t *testing.T) {
 	invalidYaml := []byte(`
 forward
   host$$: proxy.example.com
 `)
 
-	if _, err := loadAndValidateYaml(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
+	if _, err := LoadAndValidateYaml(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
 		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }
@@ -64,7 +24,7 @@ func TestInvalidProxyConfig(t *testing.T) {
 proxy:
   host: http://proxy.example.com
 `)
-	_, err := loadAndValidateYaml(invalidConfig)
+	_, err := LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "handler") {
 		t.Errorf("Expected proxy handler error. Got: %s", err.Error())
 	}
@@ -74,7 +34,7 @@ proxy:
   handler: http
   host: proxy.example.com
 `)
-	_, err = loadAndValidateYaml(invalidConfig)
+	_, err = LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "host:port") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
@@ -85,7 +45,7 @@ proxy:
   host: proxy.example.com
   listen: :8000
 `)
-	_, err = loadAndValidateYaml(invalidConfig)
+	_, err = LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "proxy") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
@@ -110,7 +70,7 @@ limits:
       headers: 
         - 'Authentication'
 `)
-	_, err := loadAndValidateYaml(configBuf.Bytes())
+	_, err := LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "interval") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
@@ -124,7 +84,7 @@ limits:
       headers: 
         - 'Authentication'
 `)
-	_, err = loadAndValidateYaml(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "max") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
@@ -145,7 +105,7 @@ limits:
     max: 200
 `)
 
-	_, err := loadAndValidateYaml(baseBuf.Bytes())
+	_, err := LoadAndValidateYaml(baseBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "storage type must be set") {
 		t.Errorf("Expected Storage error. Got: %s", err.Error())
 	}
@@ -155,7 +115,7 @@ limits:
 storage:
   type: redis
 `)
-	_, err = loadAndValidateYaml(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "host") {
 		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
 	}
@@ -166,7 +126,7 @@ storage:
   type: redis
   host: localhost
 `)
-	_, err = loadAndValidateYaml(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "port") {
 		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
 	}

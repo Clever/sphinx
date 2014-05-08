@@ -1,14 +1,56 @@
 package config
 
 import (
+	"bytes"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/matchers"
+	"github.com/Clever/sphinx/yaml"
 	"io/ioutil"
 	"strings"
 	"testing"
 )
+
+// test that matcher errors are bubbled up
+func TestBadConfiguration(t *testing.T) {
+
+	configBuf := bytes.NewBufferString(`
+proxy:
+  handler: http
+  host: http://proxy.example.com
+  listen: :8080
+storage:
+  type: memory
+limits:
+  test:
+    interval: 15  # in seconds
+    max: 200
+`)
+
+	// header matchers are verified
+	configBuf.WriteString(`
+    keys:
+      headers:
+        - Authorization
+    matches:
+      headers:
+        match_any:
+          - "Authorization": "Bearer.*"
+          - name: "X-Forwarded-For"
+`)
+	config, err := yaml.LoadAndValidateYaml(configBuf.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := parseYaml(config); err == nil {
+		t.Fatal("expected error")
+	} else if !strings.Contains(err.Error(), "InvalidMatcherConfig: headers") {
+		t.Errorf("Expected a InvalidMatcherConfig error, got different error: %s", err.Error())
+	}
+
+}
 
 // test example config file is loaded correctly
 func TestConfigurationFileLoading(t *testing.T) {
@@ -32,17 +74,11 @@ func TestConfigurationFileLoading(t *testing.T) {
 
 	for name, lim := range config.Limits() {
 		limit := lim.(*limit)
-		if limit.config.Interval < 1 {
+		if limit.interval < 1 {
 			t.Errorf("limit interval should be greator than 1 for limit: %s", name)
 		}
-		if limit.config.Max < 1 {
+		if limit.max < 1 {
 			t.Errorf("limit max should be greator than 1 for limit: %s", name)
-		}
-		if limit.config.Keys == nil {
-			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
-		}
-		if limit.config.Matches["headers"] == nil && limit.config.Matches["paths"] == nil {
-			t.Error("One of paths or headers was expected to be set for matches")
 		}
 	}
 }
@@ -150,7 +186,7 @@ func TestLimitMatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, err := loadAndValidateYaml(data)
+	config, err := yaml.LoadAndValidateYaml(data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,12 +239,12 @@ func TestLimitAdd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, err := loadAndValidateYaml(data)
+	config, err := yaml.LoadAndValidateYaml(data)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	limitconfig := limitYaml{
+	limitconfig := yaml.Limit{
 		Interval: 100,
 		Max:      3,
 		// matches name: Authorization, match: bearer (from example.yaml)
@@ -235,9 +271,9 @@ func TestLimitAdd(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error while adding to limit test-limit: %s", err.Error())
 		}
-		if bucketStatus.Remaining != limit.config.Max-i {
+		if bucketStatus.Remaining != limit.max-i {
 			t.Errorf("Expected remaining %d, found: %d",
-				limit.config.Max-i, bucketStatus.Remaining)
+				limit.max-i, bucketStatus.Remaining)
 		}
 	}
 

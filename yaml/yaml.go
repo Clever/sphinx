@@ -1,4 +1,4 @@
-package config
+package yaml
 
 import (
 	"errors"
@@ -10,13 +10,22 @@ import (
 	"strings"
 )
 
-type configYaml struct {
+// Config holds the yaml data for the config file
+type Config struct {
 	Proxy   Proxy
-	Limits  map[string]limitYaml
+	Limits  map[string]Limit
 	Storage map[string]string
 }
 
-type limitYaml struct {
+// Proxy holds the yaml data for the proxy option in the config file
+type Proxy struct {
+	Handler string
+	Host    string
+	Listen  string
+}
+
+// Limit holds the yaml data for one of the limits in the config file
+type Limit struct {
 	Interval uint
 	Max      uint
 	Keys     map[string]interface{}
@@ -24,9 +33,11 @@ type limitYaml struct {
 	Excludes map[string]interface{}
 }
 
-func loadAndValidateYaml(data []byte) (configYaml, error) {
+// LoadAndValidateYaml turns a sequence of bytes into a Config and validates that all the necessary
+// fields are set
+func LoadAndValidateYaml(data []byte) (Config, error) {
 
-	config := configYaml{}
+	config := Config{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		log.Print("Failed to parse data in configuration. Aborting")
 		return config, err
