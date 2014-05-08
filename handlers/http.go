@@ -8,7 +8,30 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
+
+func stringifyHeaders(headers http.Header) string {
+	out := ""
+	for header, values := range headers {
+		out += header + "=" + strings.Join(values, ",") + " "
+	}
+	return out
+}
+func stringifyRequest(req common.Request) string {
+	out := "path=" + req["path"].(string) + " "
+	out += "remoteaddr=" + req["remoteaddr"].(string) + " "
+	out += stringifyHeaders(req["headers"].(http.Header))
+	return out
+}
+
+func parseRequest(r *http.Request) common.Request {
+	return map[string]interface{}{
+		"path":       r.URL.Path,
+		"headers":    r.Header,
+		"remoteaddr": r.RemoteAddr,
+	}
+}
 
 type httpRateLimiter struct {
 	rateLimiter sphinx.RateLimiter
@@ -18,7 +41,7 @@ type httpRateLimiter struct {
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := common.HTTPToSphinxRequest(r)
-	log.Printf("[%s] REQUEST: %#v", guid, request)
+	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request))
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
@@ -38,14 +61,14 @@ type httpRateLogger httpRateLimiter
 func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := common.HTTPToSphinxRequest(r)
-	log.Printf("[%s] REQUEST: %#v", guid, request)
+	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request))
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
 		hrl.proxy.ServeHTTP(w, r)
 		return
 	}
-	log.Printf("[%s] RATE LIMIT HEADERS: %#v", guid, getRateLimitHeaders(matches))
+	log.Printf("[%s] RATE LIMIT HEADERS: %s", guid, stringifyHeaders(getRateLimitHeaders(matches)))
 	if err == leakybucket.ErrorFull {
 		log.Printf("[%s] BUCKET FULL", guid)
 	}
