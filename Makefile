@@ -1,6 +1,9 @@
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
-VERSION := 0.1
+VERSION := $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
+RELEASE_NAME := $(shell cat CHANGES.md | head -n 1 | tail -c+3)
+RELEASE_DOCS := $(shell cat CHANGES.md | tail -n+2 | sed -n '/\#/q;p')
+>>>>>>> add make release
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
@@ -11,7 +14,35 @@ BENCHES := $(addsuffix "_bench", $(TESTS))
 test: $(TESTS)
 bench: $(BENCHES)
 build: bin/sphinxd
-all: build test
+release: github-release 
+
+	if [ -z "$$GIT_DIRTY" ]; then \
+		echo "Uncommited changes. Exciting." ; exit 1 ; \
+	fi
+
+	@while [ -z "$$CONTINUE" ]; do \
+		read -r -p "Tagging and Releasing $(VERSION). Anything but Y or y to exit. [y/N] " CONTINUE; \
+	done ; \
+	if [ ! $$CONTINUE == "y" ]; then \
+	if [ ! $$CONTINUE == "Y" ]; then \
+		echo "Exiting." ; exit 1 ; \
+	fi \
+	fi
+
+	git tag v$(VERSION) && git push --tags
+	github-release release \
+		--user Clever \
+		--repo sphinx \
+		--tag $(VERSION) \
+		--name "$(RELEASE_NAME)" \
+		--description "$(RELEASE_DOCS)" \
+		--pre-release
+	github-release upload \
+		--user Clever \
+		--repo sphinx \
+		--tag $(VERSION) \
+		--name "sphinx-$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY).deb" \
+		--file deb/sphinx.deb
 
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
@@ -66,3 +97,6 @@ clean:
 	rm -f bin/sphinxd
 	rm -f main/main
 	rm -f deb/sphind.deb
+
+github-release:
+	go get github.com/aktau/github-release
