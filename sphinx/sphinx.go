@@ -16,8 +16,7 @@ type Status struct {
 	Name      string
 }
 
-// NewStatus returns the status of a limit.
-func NewStatus(name string, bucket leakybucket.BucketState) Status {
+func newStatus(name string, bucket leakybucket.BucketState) Status {
 
 	status := Status{
 		Name:      name,
@@ -60,7 +59,7 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 			return status, fmt.Errorf("error while adding to Limit: %s. %s",
 				limit.Name(), err.Error())
 		}
-		status = append(status, NewStatus(limit.Name(), bucketstate))
+		status = append(status, newStatus(limit.Name(), bucketstate))
 	}
 	return status, nil
 }
