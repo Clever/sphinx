@@ -34,6 +34,7 @@ type Limit struct {
 	Excludes map[string]interface{}
 }
 
+// LoadYaml loads byte data for a yaml file into a Config
 func LoadYaml(data []byte) (Config, error) {
 	config := Config{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
@@ -43,8 +44,7 @@ func LoadYaml(data []byte) (Config, error) {
 	return config, nil
 }
 
-// LoadAndValidateYaml turns a sequence of bytes into a Config and validates that all the necessary
-// fields are set
+// ValidateConfig validates that a Config has all the required fields
 func ValidateConfig(config Config) error {
 	if config.Proxy.Handler == "" {
 		return fmt.Errorf("proxy.handler not set")
@@ -57,7 +57,7 @@ func ValidateConfig(config Config) error {
 	}
 
 	if _, err := url.ParseRequestURI(config.Proxy.Host); err != nil {
-		return errors.New("Could not parse proxy.host. Must include scheme (eg. https://example.com)")
+		return errors.New("could not parse proxy.host. Must include scheme (eg. https://example.com)")
 	}
 	if len(config.Limits) < 1 {
 		return fmt.Errorf("no limits definied")
@@ -96,6 +96,8 @@ func ValidateConfig(config Config) error {
 	return nil
 }
 
+// LoadAndValidateYaml turns a sequence of bytes into a Config and validates that all the necessary
+// fields are set
 // TODO (z): These should all be private, but right now tests depend on parsing bytes into yaml
 func LoadAndValidateYaml(data []byte) (Config, error) {
 	config, err := LoadYaml(data)
