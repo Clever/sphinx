@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
-	"github.com/Clever/sphinx/yaml"
 	"log"
 	"strings"
 	"time"
@@ -93,7 +93,7 @@ func (l limit) expiry() time.Duration {
 }
 
 // NewLimit creates a new Limit
-func NewLimit(name string, config yaml.Limit, storage leakybucket.Storage) (Limit, error) {
+func NewLimit(name string, config config.Limit, storage leakybucket.Storage) (Limit, error) {
 
 	limit := &limit{
 		name:     name,

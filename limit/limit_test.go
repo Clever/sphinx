@@ -5,8 +5,8 @@ import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/matchers"
-	"github.com/Clever/sphinx/yaml"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -46,7 +46,7 @@ limits:
           - "Authorization": "Bearer.*"
           - name: "X-Forwarded-For"
 `)
-	config, err := yaml.LoadAndValidateYaml(configBuf.Bytes())
+	config, err := config.LoadAndValidateYaml(configBuf.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestLimitMatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, err := yaml.LoadAndValidateYaml(data)
+	config, err := config.LoadAndValidateYaml(data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,19 +207,19 @@ func TestLimitAdd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, err := yaml.LoadAndValidateYaml(data)
+	conf, err := config.LoadAndValidateYaml(data)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	limitconfig := yaml.Limit{
+	limitconfig := config.Limit{
 		Interval: 100,
 		Max:      3,
 		// matches name: Authorization, match: bearer (from example.yaml)
-		Matches: config.Limits["basic-simple"].Matches,
+		Matches: conf.Limits["basic-simple"].Matches,
 		// excludes path: /special/resoures/.*
-		Excludes: config.Limits["basic-simple"].Excludes,
-		Keys:     config.Limits["basic-simple"].Keys,
+		Excludes: conf.Limits["basic-simple"].Excludes,
+		Keys:     conf.Limits["basic-simple"].Keys,
 	}
 
 	lim, err := NewLimit("test-limit", limitconfig, memory.New())

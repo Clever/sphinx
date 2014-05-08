@@ -7,8 +7,8 @@ import (
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
 	leakybucketRedis "github.com/Clever/leakybucket/redis"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limit"
-	"github.com/Clever/sphinx/yaml"
 	"time"
 )
 
@@ -71,7 +71,7 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 }
 
 // NewRateLimiter returns a new RateLimiter based on the given configuration.
-func NewRateLimiter(config yaml.Config) (RateLimiter, error) {
+func NewRateLimiter(config config.Config) (RateLimiter, error) {
 
 	storage, err := resolveBucketStore(config.Storage)
 	if err != nil {
