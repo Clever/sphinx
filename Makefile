@@ -1,41 +1,50 @@
 SHELL := /bin/bash
-PKG = github.com/Clever/sphinx
+PKG := github.com/Clever/sphinx
 VERSION := 0.1
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
-SUBPKGS = $(addprefix $(PKG)/,common handlers limitkeys matchers main)
-PKGS = $(PKG) $(SUBPKGS)
-.PHONY: test $(PKGS) run clean
+GIT_DIRTY := $(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
+SUBPKGS := $(addprefix $(PKG)/,common handlers limitkeys matchers main)
+PKGS := $(PKG) $(SUBPKGS)
+GO_SRC_FILES := $(shell find . -name "*.go" | grep -v "_test.go")
+TESTS := $(shell find . -name "*_test.go")
 
-test: $(PKGS)
+.PHONY: test $(PKGS) run clean deps
+
+$(TESTS): PATH := $(PATH):$(GOPATH)/bin
+$(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
+$(TESTS): $(GO_SRC_FILES)
+	@echo ""
+	@echo "FORMATTING $@..."
+	go get -d -t $(THE_PKG)
+	gofmt -w=true $(GOPATH)/src/$(THE_PKG)/*.go
+	@echo ""
+	@echo "LINTING... $@"
+	golint $(GOPATH)/src/$(THE_PKG)/*.go
+ifeq ($(COVERAGE),1)
+	@echo "TESTING COVERAGE $@..."
+	go test -bench=. -cover -coverprofile=$(GOPATH)/src/$(THE_PKG)/c.out $(THE_PKG) -test.v
+	go tool cover -html=$(GOPATH)/src/$(THE_PKG)/c.out
+else
+	@echo "TESTING $@..."
+	go test -v -bench=. $(THE_PKG)
+endif
+	touch $@
+
+bin/sphinxd: $(GO_SRC_FILES)
+	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
+
+test: $(TESTS)
+
 build: bin/sphinxd
 
-bin/sphinxd: *.go **/*.go
-	go build -o bin/sphinxd -ldflags "-X main.version $(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
+deps: golint cover
+
+cover:
+	go get code.google.com/p/go.tools/cmd/cover
 
 golint:
 	go get github.com/golang/lint/golint
-
-$(PKGS): PATH := $(PATH):$(GOPATH)/bin
-$(PKGS): golint
-	@echo ""
-	@echo "FORMATTING $@..."
-	go get -d -t $@
-	gofmt -w=true $(GOPATH)/src/$@*/**.go
-	@echo ""
-ifneq ($(NOLINT),1)
-	@echo "LINTING $@..."
-	golint $(GOPATH)/src/$@*/**.go
-	@echo ""
-endif
-ifeq ($(COVERAGE),1)
-	go test -cover -coverprofile=$(GOPATH)/src/$@/c.out $@ -test.v
-	go tool cover -html=$(GOPATH)/src/$@/c.out
-else
-	@echo "TESTING $@..."
-	go test -v -bench=. $@
-endif
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
