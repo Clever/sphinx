@@ -1,4 +1,4 @@
-package sphinx
+package config
 
 import (
 	"errors"
@@ -147,6 +147,11 @@ func newLimit(name string, config limitYaml, storage leakybucket.Storage) (Limit
 
 	limit.keys = limitkeys
 	return limit, nil
+}
+
+type requestMatcher struct {
+	Matches  []matchers.Matcher
+	Excludes []matchers.Matcher
 }
 
 // Configuration holds current Sphinx configuration

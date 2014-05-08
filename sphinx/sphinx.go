@@ -4,14 +4,9 @@ import (
 	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/matchers"
+	"github.com/Clever/sphinx/config"
 	"time"
 )
-
-type requestMatcher struct {
-	Matches  []matchers.Matcher
-	Excludes []matchers.Matcher
-}
 
 // Status contains the status of a limit.
 type Status struct {
@@ -37,20 +32,20 @@ func NewStatus(name string, bucket leakybucket.BucketState) Status {
 // RateLimiter rate limits requests based on given configuration and limits.
 type RateLimiter interface {
 	Add(request common.Request) ([]Status, error)
-	Configuration() Configuration
-	Limits() []Limit
+	Configuration() config.Configuration
+	Limits() []config.Limit
 }
 
 type sphinxRateLimiter struct {
-	config Configuration
-	limits []Limit
+	config config.Configuration
+	limits []config.Limit
 }
 
-func (r *sphinxRateLimiter) Limits() []Limit {
+func (r *sphinxRateLimiter) Limits() []config.Limit {
 	return r.limits
 }
 
-func (r *sphinxRateLimiter) Configuration() Configuration {
+func (r *sphinxRateLimiter) Configuration() config.Configuration {
 	return r.config
 }
 
@@ -71,7 +66,7 @@ func (r *sphinxRateLimiter) Add(request common.Request) ([]Status, error) {
 }
 
 // NewRateLimiter returns a new RateLimiter based on the given configuration.
-func NewRateLimiter(config Configuration) (RateLimiter, error) {
+func NewRateLimiter(config config.Configuration) (RateLimiter, error) {
 
 	rateLimiter := &sphinxRateLimiter{config: config, limits: config.Limits()}
 	return rateLimiter, nil

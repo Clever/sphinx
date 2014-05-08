@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/sphinx"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -17,7 +18,7 @@ var (
 )
 
 type daemon struct {
-	config      sphinx.Configuration
+	config      config.Configuration
 	rateLimiter sphinx.RateLimiter
 	proxy       httputil.ReverseProxy
 	handler     http.Handler
@@ -29,8 +30,8 @@ func (d *daemon) Start() {
 	return
 }
 
-// NewDaemon takes in sphinx.Configuration and creates a sphinx listener
-func NewDaemon(config sphinx.Configuration) (daemon, error) {
+// NewDaemon takes in config.Configuration and creates a sphinx listener
+func NewDaemon(config config.Configuration) (daemon, error) {
 
 	rateLimiter, err := sphinx.NewRateLimiter(config)
 	if err != nil {
@@ -60,7 +61,7 @@ func main() {
 
 	flag.Parse()
 
-	config, err := sphinx.NewConfiguration(*configfile)
+	config, err := config.NewConfiguration(*configfile)
 	if err != nil {
 		log.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}

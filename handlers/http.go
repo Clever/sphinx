@@ -3,8 +3,8 @@ package handlers
 import (
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/Clever/leakybucket"
-	"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/sphinx"
 	"log"
 	"net/http"
 	"strconv"

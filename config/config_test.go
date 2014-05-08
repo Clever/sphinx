@@ -1,8 +1,7 @@
-package sphinx
+package config
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/leakybucket/memory"
 	"github.com/Clever/sphinx/common"
@@ -11,54 +10,6 @@ import (
 	"strings"
 	"testing"
 )
-
-func returnLastAddStatus(rateLimiter RateLimiter, request common.Request, numAdds int) ([]Status, error) {
-	statuses := []Status{}
-	var err error
-	for i := 0; i < numAdds; i++ {
-		if statuses, err = rateLimiter.Add(request); err != nil {
-			return nil, err
-		}
-	}
-	return statuses, nil
-}
-
-func checkLastStatusForRequests(ratelimiter RateLimiter,
-	request common.Request, numAdds int, expectedStatuses []Status) error {
-
-	if statuses, err := returnLastAddStatus(ratelimiter, request, numAdds); err != nil {
-		return err
-	} else if len(statuses) != len(expectedStatuses) {
-		return fmt.Errorf("expected to match %d buckets. Got: %d", len(expectedStatuses),
-			len(statuses))
-	} else {
-		for i, status := range expectedStatuses {
-			if status.Remaining != statuses[i].Remaining && status.Name != statuses[i].Name {
-				return fmt.Errorf("expected %d remaining for the %s limit. Found: %d Remaining, %s Limit",
-					statuses[i].Remaining, statuses[i].Name, status.Remaining, status.Name)
-			}
-		}
-	}
-
-	return nil
-}
-
-// ratelimiter is initialized properly based on config
-func TestNewRateLimiter(t *testing.T) {
-
-	config, err := NewConfiguration("./example.yaml")
-	if err != nil {
-		t.Error("could not load example configuration")
-	}
-
-	ratelimiter, err := NewRateLimiter(config)
-	if err != nil {
-		t.Errorf("Error while instantiating ratelimiter: %s", err.Error())
-	}
-	if len(ratelimiter.Configuration().Limits()) != len(ratelimiter.Limits()) {
-		t.Error("expected number of limits in configuration to match instantiated limits")
-	}
-}
 
 // test that matcher errors are bubbled up
 func TestBadConfiguration(t *testing.T) {
@@ -100,106 +51,175 @@ limits:
 
 }
 
-// adds different kinds of requests and checks limit Status
-// focusses on single bucket adds
-func TestSimpleAdd(t *testing.T) {
-	config, err := NewConfiguration("./example.yaml")
+// test example config file is loaded correctly
+func TestConfigurationFileLoading(t *testing.T) {
+
+	conf, err := NewConfiguration("../example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := conf.(*configuration)
 	if err != nil {
 		t.Error("could not load example configuration")
 	}
-	ratelimiter, err := NewRateLimiter(config)
 
-	request := common.Request{
-		"path": "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
-			"Authorization":   []string{"Bearer 12345"},
-			"X-Forwarded-For": []string{"IP1", "IP2"},
-		}).Header,
-		"remoteaddr": "127.0.0.1",
-	}
-	if err = checkLastStatusForRequests(
-		ratelimiter, request, 5, []Status{
-			Status{Remaining: 195, Name: "bearer-special"}}); err != nil {
-		t.Error(err)
+	if config.Proxy().Handler != "http" {
+		t.Error("expected http for Proxy.Handler")
 	}
 
-	request = common.Request{
-		"path": "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
-			"Authorization": []string{"Basic 12345"},
-		}).Header,
+	if len(config.Limits()) != 4 {
+		t.Error("expected 4 bucket definitions")
 	}
 
-	if err = checkLastStatusForRequests(
-		ratelimiter, request, 1, []Status{
-			Status{Remaining: 195, Name: "basic-simple"}}); err != nil {
-		t.Error(err)
+	for name, lim := range config.Limits() {
+		limit := lim.(*limit)
+		if limit.config.Interval < 1 {
+			t.Errorf("limit interval should be greator than 1 for limit: %s", name)
+		}
+		if limit.config.Max < 1 {
+			t.Errorf("limit max should be greator than 1 for limit: %s", name)
+		}
+		if limit.config.Keys == nil {
+			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
+		}
+		if limit.config.Matches["headers"] == nil && limit.config.Matches["paths"] == nil {
+			t.Error("One of paths or headers was expected to be set for matches")
+		}
 	}
 }
 
-type NeverMatch struct{}
-
-func (m NeverMatch) Match(req common.Request) bool {
-	return false
-}
-
-func createLimit(numMatchers int) Limit {
-	neverMatchers := []matchers.Matcher{}
-	for i := 0; i < numMatchers; i++ {
-		neverMatchers = append(neverMatchers, NeverMatch{})
-	}
-	limit := &limit{
-		matcher: requestMatcher{
-			Matches:  neverMatchers,
-			Excludes: neverMatchers,
-		},
-	}
-	return limit
-}
-
-var benchMatch = func(b *testing.B, numMatchers int) {
-	limit := createLimit(numMatchers)
-	request := common.Request{}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		limit.Match(request)
+func TestInvalidConfigurationPath(t *testing.T) {
+	if _, err := NewConfiguration("./does-not-exist.yaml"); err == nil {
+		t.Fatalf("Expected error for invalid config path")
+	} else if !strings.Contains(err.Error(), "no such file or directory") {
+		t.Fatalf("Expected no file error got %s", err.Error())
 	}
 }
 
-func BenchmarkMatch1(b *testing.B) {
-	benchMatch(b, 1)
-}
+func TestInvalidYaml(t *testing.T) {
+	invalidYaml := []byte(`
+forward
+  host$$: proxy.example.com
+`)
 
-func BenchmarkMatch100(b *testing.B) {
-	benchMatch(b, 100)
-}
-
-func createRateLimiter(numLimits int) RateLimiter {
-	limit := createLimit(1)
-	rateLimiter := &sphinxRateLimiter{}
-	limits := []Limit{}
-	for i := 0; i < numLimits; i++ {
-		limits = append(limits, limit)
-	}
-	rateLimiter.limits = limits
-	return rateLimiter
-}
-
-var benchAdd = func(b *testing.B, numLimits int) {
-	rateLimiter := createRateLimiter(numLimits)
-	request := common.Request{}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		rateLimiter.Add(request)
+	if _, err := loadAndValidateConfig(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
+		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }
 
-func BenchmarkAdd1(b *testing.B) {
-	benchAdd(b, 1)
+// Incorrect configuration file should return errors
+func TestInvalidProxyConfig(t *testing.T) {
+
+	invalidConfig := []byte(`
+proxy:
+  host: http://proxy.example.com
+`)
+	_, err := loadAndValidateConfig(invalidConfig)
+	if err == nil || !strings.Contains(err.Error(), "handler") {
+		t.Errorf("Expected proxy handler error. Got: %s", err.Error())
+	}
+
+	invalidConfig = []byte(`
+proxy:
+  handler: http
+  host: proxy.example.com
+`)
+	_, err = loadAndValidateConfig(invalidConfig)
+	if err == nil || !strings.Contains(err.Error(), "host:port") {
+		t.Errorf("Expected proxy host error. Got: %s", err.Error())
+	}
+
+	invalidConfig = []byte(`
+proxy:
+  handler: http
+  host: proxy.example.com
+  listen: :8000
+`)
+	_, err = loadAndValidateConfig(invalidConfig)
+	if err == nil || !strings.Contains(err.Error(), "proxy") {
+		t.Errorf("Expected proxy host error. Got: %s", err.Error())
+	}
 }
 
-func BenchmarkAdd100(b *testing.B) {
-	benchAdd(b, 100)
+func TestInvalidLimitConfig(t *testing.T) {
+
+	baseBuf := bytes.NewBufferString(`
+proxy:
+  handler: http
+  host: http://proxy.example.com
+  listen: "0.0.0.0:8080"
+storage:
+  type: memory
+`)
+
+	configBuf := baseBuf
+	configBuf.WriteString(`
+limits:
+  bearer/events:
+    keys:
+      headers: 
+        - 'Authentication'
+`)
+	_, err := loadAndValidateConfig(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "interval") {
+		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
+	}
+
+	configBuf = baseBuf
+	configBuf.WriteString(`
+limits:
+  bearer/events:
+    interval: 10
+    keys:
+      headers: 
+        - 'Authentication'
+`)
+	_, err = loadAndValidateConfig(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "max") {
+		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
+	}
+}
+
+func TestInvalidStorageConfig(t *testing.T) {
+	baseBuf := bytes.NewBufferString(`
+proxy:
+  handler: http
+  host: http://proxy.example.com
+  listen: localhost:8080
+limits:
+  test:
+    keys:
+      headers:
+        - Authorization
+    interval: 15  # in seconds
+    max: 200
+`)
+
+	_, err := loadAndValidateConfig(baseBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "storage type must be set") {
+		t.Errorf("Expected Storage error. Got: %s", err.Error())
+	}
+
+	configBuf := baseBuf
+	configBuf.WriteString(`
+storage:
+  type: redis
+`)
+	_, err = loadAndValidateConfig(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "host") {
+		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
+	}
+
+	configBuf = baseBuf
+	configBuf.WriteString(`
+storage:
+  type: redis
+  host: localhost
+`)
+	_, err = loadAndValidateConfig(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "port") {
+		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
+	}
 }
 
 // assert that the right bucket keys are generated for requests
@@ -293,7 +313,7 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 
 // ensures that Limit.Match exhibits expected behavior
 func TestLimitMatch(t *testing.T) {
-	data, err := ioutil.ReadFile("./example.yaml")
+	data, err := ioutil.ReadFile("../example.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,7 +366,7 @@ func TestLimitMatch(t *testing.T) {
 
 // Make sure limit.Add adds requests to different buckets
 func TestLimitAdd(t *testing.T) {
-	data, err := ioutil.ReadFile("./example.yaml")
+	data, err := ioutil.ReadFile("../example.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,4 +430,41 @@ func TestLimitAdd(t *testing.T) {
 		t.Errorf("Expected remaining %d, found: %d",
 			2, bucketStatus.Remaining)
 	}
+}
+
+type NeverMatch struct{}
+
+func (m NeverMatch) Match(req common.Request) bool {
+	return false
+}
+
+func createLimit(numMatchers int) Limit {
+	neverMatchers := []matchers.Matcher{}
+	for i := 0; i < numMatchers; i++ {
+		neverMatchers = append(neverMatchers, NeverMatch{})
+	}
+	limit := &limit{
+		matcher: requestMatcher{
+			Matches:  neverMatchers,
+			Excludes: neverMatchers,
+		},
+	}
+	return limit
+}
+
+var benchMatch = func(b *testing.B, numMatchers int) {
+	limit := createLimit(numMatchers)
+	request := common.Request{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		limit.Match(request)
+	}
+}
+
+func BenchmarkMatch1(b *testing.B) {
+	benchMatch(b, 1)
+}
+
+func BenchmarkMatch100(b *testing.B) {
+	benchMatch(b, 100)
 }

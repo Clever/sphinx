@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Clever/leakybucket"
-	"github.com/Clever/sphinx"
 	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/sphinx"
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
@@ -73,22 +74,22 @@ func assertNoRateLimitHeaders(t *testing.T, header http.Header) {
 
 type MockConfiguration struct{}
 
-func (m MockConfiguration) Proxy() sphinx.Proxy {
-	return sphinx.Proxy{}
+func (m MockConfiguration) Proxy() config.Proxy {
+	return config.Proxy{}
 }
-func (m MockConfiguration) Limits() []sphinx.Limit {
-	return []sphinx.Limit{}
+func (m MockConfiguration) Limits() []config.Limit {
+	return []config.Limit{}
 }
 
 type MockRateLimiter struct {
 	*mock.Mock
-	limits []sphinx.Limit
+	limits []config.Limit
 }
 
-func (r *MockRateLimiter) Configuration() sphinx.Configuration {
+func (r *MockRateLimiter) Configuration() config.Configuration {
 	return &MockConfiguration{}
 }
-func (r *MockRateLimiter) Limits() []sphinx.Limit {
+func (r *MockRateLimiter) Limits() []config.Limit {
 	return r.limits
 }
 func (r *MockRateLimiter) Add(request common.Request) ([]sphinx.Status, error) {

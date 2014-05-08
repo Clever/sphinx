@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/sphinx"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,7 +25,7 @@ func setUpLocalServer() {
 }
 
 func setUpHTTPLimiter(b *testing.B) {
-	config, err := sphinx.NewConfiguration("../example.yaml")
+	config, err := config.NewConfiguration("../example.yaml")
 	if err != nil {
 		b.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
