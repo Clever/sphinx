@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx"
@@ -11,18 +12,26 @@ import (
 	"strings"
 )
 
-func stringifyHeaders(headers http.Header) string {
-	out := ""
+func stringifyHeaders(headers http.Header) *bytes.Buffer {
+	buf := &bytes.Buffer{}
 	for header, values := range headers {
-		out += header + "=" + strings.Join(values, ",") + " "
+		buf.WriteString(header)
+		buf.WriteString("=")
+		buf.WriteString(strings.Join(values, ","))
+		buf.WriteString(" ")
 	}
-	return out
+	return buf
 }
-func stringifyRequest(req common.Request) string {
-	out := "path=" + req["path"].(string) + " "
-	out += "remoteaddr=" + req["remoteaddr"].(string) + " "
-	out += stringifyHeaders(req["headers"].(http.Header))
-	return out
+func stringifyRequest(req common.Request) *bytes.Buffer {
+	buf := &bytes.Buffer{}
+	for _, field := range []string{"path", "remoteaddr"} {
+		buf.WriteString(field)
+		buf.WriteString("=")
+		buf.WriteString(req[field].(string))
+		buf.WriteString(" ")
+	}
+	buf.Write(stringifyHeaders(req["headers"].(http.Header)).Bytes())
+	return buf
 }
 
 type httpRateLimiter struct {
@@ -33,7 +42,7 @@ type httpRateLimiter struct {
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := common.HTTPToSphinxRequest(r)
-	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request))
+	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request).String())
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
@@ -53,14 +62,14 @@ type httpRateLogger httpRateLimiter
 func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
 	request := common.HTTPToSphinxRequest(r)
-	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request))
+	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request).String())
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
 		hrl.proxy.ServeHTTP(w, r)
 		return
 	}
-	log.Printf("[%s] RATE LIMIT HEADERS: %s", guid, stringifyHeaders(getRateLimitHeaders(matches)))
+	log.Printf("[%s] RATE LIMIT HEADERS: %s", guid, stringifyHeaders(getRateLimitHeaders(matches)).String())
 	if err == leakybucket.ErrorFull {
 		log.Printf("[%s] BUCKET FULL", guid)
 	}
