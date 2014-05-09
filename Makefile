@@ -13,7 +13,8 @@ BENCHES := $(addsuffix "_bench", $(TESTS))
 test: $(TESTS)
 bench: $(BENCHES)
 build: bin/sphinxd
-release: github-release 
+
+release: github-release deb
 
 	@if [ "$$GIT_DIRTY" == "+CHANGES" ]; then \
 		echo "Uncommited changes. Exciting." ; exit 1 ; \
