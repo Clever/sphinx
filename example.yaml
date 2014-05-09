@@ -1,27 +1,48 @@
+# Validate this file by running `bin/sphinxd --validate /path/to/conf`
 proxy:
   handler: http
   host: http://httpbin.org
-  listen: :8080
+  listen: :6634   # height of the Great Sphinx of Giza
 
 storage:
-  type: memory  # can be {redis,memory}
-  host: localhost  # not required for memory
-  port: 6379  # not required for memory
+  type: memory    # can be {redis,memory}
+  host: localhost # not required for memory
+  port: 6379      # not required for memory
 
 limits:
   bearer-special:
     interval: 15  # in seconds
-    max: 200
+    max: 200      # number of requests allowed in interval
     keys:
+      # buckets are keyed on concatnated values of these params
       headers: 
         - "Authorization"
-      ip:
+      ip: ""      # ip keys require no configuration
     matches:
+      # both headers and paths matches should be true for limit to apply
       headers:
         match_any:
           - name: "Authorization"
             match: "Bearer.*"
           - name: "X-Forwarded-For"
+      paths:
+        match_any:
+          - "/special/resources/.*"
+
+  basic-simple:
+    interval: 15
+    max: 200
+    keys:
+      headers:
+        - "Authorization"
+    matches:
+      headers:
+        match_any:
+          - name: "Authorization"
+            match: "Basic.*"
+    excludes:
+       # excludes are evaluated before matches and requests that 
+       # match excludes are ignored
       paths:
         match_any:
           - "/special/resources/.*"
@@ -52,22 +73,6 @@ limits:
         match_any:
           - name: "Authorization"
             match: bearer
-    excludes:
-      paths:
-        match_any:
-          - "/special/resources/.*"
-
-  basic-simple:
-    interval: 15
-    max: 200
-    keys:
-      headers:
-        - "Authorization"
-    matches:
-      headers:
-        match_any:
-          - name: "Authorization"
-            match: "Basic.*"
     excludes:
       paths:
         match_any:
