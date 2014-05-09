@@ -80,7 +80,7 @@ func (l limit) bucketName(request common.Request) string {
 			}
 			// EmptyKeyError is expected for certain requests that do not
 			// contain all headerkeys defined in the configuration.
-			log.Printf("INFO: %s, %s", l.Name, err.Error())
+			log.Printf("INFO: %s, %s", l.Name(), err.Error())
 			continue
 		}
 		keyNames = append(keyNames, keyString)
