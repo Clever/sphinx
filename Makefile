@@ -41,7 +41,7 @@ release: github-release deb
 		--user Clever \
 		--repo sphinx \
 		--tag v$(VERSION) \
-		--name "sphinx-v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY).deb" \
+		--name "sphinx-amd64.deb" \
 		--file deb/sphinx.deb
 
 bin/sphinxd: *.go **/*.go

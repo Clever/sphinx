@@ -1,3 +1,6 @@
+# v0.1.1: First release for real scalability testing
+ - Fixes after some real world testing to logging and stability
+
 # v0.1.0: Initial Release
 - Supports http and httplogger handlers
 - Support header and path based request matching
