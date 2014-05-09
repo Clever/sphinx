@@ -14,7 +14,7 @@ func returnLastAddStatus(rateLimiter RateLimiter, request common.Request, numAdd
 	var err error
 	for i := 0; i < numAdds; i++ {
 		if statuses, err = rateLimiter.Add(request); err != nil {
-			return nil, err
+			return statuses, err
 		}
 	}
 	return statuses, nil
@@ -92,6 +92,16 @@ func TestSimpleAdd(t *testing.T) {
 		ratelimiter, request, 1, []Status{
 			Status{Remaining: 195, Name: "basic-simple"}}); err != nil {
 		t.Error(err)
+	}
+
+	if status, err := returnLastAddStatus(ratelimiter, request, 200); err == nil {
+		t.Fatal("expected error")
+	} else if len(status) != 1 {
+		t.Fatalf("expected one status, found %d", len(status))
+	} else if status[0].Remaining != 0 {
+		t.Fatalf("expected 0 remaining, found %d", status[0].Remaining)
+	} else if status[0].Name != "basic-simple" {
+		t.Fatalf("expected 'basic-simple' limit, found '%s'", status[0].Name)
 	}
 }
 
