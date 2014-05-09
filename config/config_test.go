@@ -1,4 +1,4 @@
-package sphinx
+package config
 
 import (
 	"bytes"
@@ -9,7 +9,10 @@ import (
 // test example config file is loaded correctly
 func TestConfigurationFileLoading(t *testing.T) {
 
-	config, err := NewConfiguration("./example.yaml")
+	config, err := New("../example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err != nil {
 		t.Error("could not load example configuration")
 	}
@@ -29,17 +32,11 @@ func TestConfigurationFileLoading(t *testing.T) {
 		if limit.Max < 1 {
 			t.Errorf("limit max should be greator than 1 for limit: %s", name)
 		}
-		if limit.Keys == nil {
-			t.Errorf("limit was expected to have atleast 1 key for limit: %s", name)
-		}
-		if limit.Matches["headers"] == nil && limit.Matches["paths"] == nil {
-			t.Error("One of paths or headers was expected to be set for matches")
-		}
 	}
 }
 
 func TestInvalidConfigurationPath(t *testing.T) {
-	if _, err := NewConfiguration("./does-not-exist.yaml"); err == nil {
+	if _, err := New("./does-not-exist.yaml"); err == nil {
 		t.Fatalf("Expected error for invalid config path")
 	} else if !strings.Contains(err.Error(), "no such file or directory") {
 		t.Fatalf("Expected no file error got %s", err.Error())
@@ -52,7 +49,7 @@ forward
   host$$: proxy.example.com
 `)
 
-	if _, err := loadAndValidateConfig(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
+	if _, err := LoadAndValidateYaml(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
 		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }
@@ -64,7 +61,7 @@ func TestInvalidProxyConfig(t *testing.T) {
 proxy:
   host: http://proxy.example.com
 `)
-	_, err := loadAndValidateConfig(invalidConfig)
+	_, err := LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "handler") {
 		t.Errorf("Expected proxy handler error. Got: %s", err.Error())
 	}
@@ -74,7 +71,7 @@ proxy:
   handler: http
   host: proxy.example.com
 `)
-	_, err = loadAndValidateConfig(invalidConfig)
+	_, err = LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "host:port") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
@@ -85,7 +82,7 @@ proxy:
   host: proxy.example.com
   listen: :8000
 `)
-	_, err = loadAndValidateConfig(invalidConfig)
+	_, err = LoadAndValidateYaml(invalidConfig)
 	if err == nil || !strings.Contains(err.Error(), "proxy") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
@@ -110,7 +107,7 @@ limits:
       headers: 
         - 'Authentication'
 `)
-	_, err := loadAndValidateConfig(configBuf.Bytes())
+	_, err := LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "interval") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
@@ -124,7 +121,7 @@ limits:
       headers: 
         - 'Authentication'
 `)
-	_, err = loadAndValidateConfig(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "max") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
@@ -145,7 +142,7 @@ limits:
     max: 200
 `)
 
-	_, err := loadAndValidateConfig(baseBuf.Bytes())
+	_, err := LoadAndValidateYaml(baseBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "storage type must be set") {
 		t.Errorf("Expected Storage error. Got: %s", err.Error())
 	}
@@ -155,7 +152,7 @@ limits:
 storage:
   type: redis
 `)
-	_, err = loadAndValidateConfig(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "host") {
 		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
 	}
@@ -166,7 +163,7 @@ storage:
   type: redis
   host: localhost
 `)
-	_, err = loadAndValidateConfig(configBuf.Bytes())
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "port") {
 		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
 	}

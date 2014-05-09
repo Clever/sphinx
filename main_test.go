@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Clever/sphinx"
+	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/ratelimiter"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,11 +25,11 @@ func setUpLocalServer() {
 }
 
 func setUpHTTPLimiter(b *testing.B) {
-	config, err := sphinx.NewConfiguration("../example.yaml")
+	config, err := config.New("../example.yaml")
 	if err != nil {
 		b.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}
-	rateLimiter, err := sphinx.NewRateLimiter(config)
+	rateLimiter, err := ratelimiter.New(config)
 	if err != nil {
 		b.Fatalf("SPHINX_INIT_FAILED: %s", err.Error())
 	}
@@ -43,8 +44,7 @@ func setUpHTTPLimiter(b *testing.B) {
 	proxy := httputil.NewSingleHostReverseProxy(target)
 	httpLimiter := handlers.NewHTTPLimiter(rateLimiter, proxy)
 
-	config.Proxy.Listen = ":8082"
-	go http.ListenAndServe(config.Proxy.Listen, httpLimiter)
+	go http.ListenAndServe(":8082", httpLimiter)
 }
 
 func makeRequestTo(port string) error {
