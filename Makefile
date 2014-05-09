@@ -6,7 +6,7 @@ RELEASE_DOCS := $(shell cat CHANGES.md | tail -n+2 | sed -n '/\#/q;p')
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
-TESTS := $(shell find . -name "*_test.go")
+TESTS := $(shell find . -name "*_test.go" | sed s/\.go//)
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean
 
