@@ -45,7 +45,7 @@ release: github-release deb
 		--file deb/sphinx.deb
 
 bin/sphinxd: *.go **/*.go
-	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)/main
+	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 golint:
 	go get github.com/golang/lint/golint
