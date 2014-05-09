@@ -61,10 +61,11 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 			continue
 		}
 		bucketstate, err := limit.Add(request)
+		// Always add the status, so that if we're ratelimited we stil have limit info
+		status = append(status, newStatus(limit.Name(), bucketstate))
 		if err != nil {
 			return status, err
 		}
-		status = append(status, newStatus(limit.Name(), bucketstate))
 	}
 	return status, nil
 }
