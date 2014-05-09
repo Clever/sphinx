@@ -97,7 +97,7 @@ func TestSimpleAdd(t *testing.T) {
 	if status, err := returnLastAddStatus(ratelimiter, request, 200); err == nil {
 		t.Fatal("expected error")
 	} else if err != leakybucket.ErrorFull {
-		t.Fatalf("expected ErrorFull, received %#v", leakybucket.ErrorFull)
+		t.Fatalf("expected ErrorFull, received %#v", err)
 	} else if len(status) != 1 {
 		t.Fatalf("expected one status, found %d", len(status))
 	} else if status[0].Remaining != 0 {
