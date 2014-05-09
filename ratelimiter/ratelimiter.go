@@ -62,8 +62,7 @@ func (r *rateLimiter) Add(request common.Request) ([]Status, error) {
 		}
 		bucketstate, err := limit.Add(request)
 		if err != nil {
-			return status, fmt.Errorf("error while adding to Limit: %s. %s",
-				limit.Name(), err.Error())
+			return status, err
 		}
 		status = append(status, newStatus(limit.Name(), bucketstate))
 	}
