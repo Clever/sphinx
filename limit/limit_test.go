@@ -62,11 +62,11 @@ limits:
 // assert that the right bucket keys are generated for requests
 func TestLimitKeys(t *testing.T) {
 	keys, err := resolveLimitKeys(map[string]interface{}{
-		"headers": []string{"Authorization", "X-Forwarded-For"},
+		"headers": map[string]interface{}{"names": []string{"Authorization", "X-Forwarded-For"}},
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Errorf("Error while creating limitkeys for test", err)
+		t.Fatal(err)
 	}
 	lim := limit{
 		name: "test-limit",
@@ -80,18 +80,18 @@ func TestLimitKeys(t *testing.T) {
 		}).Header,
 	}
 	if lim.bucketName(request) != "test-limit-Authorization:Basic 12345" {
-		t.Errorf("Invalid bucketname for test-limit: %s", lim.bucketName(request))
+		t.Fatalf("Invalid bucketname for test-limit: %s", lim.bucketName(request))
 	}
 }
 
 // limit.bucketName creates compound keys from multiple limitkeys
 func TestCompoundLimitKeys(t *testing.T) {
 	keys, err := resolveLimitKeys(map[string]interface{}{
-		"headers": []string{"Authorization", "X-Forwarded-For"},
+		"headers": map[string]interface{}{"names": []string{"Authorization", "X-Forwarded-For"}},
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Errorf("Error while creating limitkeys for test", err)
+		t.Fatal(err)
 	}
 	lim := limit{
 		name: "test-limit",
@@ -108,7 +108,7 @@ func TestCompoundLimitKeys(t *testing.T) {
 	}
 	if lim.bucketName(request) !=
 		"test-limit-Authorization:Basic 12345-X-Forwarded-For:192.0.0.1-ip:127.0.0.1" {
-		t.Errorf("Invalid compound bucketname for test-limit: %s",
+		t.Fatalf("Invalid compound bucketname for test-limit: %s",
 			lim.bucketName(request))
 	}
 }

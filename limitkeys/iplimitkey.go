@@ -4,8 +4,7 @@ import (
 	"github.com/Clever/sphinx/common"
 )
 
-type ipLimitKey struct {
-}
+type ipLimitKey struct{}
 
 func (ilk ipLimitKey) Type() string {
 	return "ip"
@@ -20,7 +19,7 @@ func (ilk ipLimitKey) Key(request common.Request) (string, error) {
 	return "ip:" + request["remoteaddr"].(string), nil
 }
 
-// NewIPLimitKey creates a ipLimitKey that returns a key based on request remoteaddr
-func NewIPLimitKey() LimitKey {
-	return ipLimitKey{}
+// NewIPLimitKeys creates a slice of ipLimitKeys that returns a key based on request remoteaddr
+func NewIPLimitKeys(config interface{}) ([]LimitKey, error) {
+	return []LimitKey{ipLimitKey{}}, nil
 }

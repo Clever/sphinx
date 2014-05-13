@@ -15,8 +15,10 @@ limits:
     max: 200      # number of requests allowed in interval
     keys:
       # buckets are keyed on concatnated values of these params
-      headers: 
-        - "Authorization"
+      headers:
+        encrypt: "the_salt"
+        names:
+          - "Authorization"
       ip: ""      # ip keys require no configuration
     matches:
       # both headers and paths matches should be true for limit to apply
@@ -34,14 +36,15 @@ limits:
     max: 200
     keys:
       headers:
-        - "Authorization"
+        names:
+          - "Authorization"
     matches:
       headers:
         match_any:
           - name: "Authorization"
             match: "Basic.*"
     excludes:
-       # excludes are evaluated before matches and requests that 
+       # excludes are evaluated before matches and requests that
        # match excludes are ignored
       paths:
         match_any:
@@ -52,7 +55,8 @@ limits:
     max: 200
     keys:
       headers:
-        - "Authorization"
+        names:
+          - "Authorization"
     matches:
       paths:
         match_any:
@@ -67,7 +71,8 @@ limits:
     max: 200
     keys:
       headers:
-        - "Authorization"
+        names:
+          - "Authorization"
     matches:
       headers:
         match_any:

@@ -17,7 +17,7 @@ func stringifyHeaders(headers http.Header) *bytes.Buffer {
 	for header, values := range headers {
 		buf.WriteString(header)
 		buf.WriteString("=")
-		buf.WriteString(strings.Join(values, ","))
+		buf.WriteString(strings.Join(values, ";"))
 		buf.WriteString(" ")
 	}
 	return buf

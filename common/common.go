@@ -1,6 +1,9 @@
 package common
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"gopkg.in/v1/yaml"
 	"net/http"
 )
@@ -34,4 +37,14 @@ func HTTPToSphinxRequest(r *http.Request) Request {
 		"headers":    r.Header,
 		"remoteaddr": r.RemoteAddr,
 	}
+}
+
+// Hash hashes a string based on the given salt
+func Hash(str, salt string) string {
+	if salt == "" {
+		return str
+	}
+	hash := hmac.New(sha256.New, []byte(salt))
+	hash.Write([]byte(str))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
