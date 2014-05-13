@@ -19,7 +19,7 @@ func (ilk ipLimitKey) Key(request common.Request) (string, error) {
 	return "ip:" + request["remoteaddr"].(string), nil
 }
 
-// NewIPLimitKeys creates a sliced of ipLimitKeys that returns a key based on request remoteaddr
+// NewIPLimitKeys creates a slice of ipLimitKeys that returns a key based on request remoteaddr
 func NewIPLimitKeys(config interface{}) ([]LimitKey, error) {
 	return []LimitKey{ipLimitKey{}}, nil
 }
