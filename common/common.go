@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"gopkg.in/v1/yaml"
 	"net/http"
 )
@@ -45,5 +46,5 @@ func Hash(str, salt string) string {
 	}
 	hash := hmac.New(sha256.New, []byte(salt))
 	hash.Write([]byte(str))
-	return string(hash.Sum(nil))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }

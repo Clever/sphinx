@@ -1,8 +1,6 @@
 package common
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"testing"
 )
 
@@ -17,15 +15,10 @@ func TestHashNoSalt(t *testing.T) {
 func TestHashSalt(t *testing.T) {
 	msg := "trolling"
 	salt := "myfrontlawn"
+	expected := "DVgevtc9sF5A/CTus1Eaknpy2LgKzSFbFNlsM73vgsI="
+
 	hashed := Hash(msg, salt)
-	if msg == hashed {
-		t.Fatal("Message matched hashed version")
-	}
-
-	hash := hmac.New(sha256.New, []byte(salt))
-	hash.Write([]byte(msg))
-
-	if !hmac.Equal([]byte(hashed), hash.Sum(nil)) {
-		t.Fatal("Hashed messages don't match")
+	if hashed != expected {
+		t.Fatalf("Hashed messages don't match")
 	}
 }
