@@ -1,4 +1,4 @@
-# v0.1.2: First release for real scalability testing
+# v0.2.0: Handle multiple instances and sensitive headers
   - Sort headers for more consistent bucketnames
   - Allow hashing headers for increased security
 
