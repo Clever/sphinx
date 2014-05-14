@@ -122,7 +122,7 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error while creating limitkeys for test", err)
 	}
-	limit := limit{
+	lim := limit{
 		name: "test-limit",
 		keys: keys,
 	}
@@ -132,19 +132,98 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 		"remoteaddr": "127.0.0.1",
 		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
-	if limit.bucketName(request) !=
+	if lim.bucketName(request) !=
 		"test-limit-ip:127.0.0.1" {
 		t.Fatalf("Invalid bucketname with no headers for test-limit: %s",
-			limit.bucketName(request))
+			lim.bucketName(request))
 	}
 	request = common.Request{
 		"path":    "/resources/123",
 		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
 	}
-	if limit.bucketName(request) !=
+	if lim.bucketName(request) !=
 		"test-limit-" {
 		t.Fatalf("Invalid bucketname with no valid request data for test-limit: %s",
-			limit.bucketName(request))
+			lim.bucketName(request))
+	}
+}
+
+// limit.bucketName returns consistent names irrespective of header ordering
+func TestLimitKeyForConsistentNamingHeaders(t *testing.T) {
+	keys, err := resolveLimitKeys(map[string]interface{}{
+		"headers": map[string]interface{}{"names": []string{"X-Forwarded-For", "Authorization"}},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Fatalf("Error while creating limitkeys for test", err)
+	}
+	lim := limit{
+		name: "test-limit",
+		keys: keys,
+	}
+
+	requestOne := common.Request{
+		"path":       "/resources/123",
+		"remoteaddr": "127.0.0.1",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization":   []string{"Basic 12345"},
+			"X-Forwarded-For": []string{"192.0.0.1"},
+		}).Header,
+	}
+	requestTwo := common.Request{
+		"path": "/resources/123",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"X-Forwarded-For": []string{"192.0.0.1"},
+			"Authorization":   []string{"Basic 12345"},
+		}).Header,
+		"remoteaddr": "127.0.0.1",
+	}
+
+	if lim.bucketName(requestOne) != lim.bucketName(requestTwo) {
+		t.Fatalf("bucketNames do not match with different header order. One: %s.Two: %s",
+			lim.bucketName(requestOne), lim.bucketName(requestTwo))
+	}
+
+}
+
+// limit.bucketName returns consistent names irrespective of config ordering
+func TestLimitKeyForConsistentNamingConfig(t *testing.T) {
+	keysOne, err := resolveLimitKeys(map[string]interface{}{
+		"headers": map[string]interface{}{"names": []string{"Authorization", "X-Forwarded-For"}},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Fatalf("Error while creating limitkeys for test", err)
+	}
+	limOne := limit{
+		name: "test-limit",
+		keys: keysOne,
+	}
+
+	keysTwo, err := resolveLimitKeys(map[string]interface{}{
+		"headers": map[string]interface{}{"names": []string{"X-Forwarded-For", "Authorization"}},
+		"ip":      []string{""},
+	})
+	if err != nil {
+		t.Fatalf("Error while creating limitkeys for test", err)
+	}
+	limTwo := limit{
+		name: "test-limit",
+		keys: keysTwo,
+	}
+
+	request := common.Request{
+		"path":       "/resources/123",
+		"remoteaddr": "127.0.0.1",
+		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+			"Authorization":   []string{"Basic 12345"},
+			"X-Forwarded-For": []string{"192.0.0.1"},
+		}).Header,
+	}
+
+	if limOne.bucketName(request) != limTwo.bucketName(request) {
+		t.Fatalf("bucketNames do not match with different HeaderMatcher config orderging."+
+			"One: %s. Two: %s", limOne.bucketName(request), limTwo.bucketName(request))
 	}
 }
 
