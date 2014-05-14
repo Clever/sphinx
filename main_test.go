@@ -25,7 +25,7 @@ func setUpLocalServer() {
 }
 
 func setUpHTTPLimiter(b *testing.B) {
-	config, err := config.New("../example.yaml")
+	config, err := config.New("example.yaml")
 	if err != nil {
 		b.Fatalf("LOAD_CONFIG_FAILED: %s", err.Error())
 	}

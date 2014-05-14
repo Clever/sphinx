@@ -22,3 +22,16 @@ func TestHashSalt(t *testing.T) {
 		t.Fatalf("Hashed messages don't match")
 	}
 }
+
+func TestSortedKeys(t *testing.T) {
+	obj := map[string]interface{}{
+		"c": 3, "b": 2, "d": 4, "a": 1,
+	}
+
+	expected := [4]string{"a", "b", "c", "d"}
+	for i, k := range SortedKeys(obj) {
+		if k != expected[i] {
+			t.Errorf("Expected sorted keys. Found: %#v", SortedKeys(obj))
+		}
+	}
+}

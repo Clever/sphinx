@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Clever/sphinx/common"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -46,6 +47,7 @@ func NewHeaderLimitKeys(config interface{}) ([]LimitKey, error) {
 		return nil, err
 	}
 	keys := []LimitKey{}
+	sort.Strings(conf.Names) // order of config should not change bucketnames
 	for _, header := range conf.Names {
 		keys = append(keys, &headerLimitKey{name: header, salt: conf.Encrypt})
 	}

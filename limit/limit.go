@@ -149,7 +149,8 @@ func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.Limit
 
 	resolvedLimitkeys := []limitkeys.LimitKey{}
 
-	for name, config := range limitkeysConfig {
+	for _, name := range common.SortedKeys(limitkeysConfig) {
+		config := limitkeysConfig[name]
 		switch name {
 		case "headers":
 			keys, err := limitkeys.NewHeaderLimitKeys(config)
