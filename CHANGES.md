@@ -1,3 +1,7 @@
+# v0.1.2: First release for real scalability testing
+  - Sort headers for more consistent bucketnames
+  - Allow hashing headers for increased security
+
 # v0.1.1: First release for real scalability testing
  - Fixes after some real world testing to logging and stability
 

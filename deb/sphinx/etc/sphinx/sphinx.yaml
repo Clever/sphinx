@@ -15,9 +15,11 @@ limits:
     max: 100      # number of requests allowed in interval
     keys:
       # buckets are keyed on concatnated values of these params
-      headers: 
-        - "Authorization" 
-        - "X-Forwarded-For"
+      headers:
+        names:
+          - "Authorization" 
+          - "X-Forwarded-For"
+        encrypt: "sample_salt"
       ip: ""      # ip keys require no configuration
      excludes:
        # excludes are evaluated before matches and requests that 
