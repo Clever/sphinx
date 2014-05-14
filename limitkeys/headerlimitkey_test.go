@@ -12,7 +12,7 @@ func getRequest(headers map[string][]string) common.Request {
 
 func TestKeysWithHeaders(t *testing.T) {
 	limitkey := headerLimitKey{
-		Name: "Authorization",
+		name: "Authorization",
 	}
 
 	request := getRequest(map[string][]string{
@@ -26,7 +26,38 @@ func TestKeysWithHeaders(t *testing.T) {
 	// currently creates a new key for change in any one of the array elements
 	// i.e. Keys are created by concatenating the array elements
 	limitkey = headerLimitKey{
-		Name: "X-Forwarded-For",
+		name: "X-Forwarded-For",
+	}
+
+	request = getRequest(map[string][]string{
+		"X-Forwarded-For": []string{"127.0.0.1", "172.0.0.1"},
+	})
+	if key, err := limitkey.Key(request); err != nil || key !=
+		"X-Forwarded-For:127.0.0.1;172.0.0.1" {
+		t.Error("Header key for X-Forwarded-For did not match")
+	}
+}
+
+func TestKeysWithHeadersSalt(t *testing.T) {
+	limitkey := headerLimitKey{
+		name: "Authorization",
+		salt: "the_salt",
+	}
+
+	request := getRequest(map[string][]string{
+		"Authorization": []string{"Bearer 12345"},
+	})
+	if key, err := limitkey.Key(request); err != nil {
+		t.Fatal(err)
+	} else if key == "Authorization:Bearer 12345" {
+		t.Error("HeaderKey not encrypted")
+	}
+
+	// works with arrays in headers
+	// currently creates a new key for change in any one of the array elements
+	// i.e. Keys are created by concatenating the array elements
+	limitkey = headerLimitKey{
+		name: "X-Forwarded-For",
 	}
 
 	request = getRequest(map[string][]string{
@@ -41,7 +72,7 @@ func TestKeysWithHeaders(t *testing.T) {
 func TestKeysWithoutHeaders(t *testing.T) {
 
 	limitkey := headerLimitKey{
-		Name: "Authorization",
+		name: "Authorization",
 	}
 
 	// returns custom error when no key is found

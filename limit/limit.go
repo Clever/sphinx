@@ -149,17 +149,21 @@ func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.Limit
 
 	resolvedLimitkeys := []limitkeys.LimitKey{}
 
-	for name, values := range limitkeysConfig {
+	for _, name := range common.SortedKeys(limitkeysConfig) {
+		config := limitkeysConfig[name]
 		switch name {
 		case "headers":
-			headernames := []string{}
-			common.ReMarshal(values, &headernames)
-			for _, headername := range headernames {
-				resolvedLimitkeys = append(resolvedLimitkeys,
-					limitkeys.NewHeaderLimitKey(headername))
+			keys, err := limitkeys.NewHeaderLimitKeys(config)
+			if err != nil {
+				return []limitkeys.LimitKey{}, err
 			}
+			resolvedLimitkeys = append(resolvedLimitkeys, keys...)
 		case "ip":
-			resolvedLimitkeys = append(resolvedLimitkeys, limitkeys.NewIPLimitKey())
+			keys, err := limitkeys.NewIPLimitKeys(config)
+			if err != nil {
+				return []limitkeys.LimitKey{}, err
+			}
+			resolvedLimitkeys = append(resolvedLimitkeys, keys...)
 		default:
 			return []limitkeys.LimitKey{},
 				fmt.Errorf("only header and ip limitkeys allowed. Found: %s", name)

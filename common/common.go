@@ -1,8 +1,12 @@
 package common
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"gopkg.in/v1/yaml"
 	"net/http"
+	"sort"
 )
 
 // Request contains any info necessary to ratelimit a request
@@ -34,4 +38,27 @@ func HTTPToSphinxRequest(r *http.Request) Request {
 		"headers":    r.Header,
 		"remoteaddr": r.RemoteAddr,
 	}
+}
+
+// Hash hashes a string based on the given salt
+func Hash(str, salt string) string {
+	if salt == "" {
+		return str
+	}
+	hash := hmac.New(sha256.New, []byte(salt))
+	hash.Write([]byte(str))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+}
+
+// SortedKeys returns a sorted slice of map keys
+func SortedKeys(obj map[string]interface{}) []string {
+	// use make so as to prevent re-allocation
+	keys := make([]string, len(obj))
+	i := 0
+	for k := range obj {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	return keys
 }
