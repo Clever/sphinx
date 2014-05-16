@@ -103,9 +103,7 @@ clean:
 github-release:
 	go get github.com/aktau/github-release
 
-godocdown:
-	@go get github.com/robertkrimen/godocdown/godocdown
-
 docs: $(READMES)
-%/README.md: %/*.go godocdown
+%/README.md: %/*.go
+	@go get github.com/robertkrimen/godocdown/godocdown
 	godocdown $(PKG)/$(shell dirname $@) > $@
