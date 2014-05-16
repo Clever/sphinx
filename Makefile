@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
+SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb)
+READMES := $(addsuffix README.md, $(SUBPKGS))
 VERSION := $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
 RELEASE_NAME := $(shell cat CHANGES.md | head -n 1 | tail -c+3)
 RELEASE_DOCS := $(shell cat CHANGES.md | tail -n+2 | sed -n '/\#/q;p')
@@ -101,3 +103,8 @@ clean:
 
 github-release:
 	go get github.com/aktau/github-release
+
+docs: $(READMES)
+%/README.md: %/*.go
+	@go get github.com/robertkrimen/godocdown/godocdown
+	godocdown $(PKG)/$(shell dirname $@) > $@
