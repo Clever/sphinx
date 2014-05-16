@@ -67,6 +67,7 @@ ifeq ($(COVERAGE),1)
 	@echo "TESTING COVERAGE $@..."
 	go test -cover -coverprofile=$(GOPATH)/src/$(THE_PKG)/c.out $(THE_PKG) -test.v
 	go tool cover -html=$(GOPATH)/src/$(THE_PKG)/c.out
+	go tool cover -func=$(GOPATH)/src/$(THE_PKG)/c.out | tail -n1 | sed 's/[^0-9]*//' > $(GOPATH)/src/$(THE_PKG)/c.out.percent
 else
 	@echo "TESTING $@..."
 	go test -v $(THE_PKG)
