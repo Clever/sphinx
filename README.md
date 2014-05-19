@@ -57,7 +57,7 @@ Response headers:
     X-RateLimit-Reset: 1394506274
     X-RateLimit-Bucket: authorized-users
 
-In case your application hits a rate limit, an empty response with a `429 Too Many
+In case the client hits a rate limit, an empty response with a `429 Too Many
 Requests` status code will be returned.
 
 Request:
