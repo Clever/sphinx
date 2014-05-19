@@ -12,7 +12,7 @@ TESTS := $(shell find . -name "*_test.go" | sed s/\.go//)
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean
 
-test: $(TESTS)
+test: $(TESTS) docs
 bench: $(BENCHES)
 build: bin/sphinxd
 
