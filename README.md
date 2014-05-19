@@ -76,8 +76,8 @@ Response headers:
 
 ## Documentation
 
-[![LeakyBucket](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket).
-[![Sphinx](https://godoc.org/github.com/Clever/sphinx?status.png)](https://godoc.org/github.com/Clever/sphinx).
+  * LeakyBucket:  [![LeakyBucket documentation](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket)
+  * Sphinx: [![Sphinx documentation](https://godoc.org/github.com/Clever/sphinx?status.png)](https://godoc.org/github.com/Clever/sphinx)
 
 ## Tests
 
