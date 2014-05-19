@@ -105,6 +105,7 @@ github-release:
 	go get github.com/aktau/github-release
 
 docs: $(READMES)
+%/README.md: PATH := $(PATH):$(GOPATH)/bin
 %/README.md: %/*.go
 	@go get github.com/robertkrimen/godocdown/godocdown
 	godocdown $(PKG)/$(shell dirname $@) > $@
