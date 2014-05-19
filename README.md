@@ -18,16 +18,16 @@ Rate limiting functionality is already available in some proxies (eg. Nginx, HAP
 However, they often use in-memory stores that make rate-limiting when running multiple proxies (e.g. for load balancing) unpredictable.
 Configuration for these limits also gets complex since it includes many actions such as routing, request/response re-writing, and rate-limiting.
 
-## What isn't Sphinx?
+## Sphinx is not...
 
-* Sphinx is *not* focused on preventing Denial of Service (DoS) attacks or requests from malicious clients.
+* Sphinx is not focused on preventing Denial of Service (DoS) attacks or requests from malicious clients.
 The goal is to expose rate limiting information to clients and enforce balanced use by API clients.
 
-* Sphinx only allows for very simplistic forwarding.
-This would primarily be forwarding to a single host per instance of the rate limiter.
+* Sphinx is not a request forwarding service.
+Sphinx only allows for very simplistic forwarding to a single host per instance of the rate limiter.
 Any advanced routing or request handling should be handled by a _real_ proxy (eg. Nginx, HAProxy).
 
-* Sphinx does not support _HTTPS_.
+* Sphinx is not an HTTPS terminator.
 This keeps the burden of configuring _SSL certificates_ and security outside of Sphinx.
 Ideally, there is real load balancing and HTTPS termination before a request hits Sphinx.
 
