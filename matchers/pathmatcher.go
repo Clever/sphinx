@@ -19,7 +19,7 @@ func (pm pathMatcher) Match(request common.Request) bool {
 		return false
 	}
 
-	// consider it a match if any of the headers match
+	// consider it a match if any of the paths match the request path
 	for _, matcher := range pm.Paths {
 		if matcher.MatchString(request["path"].(string)) {
 			return true
