@@ -13,11 +13,12 @@ import (
 
 type Daemon interface {
 	Start()
+	ReloadConfig(config config.Config) error
 }
 
 type daemon struct {
 	rateLimiter ratelimiter.RateLimiter
-	handler     http.Handler
+	handler     handlers.SphinxHandler
 	proxy       config.Proxy
 }
 
@@ -25,6 +26,16 @@ func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.proxy.Listen)
 	log.Fatal(http.ListenAndServe(d.proxy.Listen, d.handler))
 	return
+}
+
+func (d *daemon) ReloadConfig(config config.Config) error {
+	rateLimiter, err := ratelimiter.New(config)
+	if err != nil {
+		return fmt.Errorf("SPHINX_RELOAD_CONFIG_FAILED: %s", err.Error())
+	}
+	d.rateLimiter = rateLimiter
+	d.handler.SetRateLimiter(rateLimiter)
+	return nil
 }
 
 // NewDaemon takes in config.Configuration and creates a sphinx listener
