@@ -21,12 +21,12 @@ limits:
           - "X-Forwarded-For"
         encrypt: "sample_salt"
       ip: ""      # ip keys require no configuration
-     excludes:
-       # excludes are evaluated before matches and requests that 
-       # match excludes are ignored
-       paths:
-         match_any:
-           - "/static/.*"
+    excludes:
+      # excludes are evaluated before matches and requests that
+      # match excludes are ignored
+      paths:
+        match_any:
+          - "/static/.*"
     matches:
       # both headers and paths matches should be true for limit to apply
       headers:
