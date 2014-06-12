@@ -10,7 +10,7 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go//)
 BENCHES := $(addsuffix "_bench", $(TESTS))
-.PHONY: test $(PKGS) run clean
+.PHONY: test $(PKGS) run clean build-release
 
 test: $(TESTS) docs
 bench: $(BENCHES)
@@ -47,6 +47,9 @@ release: github-release deb
 		--file deb/sphinx.deb
 
 bin/sphinxd: *.go **/*.go
+	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
+
+build-release:
 	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 golint:
@@ -84,7 +87,7 @@ $(BENCHES):
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
-deb: build test bench
+deb: build-release test bench
 	mkdir -p deb/sphinx/usr/local/bin
 	mkdir -p deb/sphinx/var/lib/sphinx
 	mkdir -p deb/sphinx/var/cache/sphinx
