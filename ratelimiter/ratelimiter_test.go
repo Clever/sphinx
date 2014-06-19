@@ -6,6 +6,7 @@ import (
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limit"
+	"net/http"
 	"testing"
 )
 
@@ -69,10 +70,10 @@ func TestSimpleAdd(t *testing.T) {
 
 	request := common.Request{
 		"path": "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization":   []string{"Bearer 12345"},
 			"X-Forwarded-For": []string{"IP1", "IP2"},
-		}).Header,
+		},
 		"remoteaddr": "127.0.0.1",
 	}
 	if err = checkLastStatusForRequests(
@@ -83,9 +84,9 @@ func TestSimpleAdd(t *testing.T) {
 
 	request = common.Request{
 		"path": "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic 12345"},
-		}).Header,
+		},
 	}
 
 	if err = checkLastStatusForRequests(

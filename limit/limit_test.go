@@ -8,6 +8,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/matchers"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -75,9 +76,9 @@ func TestLimitKeys(t *testing.T) {
 
 	request := common.Request{
 		"path": "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic 12345"},
-		}).Header,
+		},
 	}
 	if lim.bucketName(request) != "test-limit-Authorization:Basic 12345" {
 		t.Fatalf("Invalid bucketname for test-limit: %s", lim.bucketName(request))
@@ -101,10 +102,10 @@ func TestCompoundLimitKeys(t *testing.T) {
 	request := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization":   []string{"Basic 12345"},
 			"X-Forwarded-For": []string{"192.0.0.1"},
-		}).Header,
+		},
 	}
 	if lim.bucketName(request) !=
 		"test-limit-Authorization:Basic 12345-X-Forwarded-For:192.0.0.1-ip:127.0.0.1" {
@@ -130,7 +131,7 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 	request := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
-		"headers":    common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+		"headers":    http.Header{},
 	}
 	if lim.bucketName(request) !=
 		"test-limit-ip:127.0.0.1" {
@@ -139,7 +140,7 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 	}
 	request = common.Request{
 		"path":    "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+		"headers": http.Header{},
 	}
 	if lim.bucketName(request) !=
 		"test-limit-" {
@@ -165,17 +166,17 @@ func TestLimitKeyForConsistentNamingHeaders(t *testing.T) {
 	requestOne := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization":   []string{"Basic 12345"},
 			"X-Forwarded-For": []string{"192.0.0.1"},
-		}).Header,
+		},
 	}
 	requestTwo := common.Request{
 		"path": "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"X-Forwarded-For": []string{"192.0.0.1"},
 			"Authorization":   []string{"Basic 12345"},
-		}).Header,
+		},
 		"remoteaddr": "127.0.0.1",
 	}
 
@@ -215,10 +216,10 @@ func TestLimitKeyForConsistentNamingConfig(t *testing.T) {
 	request := common.Request{
 		"path":       "/resources/123",
 		"remoteaddr": "127.0.0.1",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization":   []string{"Basic 12345"},
 			"X-Forwarded-For": []string{"192.0.0.1"},
-		}).Header,
+		},
 	}
 
 	if limOne.bucketName(request) != limTwo.bucketName(request) {
@@ -253,9 +254,9 @@ func TestLimitMatch(t *testing.T) {
 
 	request := common.Request{
 		"path": "/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic 12345"},
-		}).Header,
+		},
 	}
 	if !limit.Match(request) {
 		t.Error("Expected basic-easy to match request")
@@ -263,9 +264,9 @@ func TestLimitMatch(t *testing.T) {
 
 	request = common.Request{
 		"path": "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic 12345"},
-		}).Header,
+		},
 	}
 	if limit.Match(request) {
 		t.Error("Request with Excludes path should NOT match basic-easy")
@@ -273,7 +274,7 @@ func TestLimitMatch(t *testing.T) {
 
 	request = common.Request{
 		"path":    "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{}).Header,
+		"headers": http.Header{},
 	}
 	if limit.Match(request) {
 		t.Error("Request without Auth header should NOT match basic-easy")
@@ -309,9 +310,9 @@ func TestLimitAdd(t *testing.T) {
 
 	request := common.Request{
 		"path": "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic 12345"},
-		}).Header,
+		},
 	}
 	for i := uint(1); i < 4; i++ {
 		bucketStatus, err := limit.Add(request)
@@ -334,9 +335,9 @@ func TestLimitAdd(t *testing.T) {
 
 	request2 := common.Request{
 		"path": "/special/resources/123",
-		"headers": common.ConstructMockRequestWithHeaders(map[string][]string{
+		"headers": http.Header{
 			"Authorization": []string{"Basic ABC"},
-		}).Header,
+		},
 	}
 	bucketStatus, err = limit.Add(request2)
 	if err != nil {
