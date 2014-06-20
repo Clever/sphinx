@@ -12,11 +12,6 @@ import (
 	"strings"
 )
 
-type SphinxHandler interface {
-	http.Handler
-	SetRateLimiter(rateLimiter ratelimiter.RateLimiter)
-}
-
 func stringifyHeaders(headers http.Header) *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	for header, values := range headers {
@@ -62,10 +57,6 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hrl.proxy.ServeHTTP(w, r)
 }
 
-func (hrl *httpRateLimiter) SetRateLimiter(rateLimiter ratelimiter.RateLimiter) {
-	hrl.rateLimiter = rateLimiter
-}
-
 type httpRateLogger httpRateLimiter
 
 func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -83,10 +74,6 @@ func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[%s] BUCKET FULL", guid)
 	}
 	hrl.proxy.ServeHTTP(w, r)
-}
-
-func (hrl *httpRateLogger) SetRateLimiter(rateLimiter ratelimiter.RateLimiter) {
-	hrl.rateLimiter = rateLimiter
 }
 
 func uintToString(num uint) string {
@@ -131,12 +118,12 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []ratelimiter.Status) {
 }
 
 // NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
-func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) SphinxHandler {
+func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) http.Handler {
 	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy}
 }
 
 // NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but
 // actually proxies everything.
-func NewHTTPLogger(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) SphinxHandler {
+func NewHTTPLogger(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) http.Handler {
 	return &httpRateLogger{rateLimiter: rateLimiter, proxy: proxy}
 }

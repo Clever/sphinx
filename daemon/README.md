@@ -10,7 +10,7 @@
 ```go
 type Daemon interface {
 	Start()
-	ReloadConfig(config config.Config) error
+	LoadConfig(config config.Config) error
 }
 ```
 

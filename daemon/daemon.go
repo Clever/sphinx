@@ -13,53 +13,60 @@ import (
 
 type Daemon interface {
 	Start()
-	ReloadConfig(config config.Config) error
+	LoadConfig(config config.Config) error
 }
 
 type daemon struct {
-	rateLimiter ratelimiter.RateLimiter
-	handler     handlers.SphinxHandler
-	proxy       config.Proxy
+	handler http.Handler
+	proxy   config.Proxy
 }
 
 func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.proxy.Listen)
-	log.Fatal(http.ListenAndServe(d.proxy.Listen, d.handler))
+	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
 	return
 }
 
-func (d *daemon) ReloadConfig(config config.Config) error {
-	rateLimiter, err := ratelimiter.New(config)
-	if err != nil {
-		return fmt.Errorf("SPHINX_RELOAD_CONFIG_FAILED: %s", err.Error())
+func (d *daemon) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	d.handler.ServeHTTP(rw, req)
+}
+
+func (d *daemon) LoadConfig(newConfig config.Config) error {
+	// We don't support changing the Proxy listen port because it would mean closing and
+	// restarting the server. If users want to do this they should restart the process.
+	if d.proxy.Listen != "" && d.proxy.Listen != newConfig.Proxy.Listen {
+		return fmt.Errorf("SPHINX_LOAD_CONFIG_FAILED. Can't change listen port")
 	}
-	d.rateLimiter = rateLimiter
-	d.handler.SetRateLimiter(rateLimiter)
-	return nil
+
+	d.proxy = newConfig.Proxy
+	target, _ := url.Parse(d.proxy.Host) // already tested for invalid Host
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	rateLimiter, err := ratelimiter.New(newConfig)
+	if err != nil {
+		return fmt.Errorf("SPHINX_LOAD_CONFIG_FAILED: %s", err.Error())
+	}
+
+	// Set the proxy and handler daemon fields
+	switch d.proxy.Handler {
+	case "http":
+		d.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
+		return nil
+	case "httplogger":
+		d.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
+		return nil
+	default:
+		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
+	}
+
 }
 
 // NewDaemon takes in config.Configuration and creates a sphinx listener
 func New(config config.Config) (Daemon, error) {
 
-	rateLimiter, err := ratelimiter.New(config)
+	out := &daemon{}
+	err := out.LoadConfig(config)
 	if err != nil {
-		return &daemon{}, fmt.Errorf("SPHINX_INIT_FAILED: %s", err.Error())
-	}
-
-	target, _ := url.Parse(config.Proxy.Host) // already tested for invalid Host
-	proxy := httputil.NewSingleHostReverseProxy(target)
-
-	out := &daemon{
-		proxy:       config.Proxy,
-		rateLimiter: rateLimiter,
-	}
-	switch config.Proxy.Handler {
-	case "http":
-		out.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
-	case "httplogger":
-		out.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
-	default:
-		return &daemon{}, fmt.Errorf("unrecognized handler %s", config.Proxy.Handler)
+		return nil, err
 	}
 
 	return out, nil

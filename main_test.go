@@ -99,8 +99,7 @@ func TestSighupHandler(t *testing.T) {
 	select {
 	case <-ranHandler:
 	case <-timeout:
-		t.Error("Didn't run handler")
-		return
+		t.Fatal("Didn't run handler")
 	}
 
 	// Try calling again and make sure it still happens
@@ -108,7 +107,6 @@ func TestSighupHandler(t *testing.T) {
 	select {
 	case <-ranHandler:
 	case <-timeout:
-		t.Error("Didn't run handler second time")
-		return
+		t.Fatal("Didn't run handler second time")
 	}
 }
