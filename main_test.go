@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/daemon"
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
 	"io/ioutil"
@@ -9,7 +10,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"syscall"
 	"testing"
+	"time"
 )
 
 var host = "http://localhost:8081"
@@ -74,5 +77,36 @@ func BenchmarkReasonableConfig(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		makeRequestTo(":8082")
+	}
+}
+
+func TestSighupHandler(t *testing.T) {
+	ranHandler := make(chan bool, 1)
+	handler := func(d daemon.Daemon) {
+		ranHandler <- true
+	}
+	conf, _ := config.New("example.yaml")
+	d, _ := daemon.New(conf)
+	setupSighupHandler(d, handler)
+	syscall.Kill(syscall.Getpid(), syscall.SIGHUP)
+
+	// Give the syscall 1 second to be handled, should be more than enough time
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Duration(1 * time.Second))
+		timeout <- true
+	}()
+	select {
+	case <-ranHandler:
+	case <-timeout:
+		t.Fatal("Didn't run handler")
+	}
+
+	// Try calling again and make sure it still happens
+	syscall.Kill(syscall.Getpid(), syscall.SIGHUP)
+	select {
+	case <-ranHandler:
+	case <-timeout:
+		t.Fatal("Didn't run handler second time")
 	}
 }
