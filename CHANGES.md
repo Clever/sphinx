@@ -1,3 +1,7 @@
+# v0.2.1: Allow reloading of config file, fix race
+  - Send SIGHUP to reload the config file
+  - Upgrade leakybucket version to fix redis race condition
+
 # v0.2.0: Handle multiple instances and sensitive headers
   - Sort headers for more consistent bucketnames
   - Allow hashing headers for increased security

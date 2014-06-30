@@ -87,7 +87,7 @@ $(BENCHES):
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
-deb: build-release test bench
+deb: test bench build-release
 	mkdir -p deb/sphinx/usr/local/bin
 	mkdir -p deb/sphinx/var/lib/sphinx
 	mkdir -p deb/sphinx/var/cache/sphinx
