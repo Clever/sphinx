@@ -11,3 +11,4 @@ chown vagrant:vagrant /home/vagrant/.go
 echo "export GOPATH=~/.go" >> /home/vagrant/.bashrc
 # Git repo is mounted to /vagrant, start there
 echo "cd /vagrant" >> /home/vagrant/.bashrc
+echo "export PATH=\$PATH:\$GOPATH/bin" >> /home/vagrant/.bashrc
