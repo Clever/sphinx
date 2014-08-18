@@ -37,7 +37,6 @@ release: github-release deb
 		--tag v$(VERSION) \
 		--name "$(RELEASE_NAME)" \
 		--description "$(RELEASE_DOCS)" \
-		--pre-release
 
 	GITHUB_API=https://$(GITHUB_TOKEN):@api.github.com github-release upload \
 		--user Clever \
