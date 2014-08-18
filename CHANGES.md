@@ -1,4 +1,4 @@
-# v0.2.2:
+# v0.2.2: Add resapwn to upstart config
   - Add respawn to upstart config
 
 # v0.2.1: Allow reloading of config file, fix race
