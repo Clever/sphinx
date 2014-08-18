@@ -36,7 +36,7 @@ release: github-release deb
 		--repo sphinx \
 		--tag v$(VERSION) \
 		--name "$(RELEASE_NAME)" \
-		--description "$(RELEASE_DOCS)" \
+		--description "$(RELEASE_DOCS)"
 
 	GITHUB_API=https://$(GITHUB_TOKEN):@api.github.com github-release upload \
 		--user Clever \
