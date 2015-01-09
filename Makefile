@@ -72,7 +72,7 @@ clean:
 	rm -rf deb/var
 	rm -f bin/sphinxd
 	rm -f main/main
-	rm -f deb/sphinxd.deb
+	rm -f deb/sphinx.deb
 
 docs: $(READMES)
 %/README.md: PATH := $(PATH):$(GOPATH)/bin
