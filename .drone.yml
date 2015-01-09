@@ -14,10 +14,11 @@ notify:
 publish:
   github:
     branch: update-makefile
-    script: make deb
+    script: 
+      - make deb
     artifacts:
       - deb/sphinx.deb
-    tag: $(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
+    tag: '$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)'
     token: {{github_token}}
     user: Clever
     repo: sphinx
