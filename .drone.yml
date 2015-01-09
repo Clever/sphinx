@@ -11,3 +11,13 @@ notify:
     on_started: true
     on_success: true
     on_failure: true
+publish:
+  github:
+    branch: update-makefile
+    script: make deb
+    artifacts:
+      - deb/sphinxd.deb
+    tag: $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
+    token: {{ github_token }}
+    user: Clever
+    repo: sphinx
