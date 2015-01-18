@@ -1,0 +1,26 @@
+Sphinx
+Rate Limiting
+21 Jan 2015
+
+Mohit Gupta & Alex Zylman
+Clever
+https://www.clever.com/
+https://github.com/Clever
+
+* Title of slide or section (must have asterisk)
+
+Some Text
+
+** Subsection
+
+- bullets
+- a bullet with
+
+*** Sub-subsection
+
+Some More text
+
+  Preformatted text
+  is indented (however you like)
+
+.play code.go
