@@ -74,6 +74,122 @@ Response headers:
     X-RateLimit-Reset: 1394506274
     X-RateLimit-Bucket: authorized-users
 
+## [Configuring Sphinx](./example.yaml)
+
+Rate limiting in Sphinx is managed by setting up `limits` in `yaml` configuration file. 
+Details about the configuration format can be found in the `[annotated example](./example.yaml)`
+
+It is important to understand the concept of `buckets` and `limits` to effectively configure a rate limiter.
+
+_Limit_: Limits define rate limiting policies that Sphinx enforces by counting requests in named _buckets_
+_Bucket_ A bucket is simply a named value. Each request that matches a limit increments the value of one bucket.
+
+Below is an example of a limit and three requests that increment two bucket values.
+
+### Test Limit
+
+  match if request path begins with `/limited`
+  bucket names are defined as `name-{ip-address}`
+  Allow TWO requests per minute
+
+### Request One
+
+  path: /limited/resource/1
+  Headers:
+    Host: example.com
+    Authorization: Basic User:Password
+    IP: 10.0.0.1
+
+*State*: 
+    `test-limit-10.0.0.1`: 1
+
+### Request Two
+
+  path: /limited/resource/2
+  Headers:
+    Host: example.com
+    Authorization: Basic Admin:Secure
+    IP: 10.0.0.2
+
+*State*
+    `test-limit-10.0.0.1`: 1
+    `test-limit-10.0.0.2`: 1
+
+### Request Three
+
+  path: /limited/resource/3
+  Headers:
+    Host: example.com
+    Authorization: Basic Admin:Secure
+    IP: 10.0.0.1
+
+*State*
+    `test-limit-10.0.0.1`: 2
+    `test-limit-10.0.0.2`: 1
+
+
+The following snippet explains how to define limits in Sphinx:
+
+```yaml
+limit-name:
+  interval: 15
+  max: 200
+  keys:
+    headers:
+      names:
+        - "Authorization"
+  matches:
+    paths:
+      match_any:
+        - "/special/resources/.*"
+```
+
+_limit\_name_: Used to identify and added to the _X-RateLimit-Bucket_ header.
+
+_interval_: A limit may create many `buckets`. This key provides the `expire time in secs` for all
+            buckets created for this limit.
+
+_max_: Maximum number of requests that will be allowed for a `bucket` in one `interval`.
+
+_keys_: This section defines the dynamic bucket name generated for each request. Currently supported matchers include `headers` and `ip`. 
+All keys defined are concatenated to create the full bucket name.
+
+  _headers_: Use concatenated header values from requests in the `bucket` name.
+```yaml
+headers:
+  encrypt: "SALT_TO_ENCRYPT_VALUE"  # optional
+  names:
+    - HEADER_NAME_1
+    - HEADER_NAME_2
+```
+
+  _ip_: Use the incoming `IP Address` from the incoming request in the bucket name.
+
+_matches_: This section defines which requests this limit should be applied to. The request `MUST` match _all_ of the matchers defined in this
+block. Currently supported matchers are `headers` and `paths`.
+
+  _headers_: This matcher currently supports the `match_any` key which returns true if _any_ of the list items evaluate to true. eg:
+```yaml
+headers:
+  match_any:
+    - name: "HEADER_NAME"
+      match: "REGEX_FOR_MATCHING_HEADER_VALUE"
+    - name: "OTHER_HEADER_NAME"  # no match key means just check for existence
+```
+
+  _paths_: This matcher also supports the `match_any` key.
+```yaml
+paths:
+  match_any:
+    - "/limited/resource/*"
+    - "/objects/limited/.*"
+```
+
+
+
+
+
+
 ## Documentation
 
   * LeakyBucket:  [![LeakyBucket documentation](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket)
