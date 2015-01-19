@@ -16,35 +16,6 @@ test: $(TESTS) docs
 bench: $(BENCHES)
 build: bin/sphinxd
 
-release: github-release deb
-
-	@if [ "$$GIT_DIRTY" == "+CHANGES" ]; then \
-		echo "Uncommited changes. Exciting." ; exit 1 ; \
-	fi
-
-	@while [ -z "$$CONTINUE" ]; do \
-		read -r -p "Tagging and Releasing v$(VERSION). Anything but Y or y to exit. [y/N] " CONTINUE; \
-	done ; \
-	if [ ! $$CONTINUE == "y" ]; then \
-	if [ ! $$CONTINUE == "Y" ]; then \
-		echo "Exiting." ; exit 1 ; \
-	fi \
-	fi
-
-	github-release release \
-		--user Clever \
-		--repo sphinx \
-		--tag v$(VERSION) \
-		--name "$(RELEASE_NAME)" \
-		--description "$(RELEASE_DOCS)"
-
-	GITHUB_API=https://$(GITHUB_TOKEN):@api.github.com github-release upload \
-		--user Clever \
-		--repo sphinx \
-		--tag v$(VERSION) \
-		--name "sphinx-amd64.deb" \
-		--file deb/sphinx.deb
-
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
@@ -101,10 +72,7 @@ clean:
 	rm -rf deb/var
 	rm -f bin/sphinxd
 	rm -f main/main
-	rm -f deb/sphind.deb
-
-github-release:
-	go get github.com/aktau/github-release
+	rm -f deb/sphinx.deb
 
 docs: $(READMES)
 %/README.md: PATH := $(PATH):$(GOPATH)/bin

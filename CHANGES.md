@@ -1,3 +1,5 @@
+# v0.2.3: Change release process
+
 # v0.2.2: Add resapwn to upstart config
   - Add respawn to upstart config
 
