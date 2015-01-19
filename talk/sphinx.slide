@@ -19,7 +19,7 @@ https://github.com/Clever
 * But what is Sphinx?
 
 
-- HTTP Rate Limiter
+- HTTP rate limiter
 - Based on leakybucket algorithm (supporting both Redis and in-memory stores)
 - Supports matching on request headers and IP address
 - Transparent limiting through X-Rate-Limit headers
