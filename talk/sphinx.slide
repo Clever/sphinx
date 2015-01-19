@@ -20,28 +20,27 @@ https://github.com/Clever
 
 
 - HTTP Rate Limiter
-- Based on leaky-bucket (with Redis and in-memory stores)
-- Supports Request Headers and IP address matching
-- Dynamic Bucket names generated using regex captures
+- Based on leakybucket algorithm (supporting both Redis and in-memory stores)
+- Supports matching on request headers and IP address
 - Transparent limiting through X-Rate-Limit headers
 - Low request latencies (~15 ms)
 
-.image ../logo.png _ 250
+.image logo.png _ 250
 
 
-* A Request in Sphinx-land
+* A request in Sphinx-land
 
 
 * ♥ Interface ♥
 
-- Better Collaboration
+- Better collaboration
 - Easier and more reliable testing
-- Swapable behaviors
-- Bonus: 10 lines for Daemon HUP Reloads
+- Swappable behaviors
+- Bonus: 10 lines for live config reloads
 - DISCUSS!!
 
 
-* Better Collaboration on a Codebase
+* Improved collaboration
 
 - Define a scaffold and then compoents can be built independently
 - Test driven development for every component
@@ -55,7 +54,7 @@ https://github.com/Clever
 .code rate_limiter_examples/rate_limiter_test.go /START OMIT/,/END OMIT/
 
 
-* Interfaces: Better Testing
+* Better tests
 
 - Defining tests for an interface helps keeps implementations
   more reliable.
