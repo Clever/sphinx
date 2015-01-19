@@ -65,9 +65,10 @@ https://github.com/Clever
 
 * [Mohit] Example: Redis vs in-memory implementations for LeakyBucket
 
-* Interfaces: Swappable behaviors
+* Swappable behaviors
 
-- [alex] HttpLogger and HttpLimiter
+.code http_limiter_examples/constructors.go /START OMIT/,/END OMIT/
+
 - [mohit] Plugins?
 
 
