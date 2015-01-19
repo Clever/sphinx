@@ -1,26 +1,87 @@
-Sphinx
-Rate Limiting
+Interfaces will Save the Future
+Case Study: Sphinx Rate Limiter
+
 21 Jan 2015
+
 
 Mohit Gupta & Alex Zylman
 Clever
 https://www.clever.com/
 https://github.com/Clever
+@mohitgupta & @amzylman
 
-* Title of slide or section (must have asterisk)
 
-Some Text
+# short introductions: name and position + 2 line summary of Clever
 
-** Subsection
 
-- bullets
-- a bullet with
+* But what is Sphinx?
 
-*** Sub-subsection
 
-Some More text
+- HTTP Rate Limiter
+- Based on leaky-bucket (with Redis and in-memory stores)
+- Supports Request Headers and IP address matching
+- Dynamic Bucket names generated using regex captures
+- Transparent limiting through X-Rate-Limit headers
+- Low request latencies (~15 ms)
 
-  Preformatted text
-  is indented (however you like)
+.image ../logo.png _ 250
 
-.play code.go
+
+* A Request in Sphinx-land
+
+
+* ♥ Interface ♥
+
+- Better Collaboration
+- Easier and more reliable testing
+- Swapable behaviors
+- Bonus: 10 lines for Daemon HUP Reloads
+- DISCUSS!!
+
+
+* Better Collaboration on a Codebase
+
+- Define a scaffold and then compoents can be built independently
+- Test driven development for every component
+
+
+* Example: Collaborating using interfaces
+
+- common.Request
+- use test cases from handlers/http_test.go using ratelimiter mocks
+
+
+* Interfaces: Better Testing
+
+- Defining tests for an interface helps keeps implementations
+  more reliable.
+
+# LeakyBucket interface and how all implementations are tested through it.
+
+
+* Example: Redis vs in-memory implementations for LeakyBucket
+
+* Interfaces: Swappable behaviors
+
+- HttpLogger and HttpLimiter
+- Plugins?
+
+
+* Bonus: Adding dynamic configuration reload
+
+
+
+* Benchmarking?
+
+
+
+
+
+
+
+
+
+
+
+
+
