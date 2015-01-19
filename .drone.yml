@@ -18,7 +18,7 @@ publish:
       - make deb
     artifacts:
       - deb/sphinx.deb
-    tag: '$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)'
+    tag: 'v$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)'
     token: {{github_token}}
     user: Clever
     repo: sphinx
