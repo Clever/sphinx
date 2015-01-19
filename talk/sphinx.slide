@@ -1,0 +1,79 @@
+Interfaces will Save the Future
+Case Study: Sphinx Rate Limiter
+
+21 Jan 2015
+
+
+Mohit Gupta & Alex Zylman
+@mohitgupta
+@amzylman
+
+Clever
+https://clever.com
+https://github.com/Clever
+
+
+# short introductions: name and position + 2 line summary of Clever
+
+
+* But what is Sphinx?
+
+
+- HTTP rate limiter
+- Based on leakybucket algorithm (supporting both Redis and in-memory stores)
+- Supports matching on request headers and IP address
+- Transparent limiting through X-Rate-Limit headers
+- Low request latencies (~15 ms)
+
+.image logo.png _ 250
+
+
+* A request in Sphinx-land
+
+
+* ♥ Interface ♥
+
+- Better collaboration
+- Easier and more reliable testing
+- Swappable behaviors
+- Bonus: 10 lines for live config reloads
+- DISCUSS!!
+
+
+* Improved collaboration
+
+- Define a scaffold and then compoents can be built independently
+- Test driven development for every component
+
+
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter.go /START OMIT/,/END OMIT/
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter_mock.go /START OMIT/,/END OMIT/
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter_test.go /START OMIT/,/END OMIT/
+
+
+* Better tests
+
+- Defining tests for an interface helps keeps implementations
+  more reliable.
+
+# LeakyBucket interface and how all implementations are tested through it.
+
+
+* [Mohit] Example: Redis vs in-memory implementations for LeakyBucket
+
+* Swappable behaviors
+
+.code http_limiter_examples/constructors.go /START OMIT/,/END OMIT/
+
+- [mohit] Plugins?
+
+
+* Bonus: Adding dynamic configuration reload
+.code livereload_diff/diff
+
+
+
+* [Alex?] Benchmarking
