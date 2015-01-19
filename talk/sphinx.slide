@@ -45,7 +45,7 @@ https://github.com/Clever
 - Test driven development for every component
 
 
-* Example: Collaborating using interfaces
+* [Alex] Example: Collaborating using interfaces
 
 - common.Request
 - use test cases from handlers/http_test.go using ratelimiter mocks
@@ -59,19 +59,19 @@ https://github.com/Clever
 # LeakyBucket interface and how all implementations are tested through it.
 
 
-* Example: Redis vs in-memory implementations for LeakyBucket
+* [Mohit] Example: Redis vs in-memory implementations for LeakyBucket
 
 * Interfaces: Swappable behaviors
 
-- HttpLogger and HttpLimiter
-- Plugins?
+- [alex] HttpLogger and HttpLimiter
+- [mohit] Plugins?
 
 
-* Bonus: Adding dynamic configuration reload
+* [Mohit?] Bonus: Adding dynamic configuration reload
 
 
 
-* Benchmarking?
+* [Alex?] Benchmarking?
 
 
 
