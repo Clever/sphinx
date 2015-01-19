@@ -13,7 +13,7 @@ notify:
     on_failure: true
 publish:
   github:
-    branch: update-makefile
+    branch: master
     script: 
       - make deb
     artifacts:
