@@ -22,22 +22,20 @@ bin/sphinxd: *.go **/*.go
 build-release:
 	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
-golint:
+$(GOPATH)/bin/golint:
 	go get github.com/golang/lint/golint
 
 $(TESTS): PATH := $(PATH):$(GOPATH)/bin
 $(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
-$(TESTS): golint
+$(TESTS): $(GOPATH)/bin/golint
 	@echo ""
 	@echo "FORMATTING $@..."
 	go get -d -t $(THE_PKG)
 	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
-ifneq ($(NOLINT),1)
 	@echo "LINTING $@..."
-	golint $(GOPATH)/src/$(THE_PKG)*.go
+	$(GOPATH)/bin/golint $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
-endif
 ifeq ($(COVERAGE),1)
 	@echo "TESTING COVERAGE $@..."
 	go test -cover -coverprofile=$(GOPATH)/src/$(THE_PKG)/c.out $(THE_PKG) -test.v
@@ -57,7 +55,7 @@ $(BENCHES):
 
 # creates a debian package for sphinx
 # to install `sudo dpkg -i sphinx.deb`
-deb: test bench build-release
+deb: build-release
 	mkdir -p deb/sphinx/usr/local/bin
 	mkdir -p deb/sphinx/var/lib/sphinx
 	mkdir -p deb/sphinx/var/cache/sphinx
