@@ -45,10 +45,12 @@ https://github.com/Clever
 - Test driven development for every component
 
 
-* [Alex] Example: Collaborating using interfaces
-
-- common.Request
-- use test cases from handlers/http_test.go using ratelimiter mocks
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter.go /START OMIT/,/END OMIT/
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter_mock.go /START OMIT/,/END OMIT/
+* Example: Collaborating using interfaces
+.code rate_limiter_examples/rate_limiter_test.go /START OMIT/,/END OMIT/
 
 
 * Interfaces: Better Testing
@@ -71,17 +73,4 @@ https://github.com/Clever
 
 
 
-* [Alex?] Benchmarking?
-
-
-
-
-
-
-
-
-
-
-
-
-
+* [Alex?] Benchmarking
