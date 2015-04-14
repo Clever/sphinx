@@ -1,24 +1,24 @@
 image: go1.2
-script:
-  - make test
 notify:
   email:
     recipients:
-      - drone@clever.com
-  hipchat:
-    room: Clever-Dev-CI
-    token: {{hipchatToken}}
-    on_started: true
-    on_success: true
+    - drone@clever.com
+  slack:
     on_failure: true
+    on_started: false
+    on_success: false
+    webhook_url: $$slack_webhook
 publish:
   github:
-    branch: master
-    script: 
-      - make deb
     artifacts:
-      - deb/sphinx.deb
-    tag: 'v$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)'
-    token: {{github_token}}
-    user: Clever
+    - deb/sphinx.deb
     repo: sphinx
+    script:
+    - make deb
+    tag: v$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
+    token: $$github_token
+    user: Clever
+    when:
+      branch: master
+script:
+- make test
