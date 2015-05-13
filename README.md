@@ -77,7 +77,7 @@ Response headers:
 ## [Configuring Sphinx](./example.yaml)
 
 Rate limiting in Sphinx is managed by setting up `limits` in a `yaml` configuration file. 
-Details about the configuration format can be found in the `[annotated example](./example.yaml)`
+Details about the configuration format can be found in the [annotated example](./example.yaml).
 
 It is important to understand the concept of `buckets` and `limits` to effectively configure a rate limiter.
 
