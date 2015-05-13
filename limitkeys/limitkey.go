@@ -7,8 +7,8 @@ import (
 
 // A LimitKey returns a string key based on the request for creating bucketnames.
 type LimitKey interface {
-	Key(common.Request) (string, error)
 	Type() string
+	Key(common.Request) (string, error)
 }
 
 // A EmptyKeyError signifies that the request does not contain enough information

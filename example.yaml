@@ -1,13 +1,13 @@
 # Validate this file by running `bin/sphinxd --validate /path/to/conf`
 proxy:
-  handler: http
-  host: http://httpbin.org
-  listen: :6634   # height of the Great Sphinx of Giza
+  handler: http             # can be {http,httplogger}
+  host: http://httpbin.org  # URI for the http(s) backend we are proxying to
+  listen: :6634             # bind to host:port. default: height of the Great Sphinx of Giza
 
 storage:
   type: memory    # can be {redis,memory}
-  host: localhost # not required for memory
-  port: 6379      # not required for memory
+  host: localhost # redis hostname. not required for memory
+  port: 6379      # redis port.     not required for memory
 
 limits:
   bearer-special:
