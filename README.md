@@ -76,13 +76,13 @@ Response headers:
 
 ## [Configuring Sphinx](./example.yaml)
 
-Rate limiting in Sphinx is managed by setting up `limits` in `yaml` configuration file. 
+Rate limiting in Sphinx is managed by setting up `limits` in a `yaml` configuration file. 
 Details about the configuration format can be found in the `[annotated example](./example.yaml)`
 
 It is important to understand the concept of `buckets` and `limits` to effectively configure a rate limiter.
 
-_Limit_: Limits define rate limiting policies that Sphinx enforces by counting requests in named _buckets_
-_Bucket_ A bucket is simply a named value. Each request that matches a limit increments the value of one bucket.
+_Limit_: A limit defines a rate limiting policy that Sphinx enforces by counting requests in named _buckets_.
+_Bucket_: A bucket is simply a named value. Each request that matches a limit increments the value of one bucket.
 
 Below is an example of a limit and three requests that increment two bucket values.
 
@@ -91,6 +91,29 @@ Below is an example of a limit and three requests that increment two bucket valu
   match if request path begins with `/limited`
   bucket names are defined as `name-{ip-address}`
   Allow TWO requests per minute
+
+Setting this limit using the config would look like: 
+
+```
+proxy:
+  handler: http             # can be {http,httplogger}
+  host: http://httpbin.org  # URI for the http(s) backend we are proxying to
+  listen: :6634             # bind to host:port. default: height of the Great Sphinx of Giza
+
+storage:
+  type: memory    # can be {redis,memory}
+
+limits:
+  test-limit:
+    interval: 60  # in seconds
+    max: 2        # number of requests allowed in interval
+    keys:
+      ip: ""      # ip keys require no configuration
+    matches:
+      paths:
+        match_any:
+          - "/limited*"
+```
 
 ### Request One
 
@@ -184,11 +207,6 @@ paths:
     - "/limited/resource/*"
     - "/objects/limited/.*"
 ```
-
-
-
-
-
 
 ## Documentation
 
