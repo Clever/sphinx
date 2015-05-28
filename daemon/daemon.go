@@ -23,7 +23,11 @@ type daemon struct {
 
 func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.proxy.Listen)
-	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
+	http.HandleFunc("/sphinx/health/check", func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	})
+	http.Handle("/", d)
+	log.Fatal(http.ListenAndServe(d.proxy.Listen, nil))
 	return
 }
 
