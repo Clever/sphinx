@@ -46,7 +46,7 @@ var localServerHost = "http://localhost" + localServerPort
 var localProxyHost = "http://localhost:6634"
 
 func setUpDaemonWithLocalServer() error {
-	// Set up a local server that 404s everywhere except one route.
+	// Set up a local server that 404s everywhere except route '/healthyroute'.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthyroute", func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte("healthy"))
@@ -101,7 +101,7 @@ func testProxyRequest(t *testing.T, path string, expectedStatus int, expectedBod
 func TestHealthCheck(t *testing.T) {
 	err := setUpDaemonWithLocalServer()
 	if err != nil {
-		t.Fatalf("DAEMON_SETUP_FAILED: %s", err.Error())
+		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
 
 	// Test a route that should be proxied to 404.
