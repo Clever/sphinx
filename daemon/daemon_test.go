@@ -44,7 +44,7 @@ func TestFailedReload(t *testing.T) {
 var localServerPort = ":8081"
 var localServerHost = "http://localhost" + localServerPort
 var localProxyHost = "http://localhost:6634"
-var healthCheckUrl = "http://localhost:60002/health/check"
+var healthCheckURL = "http://localhost:60002/health/check"
 
 func setUpDaemonWithLocalServer() error {
 	// Set up a local server that 404s everywhere except route '/healthyroute'.
@@ -112,5 +112,5 @@ func TestHealthCheck(t *testing.T) {
 	testProxyRequest(t, localProxyHost+"/healthyroute", http.StatusOK, "healthy")
 
 	// Test the health check.
-	testProxyRequest(t, healthCheckUrl, http.StatusOK, "")
+	testProxyRequest(t, healthCheckURL, http.StatusOK, "")
 }
