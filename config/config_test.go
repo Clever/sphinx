@@ -127,6 +127,24 @@ limits:
 	}
 }
 
+func TestInvalidHealthConfig(t *testing.T) {
+	buf := bytes.NewBufferString(`
+proxy:
+  handler: http
+  host: http://proxy.example.com
+  listen: localhost:8080
+health:
+  port: 8080
+  endpoint: "/health/check"
+`)
+	_, err := LoadAndValidateYaml(buf.Bytes())
+	if err == nil ||
+		!strings.Contains(err.Error(), "health service port cannot match proxy.listen port") {
+		t.Error("Expected health service port error.")
+	}
+
+}
+
 func TestInvalidStorageConfig(t *testing.T) {
 	baseBuf := bytes.NewBufferString(`
 proxy:

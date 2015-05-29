@@ -9,6 +9,10 @@ storage:
   host: localhost # redis hostname. not required for memory
   port: 6379      # redis port.     not required for memory
 
+health:
+  port: 60002
+  endpoint: "/health/check"
+
 limits:
   bearer-special:
     interval: 15  # in seconds
