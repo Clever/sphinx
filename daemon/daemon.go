@@ -36,7 +36,10 @@ func setUpHealthCheckService(port string, endpoint string) {
 
 func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.proxy.Listen)
-	setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
+	// Only set up the health check service if a port was supplied for one.
+	if d.healthCheck.Port != "" {
+		setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
+	}
 	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
 	return
 }
