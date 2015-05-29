@@ -21,6 +21,14 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected http for Proxy.Handler")
 	}
 
+	if config.Health.Port != "60002" {
+		t.Error("expected 60002 for Health.Port")
+	}
+
+	if config.Health.Endpoint != "/health/check" {
+		t.Error("expected /health/check for Health.Port")
+	}
+
 	if len(config.Limits) != 4 {
 		t.Error("expected 4 bucket definitions")
 	}
