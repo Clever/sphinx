@@ -17,15 +17,15 @@ type Daemon interface {
 }
 
 type daemon struct {
-	handler http.Handler
-	proxy   config.Proxy
-	health  config.Health
+	handler     http.Handler
+	proxy       config.Proxy
+	healthCheck config.HealthCheck
 }
 
-// setUpHealthService sets up a health check service at the given port
+// setUpHealthCheckService sets up a health check service at the given port
 // that can be pinged at the given endpoint to determine if Sphinx is still
 // running.
-func setUpHealthService(port string, endpoint string) {
+func setUpHealthCheckService(port string, endpoint string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc(endpoint, func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
@@ -36,7 +36,7 @@ func setUpHealthService(port string, endpoint string) {
 
 func (d *daemon) Start() {
 	log.Printf("Listening on %s", d.proxy.Listen)
-	setUpHealthService(d.health.Port, d.health.Endpoint)
+	setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
 	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
 	return
 }
@@ -53,7 +53,7 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	}
 
 	d.proxy = newConfig.Proxy
-	d.health = newConfig.Health
+	d.healthCheck = newConfig.HealthCheck
 	target, _ := url.Parse(d.proxy.Host) // already tested for invalid Host
 	proxy := httputil.NewSingleHostReverseProxy(target)
 	rateLimiter, err := ratelimiter.New(newConfig)

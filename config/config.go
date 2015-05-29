@@ -13,10 +13,10 @@ import (
 
 // Config holds the yaml data for the config file
 type Config struct {
-	Proxy   Proxy
-	Health  Health
-	Limits  map[string]Limit
-	Storage map[string]string
+	Proxy       Proxy
+	HealthCheck HealthCheck `yaml:"health-check"`
+	Limits      map[string]Limit
+	Storage     map[string]string
 }
 
 // Proxy holds the yaml data for the proxy option in the config file
@@ -26,8 +26,8 @@ type Proxy struct {
 	Listen  string
 }
 
-// Health holds the yaml data for how to run the health check service.
-type Health struct {
+// HealthCheck holds the yaml data for how to run the health check service.
+type HealthCheck struct {
 	Port     string
 	Endpoint string
 }
@@ -69,11 +69,11 @@ func ValidateConfig(config Config) error {
 		return errors.New("could not parse proxy.host. Must include scheme (eg. https://example.com)")
 	}
 
-	// Health section is optional.
-	if config.Health.Port != "" {
+	// HealthCheck section is optional.
+	if config.HealthCheck.Port != "" {
 		colonIdx := strings.LastIndex(config.Proxy.Listen, ":") + 1
 		proxyPort := config.Proxy.Listen[colonIdx:]
-		if config.Health.Port == proxyPort {
+		if config.HealthCheck.Port == proxyPort {
 			return fmt.Errorf("health service port cannot match proxy.listen port")
 		}
 	}

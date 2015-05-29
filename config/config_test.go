@@ -21,12 +21,12 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected http for Proxy.Handler")
 	}
 
-	if config.Health.Port != "60002" {
-		t.Error("expected 60002 for Health.Port")
+	if config.HealthCheck.Port != "60002" {
+		t.Error("expected 60002 for HealthCheck.Port")
 	}
 
-	if config.Health.Endpoint != "/health/check" {
-		t.Error("expected /health/check for Health.Port")
+	if config.HealthCheck.Endpoint != "/health/check" {
+		t.Error("expected /health/check for HealthCheck.Port")
 	}
 
 	if len(config.Limits) != 4 {
@@ -135,13 +135,13 @@ limits:
 	}
 }
 
-func TestInvalidHealthConfig(t *testing.T) {
+func TestInvalidHealthCheckConfig(t *testing.T) {
 	buf := bytes.NewBufferString(`
 proxy:
   handler: http
   host: http://proxy.example.com
   listen: localhost:8080
-health:
+health-check:
   port: 8080
   endpoint: "/health/check"
 `)
