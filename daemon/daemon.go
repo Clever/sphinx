@@ -21,13 +21,22 @@ type daemon struct {
 	proxy   config.Proxy
 }
 
-func (d *daemon) Start() {
-	log.Printf("Listening on %s", d.proxy.Listen)
-	http.HandleFunc("/sphinx/health/check", func(rw http.ResponseWriter, req *http.Request) {
+// setUpHealthCheckService sets up a health check service at the given port
+// that can be pinged at '/health/check' to determine if Sphinx is still
+// running.
+func setUpHealthCheckService(port string) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health/check", func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
 	})
-	http.Handle("/", d)
-	log.Fatal(http.ListenAndServe(d.proxy.Listen, nil))
+	mux.Handle("/", http.NotFoundHandler())
+	go http.ListenAndServe(":"+port, mux)
+}
+
+func (d *daemon) Start() {
+	log.Printf("Listening on %s", d.proxy.Listen)
+	setUpHealthCheckService("60002")
+	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
 	return
 }
 
