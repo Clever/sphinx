@@ -11,10 +11,11 @@ notify:
 publish:
   github:
     artifacts:
-    - deb/sphinx.deb
+      - sphinx-amd64.deb
     repo: sphinx
     script:
-    - make deb
+      - make deb
+      - cp deb/sphinx.deb sphinx-amd64.deb
     tag: v$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
     token: $$github_token
     user: Clever
