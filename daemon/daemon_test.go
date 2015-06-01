@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestConfigReload(t *testing.T) {
@@ -41,12 +42,7 @@ func TestFailedReload(t *testing.T) {
 	}
 }
 
-var localServerPort = ":8081"
-var localServerHost = "http://localhost" + localServerPort
-var localProxyHost = "http://localhost:6634"
-var healthCheckURL = "http://localhost:60002/health/check"
-
-func setUpDaemonWithLocalServer() error {
+func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPort string) error {
 	// Set up a local server that 404s everywhere except route '/healthyroute'.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthyroute", func(rw http.ResponseWriter, req *http.Request) {
@@ -56,14 +52,16 @@ func setUpDaemonWithLocalServer() error {
 		rw.WriteHeader(http.StatusNotFound)
 		rw.Write([]byte("404"))
 	})
-	go http.ListenAndServe(localServerPort, mux)
+	go http.ListenAndServe(":"+localServerPort, mux)
 
 	// Set up the daemon to proxy to the local server.
 	conf, err := config.New("../example.yaml")
 	if err != nil {
 		return err
 	}
-	conf.Proxy.Host = localServerHost
+	conf.Proxy.Host = "http://localhost:" + localServerPort
+	conf.Proxy.Listen = localProxyListen
+	conf.HealthCheck.Port = healthCheckPort
 
 	daemon, err := New(conf)
 	if err != nil {
@@ -99,18 +97,58 @@ func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody
 	}
 }
 
+func getHealthCheckURLFromPort(port string) string {
+	if len(port) > 0 {
+		return "http://localhost:" + port + "/health/check"
+	}
+	return "http://localhost/health/check"
+}
+
 func TestHealthCheck(t *testing.T) {
-	err := setUpDaemonWithLocalServer()
+	localProxyListen := ":6634"
+	healthCheckPort := "60002"
+
+	err := setUpDaemonWithLocalServer("8000", localProxyListen, healthCheckPort)
 	if err != nil {
 		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
 
+	localProxyURL := "http://localhost" + localProxyListen
+
 	// Test a route that should be proxied to 404.
-	testProxyRequest(t, localProxyHost+"/helloworld", http.StatusNotFound, "404")
+	testProxyRequest(t, localProxyURL+"/helloworld", http.StatusNotFound, "404")
 
 	// Test a route that should be proxied to a valid response.
-	testProxyRequest(t, localProxyHost+"/healthyroute", http.StatusOK, "healthy")
+	testProxyRequest(t, localProxyURL+"/healthyroute", http.StatusOK, "healthy")
 
 	// Test the health check.
-	testProxyRequest(t, healthCheckURL, http.StatusOK, "")
+	testProxyRequest(t, getHealthCheckURLFromPort(healthCheckPort), http.StatusOK, "")
+}
+
+func TestDaemonWithNoHealthCheck(t *testing.T) {
+	localProxyListen := ":6635"
+	healthCheckPort := ""
+
+	err := setUpDaemonWithLocalServer("8001", localProxyListen, healthCheckPort)
+	if err != nil {
+		t.Fatalf("Test daemon setup failed: %s", err.Error())
+	}
+
+	// Because so many servers are starting,  sleep  for a second to make sure
+	// they start.
+	time.Sleep(time.Second)
+
+	localProxyURL := "http://localhost" + localProxyListen
+
+	// Test a route that should be proxied to 404.
+	testProxyRequest(t, localProxyURL+"/helloworld", http.StatusNotFound, "404")
+
+	// Test a route that should be proxied to a valid response.
+	testProxyRequest(t, localProxyURL+"/healthyroute", http.StatusOK, "healthy")
+
+	// Health check request should fail.
+	if _, err := http.Get(getHealthCheckURLFromPort(healthCheckPort)); err == nil {
+		t.Fatalf("Health check request should have failed, but it did not.")
+	}
+
 }
