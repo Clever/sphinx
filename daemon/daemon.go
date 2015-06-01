@@ -30,7 +30,6 @@ func setUpHealthCheckService(port string, endpoint string) {
 	mux.HandleFunc(endpoint, func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
 	})
-	mux.Handle("/", http.NotFoundHandler())
 	go http.ListenAndServe(":"+port, mux)
 }
 
