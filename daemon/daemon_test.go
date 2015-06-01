@@ -5,6 +5,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -43,8 +44,7 @@ func TestFailedReload(t *testing.T) {
 	}
 }
 
-func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPort string,
-	healthCheckEnabled bool) error {
+func setUpDaemonWithLocalServer(conf config.Config) error {
 	// Set up a local server that 404s everywhere except route '/healthyroute'.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthyroute", func(rw http.ResponseWriter, req *http.Request) {
@@ -54,18 +54,13 @@ func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPo
 		rw.WriteHeader(http.StatusNotFound)
 		rw.Write([]byte("404"))
 	})
-	go http.ListenAndServe(":"+localServerPort, mux)
 
-	// Set up the daemon to proxy to the local server.
-	conf, err := config.New("../example.yaml")
-	if err != nil {
-		return err
-	}
-	conf.Proxy.Host = "http://localhost:" + localServerPort
-	conf.Proxy.Listen = localProxyListen
-	conf.HealthCheck.Port = healthCheckPort
-	conf.HealthCheck.Enabled = healthCheckEnabled
+	// Start local server on the port config points to.
+	colonIdx := strings.LastIndex(conf.Proxy.Host, ":")
+	localServerListen := conf.Proxy.Host[colonIdx:]
+	go http.ListenAndServe(localServerListen, mux)
 
+	// Set up and start the daemon.
 	daemon, err := New(conf)
 	if err != nil {
 		return err
@@ -101,15 +96,22 @@ func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody
 }
 
 func TestHealthCheck(t *testing.T) {
-	localProxyListen := ":6634"
-	healthCheckPort := "60002"
+	// Set up the daemon config to proxy to the local server.
+	conf, err := config.New("../example.yaml")
+	if err != nil {
+		t.Fatalf("Couldn't load daemon config: %s", err.Error())
+	}
+	conf.Proxy.Host = "http://localhost:8000"
+	conf.Proxy.Listen = ":6634"
+	conf.HealthCheck.Port = "60002"
+	conf.HealthCheck.Enabled = true
 
-	err := setUpDaemonWithLocalServer("8000", localProxyListen, healthCheckPort, true)
+	err = setUpDaemonWithLocalServer(conf)
 	if err != nil {
 		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
 
-	localProxyURL := "http://localhost" + localProxyListen
+	localProxyURL := "http://localhost" + conf.Proxy.Listen
 
 	// Test a route that should be proxied to 404.
 	testProxyRequest(t, localProxyURL+"/helloworld", http.StatusNotFound, "404")
@@ -117,26 +119,33 @@ func TestHealthCheck(t *testing.T) {
 	// Test a route that should be proxied to a valid response.
 	testProxyRequest(t, localProxyURL+"/healthyroute", http.StatusOK, "healthy")
 
-	healthCheckURL := fmt.Sprintf("http://localhost:%s/health/check", healthCheckPort)
+	healthCheckURL := fmt.Sprintf("http://localhost:%s/health/check", conf.HealthCheck.Port)
 
 	// Test the health check.
 	testProxyRequest(t, healthCheckURL, http.StatusOK, "")
 }
 
 func TestDaemonWithNoHealthCheck(t *testing.T) {
-	localProxyListen := ":6635"
-	healthCheckPort := "60003"
+	// Set up the daemon config to proxy to the local server.
+	conf, err := config.New("../example.yaml")
+	if err != nil {
+		t.Fatalf("Couldn't load daemon config: %s", err.Error())
+	}
+	conf.Proxy.Host = "http://localhost:8001"
+	conf.Proxy.Listen = ":6635"
+	conf.HealthCheck.Port = "60003"
+	conf.HealthCheck.Enabled = false
 
-	err := setUpDaemonWithLocalServer("8001", localProxyListen, healthCheckPort, false)
+	err = setUpDaemonWithLocalServer(conf)
 	if err != nil {
 		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
 
-	// Because so many servers are starting,  sleep  for a second to make sure
+	// Because so many servers are starting, sleep for a second to make sure
 	// they start.
 	time.Sleep(time.Second)
 
-	localProxyURL := "http://localhost" + localProxyListen
+	localProxyURL := "http://localhost" + conf.Proxy.Listen
 
 	// Test a route that should be proxied to 404.
 	testProxyRequest(t, localProxyURL+"/helloworld", http.StatusNotFound, "404")
