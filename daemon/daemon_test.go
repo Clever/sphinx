@@ -100,10 +100,6 @@ func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody
 	}
 }
 
-func getHealthCheckURLFromPort(port string) string {
-	return fmt.Sprintf("http://localhost:%s/health/check", port)
-}
-
 func TestHealthCheck(t *testing.T) {
 	localProxyListen := ":6634"
 	healthCheckPort := "60002"
@@ -121,8 +117,10 @@ func TestHealthCheck(t *testing.T) {
 	// Test a route that should be proxied to a valid response.
 	testProxyRequest(t, localProxyURL+"/healthyroute", http.StatusOK, "healthy")
 
+	healthCheckURL := fmt.Sprintf("http://localhost:%s/health/check", healthCheckPort)
+
 	// Test the health check.
-	testProxyRequest(t, getHealthCheckURLFromPort(healthCheckPort), http.StatusOK, "")
+	testProxyRequest(t, healthCheckURL, http.StatusOK, "")
 }
 
 func TestDaemonWithNoHealthCheck(t *testing.T) {
