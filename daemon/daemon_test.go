@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"fmt"
 	"github.com/Clever/sphinx/config"
 	"io/ioutil"
 	"net/http"
@@ -100,7 +101,7 @@ func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody
 }
 
 func getHealthCheckURLFromPort(port string) string {
-	return "http://localhost:" + port + "/health/check"
+	return fmt.Sprintf("http://localhost:%s/health/check", port)
 }
 
 func TestHealthCheck(t *testing.T) {
@@ -144,10 +145,4 @@ func TestDaemonWithNoHealthCheck(t *testing.T) {
 
 	// Test a route that should be proxied to a valid response.
 	testProxyRequest(t, localProxyURL+"/healthyroute", http.StatusOK, "healthy")
-
-	// Health check request should fail.
-	if _, err := http.Get(getHealthCheckURLFromPort(healthCheckPort)); err == nil {
-		t.Fatalf("Health check request should have failed, but it did not.")
-	}
-
 }
