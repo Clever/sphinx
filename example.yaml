@@ -10,6 +10,7 @@ storage:
   port: 6379      # redis port.     not required for memory
 
 health-check:
+  enabled: true
   port: 60002
   endpoint: "/health/check"
 

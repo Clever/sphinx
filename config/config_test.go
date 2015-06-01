@@ -142,6 +142,7 @@ proxy:
   host: http://proxy.example.com
   listen: localhost:8080
 health-check:
+  enabled: true
   port: 8080
   endpoint: "/health/check"
 `)

@@ -30,6 +30,7 @@ type Proxy struct {
 type HealthCheck struct {
 	Port     string
 	Endpoint string
+	Enabled  bool
 }
 
 // Limit holds the yaml data for one of the limits in the config file
@@ -70,7 +71,7 @@ func ValidateConfig(config Config) error {
 	}
 
 	// HealthCheck section is optional.
-	if config.HealthCheck.Port != "" {
+	if config.HealthCheck.Enabled {
 		colonIdx := strings.LastIndex(config.Proxy.Listen, ":") + 1
 		proxyPort := config.Proxy.Listen[colonIdx:]
 		if config.HealthCheck.Port == proxyPort {

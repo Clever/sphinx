@@ -42,7 +42,8 @@ func TestFailedReload(t *testing.T) {
 	}
 }
 
-func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPort string) error {
+func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPort string,
+	healthCheckEnabled bool) error {
 	// Set up a local server that 404s everywhere except route '/healthyroute'.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthyroute", func(rw http.ResponseWriter, req *http.Request) {
@@ -62,6 +63,7 @@ func setUpDaemonWithLocalServer(localServerPort, localProxyListen, healthCheckPo
 	conf.Proxy.Host = "http://localhost:" + localServerPort
 	conf.Proxy.Listen = localProxyListen
 	conf.HealthCheck.Port = healthCheckPort
+	conf.HealthCheck.Enabled = healthCheckEnabled
 
 	daemon, err := New(conf)
 	if err != nil {
@@ -98,17 +100,14 @@ func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody
 }
 
 func getHealthCheckURLFromPort(port string) string {
-	if len(port) > 0 {
-		return "http://localhost:" + port + "/health/check"
-	}
-	return "http://localhost/health/check"
+	return "http://localhost:" + port + "/health/check"
 }
 
 func TestHealthCheck(t *testing.T) {
 	localProxyListen := ":6634"
 	healthCheckPort := "60002"
 
-	err := setUpDaemonWithLocalServer("8000", localProxyListen, healthCheckPort)
+	err := setUpDaemonWithLocalServer("8000", localProxyListen, healthCheckPort, true)
 	if err != nil {
 		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
@@ -127,9 +126,9 @@ func TestHealthCheck(t *testing.T) {
 
 func TestDaemonWithNoHealthCheck(t *testing.T) {
 	localProxyListen := ":6635"
-	healthCheckPort := ""
+	healthCheckPort := "60003"
 
-	err := setUpDaemonWithLocalServer("8001", localProxyListen, healthCheckPort)
+	err := setUpDaemonWithLocalServer("8001", localProxyListen, healthCheckPort, false)
 	if err != nil {
 		t.Fatalf("Test daemon setup failed: %s", err.Error())
 	}
