@@ -21,6 +21,14 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected http for Proxy.Handler")
 	}
 
+	if config.HealthCheck.Port != "60002" {
+		t.Error("expected 60002 for HealthCheck.Port")
+	}
+
+	if config.HealthCheck.Endpoint != "/health/check" {
+		t.Error("expected /health/check for HealthCheck.Port")
+	}
+
 	if len(config.Limits) != 4 {
 		t.Error("expected 4 bucket definitions")
 	}
@@ -125,6 +133,25 @@ limits:
 	if err == nil || !strings.Contains(err.Error(), "max") {
 		t.Errorf("Expected Limit Interval error. Got: %s", err.Error())
 	}
+}
+
+func TestInvalidHealthCheckConfig(t *testing.T) {
+	buf := bytes.NewBufferString(`
+proxy:
+  handler: http
+  host: http://proxy.example.com
+  listen: localhost:8080
+health-check:
+  enabled: true
+  port: 8080
+  endpoint: "/health/check"
+`)
+	_, err := LoadAndValidateYaml(buf.Bytes())
+	if err == nil ||
+		!strings.Contains(err.Error(), "health service port cannot match proxy.listen port") {
+		t.Error("Expected health service port error.")
+	}
+
 }
 
 func TestInvalidStorageConfig(t *testing.T) {
