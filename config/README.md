@@ -57,6 +57,7 @@ New takes in a path to a configuration yaml and returns a Configuration.
 type HealthCheck struct {
 	Port     string
 	Endpoint string
+	Enabled  bool
 }
 ```
 
