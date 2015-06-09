@@ -165,8 +165,7 @@ func TestHandleWhenNotFull(t *testing.T) {
 	limiter.ServeHTTP(w, r)
 
 	compareStatusesToHeader(t, w.Header(), statuses)
-	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
-	// limitMock.AssertExpectations(t)
+	limitMock.AssertExpectations(t)
 	proxyMock.AssertExpectations(t)
 }
 
@@ -188,8 +187,7 @@ func TestHandleWhenFull(t *testing.T) {
 	if w.Code != 429 {
 		t.Fatalf("expected status 429, received %d", w.Code)
 	}
-	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
-	// limitMock.AssertExpectations(t)
+	limitMock.AssertExpectations(t)
 }
 
 func TestHandleWhenErrWithStatus(t *testing.T) {
@@ -210,8 +208,7 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	if w.Code != 500 {
 		t.Fatalf("expected status 500, received %d", w.Code)
 	}
-	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
-	// limitMock.AssertExpectations(t)
+	limitMock.AssertExpectations(t)
 }
 
 func TestHandleWhenErrWithoutStatus(t *testing.T) {
@@ -232,6 +229,5 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	if w.Code != 500 {
 		t.Fatalf("expected status 500, received %d", w.Code)
 	}
-	// commented out until https://github.com/stretchr/testify/issues/31 is resolved
-	// limitMock.AssertExpectations(t)
+	limitMock.AssertExpectations(t)
 }
