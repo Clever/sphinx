@@ -5,6 +5,12 @@
 
 ## Usage
 
+```go
+const (
+	StatusTooManyRequests = 429 // not in net/http package
+)
+```
+
 #### func  NewHTTPLimiter
 
 ```go

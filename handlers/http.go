@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+const (
+	StatusTooManyRequests = 429 // not in net/http package
+)
+
 func stringifyHeaders(headers http.Header) *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	for header, values := range headers {
@@ -35,8 +39,9 @@ func stringifyRequest(req common.Request) *bytes.Buffer {
 }
 
 type httpRateLimiter struct {
-	rateLimiter ratelimiter.RateLimiter
-	proxy       http.Handler
+	rateLimiter  ratelimiter.RateLimiter
+	proxy        http.Handler
+	AllowOnError bool // Do not limit on errors when true
 }
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -46,12 +51,17 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
-		w.WriteHeader(500)
-		return
+		if !hrl.AllowOnError {
+			log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
+
 	addRateLimitHeaders(w, matches)
+
 	if err == leakybucket.ErrorFull {
-		w.WriteHeader(429)
+		w.WriteHeader(StatusTooManyRequests)
 		return
 	}
 	hrl.proxy.ServeHTTP(w, r)
