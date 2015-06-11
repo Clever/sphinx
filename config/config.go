@@ -21,9 +21,10 @@ type Config struct {
 
 // Proxy holds the yaml data for the proxy option in the config file
 type Proxy struct {
-	Handler string
-	Host    string
-	Listen  string
+	Handler      string
+	Host         string
+	Listen       string
+	AllowOnError bool `yaml:"allow-on-error"`
 }
 
 // HealthCheck holds the yaml data for how to run the health check service.
@@ -56,6 +57,7 @@ func LoadYaml(data []byte) (Config, error) {
 // ValidateConfig validates that a Config has all the required fields
 // TODO (z): These should all be private, but right now tests depend on parsing bytes into yaml
 func ValidateConfig(config Config) error {
+	// NOTE: tests depend on the order of these checks.
 	if config.Proxy.Handler == "" {
 		return fmt.Errorf("proxy.handler not set")
 	}
@@ -80,7 +82,7 @@ func ValidateConfig(config Config) error {
 	}
 
 	if len(config.Limits) < 1 {
-		return fmt.Errorf("no limits definied")
+		return fmt.Errorf("no limits defined")
 	}
 
 	for name, limit := range config.Limits {

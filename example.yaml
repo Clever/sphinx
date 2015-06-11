@@ -3,6 +3,7 @@ proxy:
   handler: http             # can be {http,httplogger}
   host: http://httpbin.org  # URI for the http(s) backend we are proxying to
   listen: :6634             # bind to host:port. default: height of the Great Sphinx of Giza
+  allow-on-error: Yes       # become passive proxy if error detected? (optional, default=No)
 
 storage:
   type: memory    # can be {redis,memory}

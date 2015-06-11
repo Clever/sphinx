@@ -45,7 +45,7 @@ func setUpHTTPLimiter(b *testing.B) {
 	// ignore the url in the config and use localhost
 	target, _ := url.Parse(host)
 	proxy := httputil.NewSingleHostReverseProxy(target)
-	httpLimiter := handlers.NewHTTPLimiter(rateLimiter, proxy)
+	httpLimiter := handlers.NewHTTPLimiter(rateLimiter, proxy, false)
 
 	go http.ListenAndServe(":8082", httpLimiter)
 }

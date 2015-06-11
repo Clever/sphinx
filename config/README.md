@@ -81,9 +81,10 @@ Limit holds the yaml data for one of the limits in the config file
 
 ```go
 type Proxy struct {
-	Handler string
-	Host    string
-	Listen  string
+	Handler      string
+	Host         string
+	Listen       string
+	AllowOnError bool `yaml:"allow-on-error"`
 }
 ```
 
