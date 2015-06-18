@@ -52,10 +52,11 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err != leakybucket.ErrorFull {
 		log.Printf("[%s] ERROR: %s", guid, err)
 		if !hrl.AllowOnError {
-			log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// Else log and bypass
+		log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
 	}
 
 	addRateLimitHeaders(w, matches)
