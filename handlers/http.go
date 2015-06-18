@@ -49,23 +49,22 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	request := common.HTTPToSphinxRequest(r)
 	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request).String())
 	matches, err := hrl.rateLimiter.Add(request)
-	if err != nil && err != leakybucket.ErrorFull {
-		log.Printf("[%s] ERROR: %s", guid, err)
-		if !hrl.AllowOnError {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Else log and bypass
-		log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
-	}
-
-	addRateLimitHeaders(w, matches)
-
-	if err == leakybucket.ErrorFull {
+	switch {
+	case err == leakybucket.ErrorFull:
+		addRateLimitHeaders(w, matches)
 		w.WriteHeader(StatusTooManyRequests)
-		return
+	case err != nil && hrl.AllowOnError:
+		log.Printf("[%s] ERROR: %s", guid, err)
+		log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
+		hrl.proxy.ServeHTTP(w, r)
+	case err != nil:
+		log.Printf("[%s] ERROR: %s", guid, err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+	default:
+		addRateLimitHeaders(w, matches)
+		hrl.proxy.ServeHTTP(w, r)
 	}
-	hrl.proxy.ServeHTTP(w, r)
 }
 
 type httpRateLogger httpRateLimiter
