@@ -55,7 +55,7 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(StatusTooManyRequests)
 	case err != nil && hrl.AllowOnError:
 		log.Printf("[%s] ERROR: %s", guid, err)
-		log.Printf("[%s] WARNING: bypassing rate limiter due to Error")
+		log.Printf("[%s] WARNING: bypassing rate limiter due to Error", guid)
 		hrl.proxy.ServeHTTP(w, r)
 	case err != nil:
 		log.Printf("[%s] ERROR: %s", guid, err)

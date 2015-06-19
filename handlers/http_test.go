@@ -234,28 +234,13 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 
 // Test cases when an error occurs and either value of AllowOnError
 var allowOnErrorCases = []struct {
-	AllowOnError      bool
-	ExpectedCode      int
-	RateLimiterStatus []ratelimiter.Status
+	AllowOnError bool
+	ExpectedCode int
 }{
 	// It should still block if AllowOnError == false
-	{
-		false,
-		http.StatusInternalServerError,
-		[]ratelimiter.Status{},
-	},
-	// If AllowOnError == true and
-	{
-		true,
-		http.StatusOK,
-		[]ratelimiter.Status{},
-	},
-	// It should still add headers if AllowOnError == true
-	{
-		true,
-		http.StatusOK,
-		[]ratelimiter.Status{sphinxStatus},
-	},
+	{false, http.StatusInternalServerError},
+	// If AllowOnError == true and no headers, should still StatusOK
+	{true, http.StatusOK},
 }
 
 // Tests the AllowOnError flag feature
@@ -272,19 +257,14 @@ func TestAllowOnError(t *testing.T) {
 		// Setup an error case (simulate redis connection error)
 		limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
 		limitMock.On("Add", anyRequest).
-			Return(test.RateLimiterStatus, errors.New("Expected Testing error - redis.conn error")).
+			Return([]ratelimiter.Status{sphinxStatus}, errors.New("Expected Testing error - redis.conn error")).
 			Once()
 
 		proxyMock := limiter.proxy.(*MockProxy).Mock
 		proxyMock.On("ServeHTTP", w, r).Return().Once()
 		limiter.ServeHTTP(w, r)
 
-		// If no status, then
-		if len(test.RateLimiterStatus) == 0 {
-			assertNoRateLimitHeaders(t, w.Header())
-		} else {
-			compareStatusesToHeader(t, w.Header(), test.RateLimiterStatus)
-		}
+		assertNoRateLimitHeaders(t, w.Header())
 
 		if w.Code != test.ExpectedCode {
 			t.Fatalf("expected status %d, received %d", test.ExpectedCode, w.Code)
