@@ -41,7 +41,7 @@ func stringifyRequest(req common.Request) *bytes.Buffer {
 type httpRateLimiter struct {
 	rateLimiter  ratelimiter.RateLimiter
 	proxy        http.Handler
-	AllowOnError bool // Do not limit on errors when true
+	allowOnError bool // Do not limit on errors when true
 }
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case err == leakybucket.ErrorFull:
 		addRateLimitHeaders(w, matches)
 		w.WriteHeader(StatusTooManyRequests)
-	case err != nil && hrl.AllowOnError:
+	case err != nil && hrl.allowOnError:
 		log.Printf("[%s] ERROR: %s", guid, err)
 		log.Printf("[%s] WARNING: bypassing rate limiter due to Error", guid)
 		hrl.proxy.ServeHTTP(w, r)
@@ -129,7 +129,7 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []ratelimiter.Status) {
 
 // NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
 func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler, allowOnError bool) http.Handler {
-	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy, AllowOnError: allowOnError}
+	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy, allowOnError: allowOnError}
 }
 
 // NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but

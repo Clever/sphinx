@@ -232,22 +232,22 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	limitMock.AssertExpectations(t)
 }
 
-// Test cases when an error occurs and either value of AllowOnError
+// Test cases when an error occurs and either value of allowOnError
 var allowOnErrorCases = []struct {
-	AllowOnError bool
+	allowOnError bool
 	ExpectedCode int
 }{
-	// It should still block if AllowOnError == false
+	// It should still block if allowOnError == false
 	{false, http.StatusInternalServerError},
-	// If AllowOnError == true and no headers, should still StatusOK
+	// If allowOnError == true and no headers, should still StatusOK
 	{true, http.StatusOK},
 }
 
-// Tests the AllowOnError flag feature
-func TestAllowOnError(t *testing.T) {
+// Tests the allowOnError flag feature
+func TestallowOnError(t *testing.T) {
 	for _, test := range allowOnErrorCases {
 		limiter := constructHTTPRateLimiter()
-		limiter.AllowOnError = test.AllowOnError
+		limiter.allowOnError = test.allowOnError
 		w := httptest.NewRecorder()
 		r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("thebody"))
 		if err != nil {
