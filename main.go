@@ -54,7 +54,7 @@ func sighupHandler(d daemon.Daemon) {
 	log.Println("Reloaded config file")
 }
 
-// setupSighupHandler craetes a channel to listen for HUP signals and process them.
+// setupSighupHandler creates a channel to listen for HUP signals and process them.
 func setupSighupHandler(d daemon.Daemon, handler func(daemon.Daemon)) {
 	sigc := make(chan os.Signal)
 	signal.Notify(sigc, syscall.SIGHUP)

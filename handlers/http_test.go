@@ -184,8 +184,8 @@ func TestHandleWhenFull(t *testing.T) {
 	limiter.ServeHTTP(w, r)
 
 	compareStatusesToHeader(t, w.Header(), statuses)
-	if w.Code != 429 {
-		t.Fatalf("expected status 429, received %d", w.Code)
+	if w.Code != StatusTooManyRequests {
+		t.Fatalf("expected status %d, received %d", StatusTooManyRequests, w.Code)
 	}
 	limitMock.AssertExpectations(t)
 }
@@ -205,8 +205,8 @@ func TestHandleWhenErrWithStatus(t *testing.T) {
 	limiter.ServeHTTP(w, r)
 	assertNoRateLimitHeaders(t, w.Header())
 
-	if w.Code != 500 {
-		t.Fatalf("expected status 500, received %d", w.Code)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status %d, received %d", http.StatusInternalServerError, w.Code)
 	}
 	limitMock.AssertExpectations(t)
 }
@@ -226,8 +226,48 @@ func TestHandleWhenErrWithoutStatus(t *testing.T) {
 	limiter.ServeHTTP(w, r)
 	assertNoRateLimitHeaders(t, w.Header())
 
-	if w.Code != 500 {
-		t.Fatalf("expected status 500, received %d", w.Code)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status %d, received %d", http.StatusInternalServerError, w.Code)
 	}
 	limitMock.AssertExpectations(t)
+}
+
+// Test cases when an error occurs and either value of allowOnError
+var allowOnErrorCases = []struct {
+	allowOnError bool
+	ExpectedCode int
+}{
+	// It should still block if allowOnError == false
+	{false, http.StatusInternalServerError},
+	// If allowOnError == true and no headers, should still StatusOK
+	{true, http.StatusOK},
+}
+
+// Tests the allowOnError flag feature
+func TestallowOnError(t *testing.T) {
+	for _, test := range allowOnErrorCases {
+		limiter := constructHTTPRateLimiter()
+		limiter.allowOnError = test.allowOnError
+		w := httptest.NewRecorder()
+		r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("thebody"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Setup an error case (simulate redis connection error)
+		limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
+		limitMock.On("Add", anyRequest).
+			Return([]ratelimiter.Status{sphinxStatus}, errors.New("Expected Testing error - redis.conn error")).
+			Once()
+
+		proxyMock := limiter.proxy.(*MockProxy).Mock
+		proxyMock.On("ServeHTTP", w, r).Return().Once()
+		limiter.ServeHTTP(w, r)
+
+		assertNoRateLimitHeaders(t, w.Header())
+
+		if w.Code != test.ExpectedCode {
+			t.Fatalf("expected status %d, received %d", test.ExpectedCode, w.Code)
+		}
+	}
 }

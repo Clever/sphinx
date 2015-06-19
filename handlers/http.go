@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+const (
+	StatusTooManyRequests = 429 // not in net/http package
+)
+
 func stringifyHeaders(headers http.Header) *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	for header, values := range headers {
@@ -35,8 +39,9 @@ func stringifyRequest(req common.Request) *bytes.Buffer {
 }
 
 type httpRateLimiter struct {
-	rateLimiter ratelimiter.RateLimiter
-	proxy       http.Handler
+	rateLimiter  ratelimiter.RateLimiter
+	proxy        http.Handler
+	allowOnError bool // Do not limit on errors when true
 }
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,17 +49,22 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	request := common.HTTPToSphinxRequest(r)
 	log.Printf("[%s] REQUEST: %s", guid, stringifyRequest(request).String())
 	matches, err := hrl.rateLimiter.Add(request)
-	if err != nil && err != leakybucket.ErrorFull {
+	switch {
+	case err == leakybucket.ErrorFull:
+		addRateLimitHeaders(w, matches)
+		w.WriteHeader(StatusTooManyRequests)
+	case err != nil && hrl.allowOnError:
 		log.Printf("[%s] ERROR: %s", guid, err)
-		w.WriteHeader(500)
-		return
+		log.Printf("[%s] WARNING: bypassing rate limiter due to Error", guid)
+		hrl.proxy.ServeHTTP(w, r)
+	case err != nil:
+		log.Printf("[%s] ERROR: %s", guid, err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+	default:
+		addRateLimitHeaders(w, matches)
+		hrl.proxy.ServeHTTP(w, r)
 	}
-	addRateLimitHeaders(w, matches)
-	if err == leakybucket.ErrorFull {
-		w.WriteHeader(429)
-		return
-	}
-	hrl.proxy.ServeHTTP(w, r)
 }
 
 type httpRateLogger httpRateLimiter
@@ -118,8 +128,8 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []ratelimiter.Status) {
 }
 
 // NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
-func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) http.Handler {
-	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy}
+func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler, allowOnError bool) http.Handler {
+	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy, allowOnError: allowOnError}
 }
 
 // NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but

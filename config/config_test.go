@@ -21,6 +21,10 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected http for Proxy.Handler")
 	}
 
+	if config.Proxy.AllowOnError != true {
+		t.Error("expected true for proxy.allow-on-error: Yes")
+	}
+
 	if config.HealthCheck.Port != "60002" {
 		t.Error("expected 60002 for HealthCheck.Port")
 	}
@@ -65,6 +69,7 @@ forward
 // Incorrect configuration file should return errors
 func TestInvalidProxyConfig(t *testing.T) {
 
+	// proxy.handler not set
 	invalidConfig := []byte(`
 proxy:
   host: http://proxy.example.com
@@ -74,6 +79,7 @@ proxy:
 		t.Errorf("Expected proxy handler error. Got: %s", err.Error())
 	}
 
+	// proxy.listen not set
 	invalidConfig = []byte(`
 proxy:
   handler: http
@@ -91,7 +97,8 @@ proxy:
   listen: :8000
 `)
 	_, err = LoadAndValidateYaml(invalidConfig)
-	if err == nil || !strings.Contains(err.Error(), "proxy") {
+
+	if err == nil || !strings.Contains(err.Error(), "proxy.host") {
 		t.Errorf("Expected proxy host error. Got: %s", err.Error())
 	}
 }
@@ -112,7 +119,7 @@ storage:
 limits:
   bearer/events:
     keys:
-      headers: 
+      headers:
         - 'Authentication'
 `)
 	_, err := LoadAndValidateYaml(configBuf.Bytes())
@@ -126,7 +133,7 @@ limits:
   bearer/events:
     interval: 10
     keys:
-      headers: 
+      headers:
         - 'Authentication'
 `)
 	_, err = LoadAndValidateYaml(configBuf.Bytes())

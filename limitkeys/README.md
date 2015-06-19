@@ -41,8 +41,8 @@ func (eke EmptyKeyError) Error() string
 
 ```go
 type LimitKey interface {
-	Key(common.Request) (string, error)
 	Type() string
+	Key(common.Request) (string, error)
 }
 ```
 

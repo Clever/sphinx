@@ -66,7 +66,7 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	// Set the proxy and handler daemon fields
 	switch d.proxy.Handler {
 	case "http":
-		d.handler = handlers.NewHTTPLimiter(rateLimiter, proxy)
+		d.handler = handlers.NewHTTPLimiter(rateLimiter, proxy, d.proxy.AllowOnError)
 		return nil
 	case "httplogger":
 		d.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
