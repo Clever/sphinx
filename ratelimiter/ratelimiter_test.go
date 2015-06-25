@@ -8,6 +8,7 @@ import (
 	"github.com/Clever/sphinx/limit"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func returnLastAddStatus(rateLimiter RateLimiter, request common.Request, numAdds int) ([]Status, error) {
@@ -105,6 +106,25 @@ func TestSimpleAdd(t *testing.T) {
 		t.Fatalf("expected 0 remaining, found %d", status[0].Remaining)
 	} else if status[0].Name != "basic-simple" {
 		t.Fatalf("expected 'basic-simple' limit, found '%s'", status[0].Name)
+	}
+}
+
+// Test to ensure we build the correct nil Ratelimiter status
+func TestNilStatus(t *testing.T) {
+	if NilStatus.Capacity != 1 {
+		t.Fatalf("Expected NilStatus capacity to be 1")
+	}
+
+	if NilStatus.Reset.Unix() > time.Now().Unix() {
+		t.Fatalf("Expected NilStatus reset time to be in the past")
+	}
+
+	if NilStatus.Remaining != 1 {
+		t.Fatalf("Expected NilStatus remaining to be 1")
+	}
+
+	if NilStatus.Name != "Unknown" {
+		t.Fatalf("Expected NilStatus name to be 'Unknown'")
 	}
 }
 

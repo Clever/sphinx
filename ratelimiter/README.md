@@ -5,6 +5,16 @@
 
 ## Usage
 
+```go
+var NilStatus = Status{
+	Capacity:  1,
+	Reset:     time.Now(),
+	Remaining: 1,
+	Name:      "Unknown",
+}
+```
+NilStatus for when acting as passive proxy
+
 #### type RateLimiter
 
 ```go

@@ -244,7 +244,7 @@ var allowOnErrorCases = []struct {
 }
 
 // Tests the allowOnError flag feature
-func TestallowOnError(t *testing.T) {
+func TestAllowOnError(t *testing.T) {
 	for _, test := range allowOnErrorCases {
 		limiter := constructHTTPRateLimiter()
 		limiter.allowOnError = test.allowOnError
@@ -264,7 +264,11 @@ func TestallowOnError(t *testing.T) {
 		proxyMock.On("ServeHTTP", w, r).Return().Once()
 		limiter.ServeHTTP(w, r)
 
-		assertNoRateLimitHeaders(t, w.Header())
+		if test.allowOnError {
+			compareHeader(t, w.Header(), "X-Ratelimit-Limit", []string{"1"})
+			compareHeader(t, w.Header(), "X-Ratelimit-Remaining", []string{"1"})
+			compareHeader(t, w.Header(), "X-Ratelimit-Bucket", []string{"Unknown"})
+		}
 
 		if w.Code != test.ExpectedCode {
 			t.Fatalf("expected status %d, received %d", test.ExpectedCode, w.Code)

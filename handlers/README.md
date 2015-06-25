@@ -7,6 +7,7 @@
 
 ```go
 const (
+	// StatusTooManyRequests represents HTTP 429, missing from new/http
 	StatusTooManyRequests = 429 // not in net/http package
 )
 ```
