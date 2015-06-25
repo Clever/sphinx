@@ -90,3 +90,11 @@ func New(config config.Config) (RateLimiter, error) {
 	rateLimiter := &rateLimiter{limits: limits}
 	return rateLimiter, nil
 }
+
+// NilStatus for when acting as passive proxy
+var NilStatus = Status{
+	Capacity:  1,
+	Reset:     time.Now(),
+	Remaining: 1,
+	Name:      "Unknown",
+}

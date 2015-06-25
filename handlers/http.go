@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// StatusTooManyRequests represents HTTP 429, missing from net/http
 	StatusTooManyRequests = 429 // not in net/http package
 )
 
@@ -56,6 +57,7 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case err != nil && hrl.allowOnError:
 		log.Printf("[%s] ERROR: %s", guid, err)
 		log.Printf("[%s] WARNING: bypassing rate limiter due to Error", guid)
+		addRateLimitHeaders(w, []ratelimiter.Status{ratelimiter.NilStatus})
 		hrl.proxy.ServeHTTP(w, r)
 	case err != nil:
 		log.Printf("[%s] ERROR: %s", guid, err)
