@@ -29,12 +29,14 @@ func setUpHealthCheckService(port string, endpoint string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc(endpoint, func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
+		log.Printf("Health-check endpoint pinged.")
 	})
 	go http.ListenAndServe(":"+port, mux)
+	log.Printf("Health-check listening on:%s%s", port, endpoint)
 }
 
 func (d *daemon) Start() {
-	log.Printf("Listening on %s", d.proxy.Listen)
+	log.Printf("Limiter listening on %s", d.proxy.Listen)
 	// Only set up the health check service if it is enabled.
 	if d.healthCheck.Enabled {
 		setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
