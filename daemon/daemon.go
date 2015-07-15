@@ -5,6 +5,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
+	"gopkg.in/Clever/kayvee-go.v2"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -29,7 +30,11 @@ func setUpHealthCheckService(port string, endpoint string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc(endpoint, func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
-		log.Printf("Health-check endpoint pinged.")
+		log.Printf(kayvee.Format(map[string]interface{}{
+			"source": "sphinx",
+			"title":  "Health-Check",
+			"type":   "counter",
+			"value":  1}))
 	})
 	go http.ListenAndServe(":"+port, mux)
 	log.Printf("Health-check listening on:%s%s", port, endpoint)
