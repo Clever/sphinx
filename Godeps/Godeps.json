@@ -1,0 +1,35 @@
+{
+	"ImportPath": "github.com/Clever/sphinx",
+	"GoVersion": "go1.5.1",
+	"Packages": [
+		"."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go-uuid/uuid",
+			"Comment": "null-15",
+			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
+		},
+		{
+			"ImportPath": "github.com/Clever/leakybucket",
+			"Rev": "ad182de4508ff97a751f048e6dc826ba10096a93"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v2",
+			"Comment": "v2.0.0",
+			"Rev": "6027372b81c7ac2294c5e4419ece8e04f0b740f1"
+		},
+		{
+			"ImportPath": "gopkg.in/v1/yaml",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		}
+	]
+}

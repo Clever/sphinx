@@ -1,0 +1,13 @@
+image: go1.2
+script:
+  - make test
+notify:
+  email:
+    recipients:
+      - drone@clever.com
+  hipchat:
+    room: Clever-Dev-CI
+    token: {{hipchatToken}}
+    on_started: true
+    on_success: true
+    on_failure: true

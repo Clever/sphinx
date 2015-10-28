@@ -37,7 +37,6 @@ $(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
 $(TESTS): $(GOPATH)/bin/golint
 	@echo ""
 	@echo "FORMATTING $@..."
-	go get -d -t $(THE_PKG)
 	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 	@echo "LINTING $@..."
