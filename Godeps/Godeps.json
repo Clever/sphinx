@@ -2,7 +2,8 @@
 	"ImportPath": "github.com/Clever/sphinx",
 	"GoVersion": "go1.5.1",
 	"Packages": [
-		"."
+		".",
+		"github.com/stretchr/testify"
 	],
 	"Deps": [
 		{
@@ -21,6 +22,14 @@
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
 			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+		},
+		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify",
+			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
 		},
 		{
 			"ImportPath": "gopkg.in/Clever/kayvee-go.v2",
