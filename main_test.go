@@ -1,10 +1,6 @@
 package main
 
 import (
-	"github.com/Clever/sphinx/config"
-	"github.com/Clever/sphinx/daemon"
-	"github.com/Clever/sphinx/handlers"
-	"github.com/Clever/sphinx/ratelimiter"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +9,11 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/daemon"
+	"github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/ratelimiter"
 )
 
 var host = "http://localhost:8081"
@@ -88,6 +89,9 @@ func TestSighupHandler(t *testing.T) {
 	conf, _ := config.New("example.yaml")
 	d, _ := daemon.New(conf)
 	setupSighupHandler(d, handler)
+	// Need to sleep here so that the goroutine has time to set up the signal listener, otherwise
+	// the signal gets missed
+	time.Sleep(1 * time.Second)
 	syscall.Kill(syscall.Getpid(), syscall.SIGHUP)
 
 	// Give the syscall 1 second to be handled, should be more than enough time

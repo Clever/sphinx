@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"github.com/Clever/sphinx/config"
-	"github.com/Clever/sphinx/daemon"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/daemon"
 )
 
 var (
@@ -63,6 +64,7 @@ func setupSighupHandler(d daemon.Daemon, handler func(daemon.Daemon)) {
 		// one is received.
 		for {
 			<-sigc
+			log.Println("Received SIGHUP")
 			handler(d)
 		}
 	}()
