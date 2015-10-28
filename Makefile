@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
-SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb)
+SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb | grep -v vendor)
 READMES := $(addsuffix README.md, $(SUBPKGS))
 VERSION := $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
 RELEASE_NAME := $(shell cat CHANGES.md | head -n 1 | tail -c+3)
@@ -8,7 +8,7 @@ RELEASE_DOCS := $(shell cat CHANGES.md | tail -n+2 | sed -n '/\#/q;p')
 SHA := $(shell git rev-parse --short HEAD)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
-TESTS := $(shell find . -name "*_test.go" | sed s/\.go//)
+TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean build-release
 
