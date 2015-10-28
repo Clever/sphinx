@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
-SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb | grep -v vendor)
+SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb | grep -v vendor | grep -v Godeps)
 READMES := $(addsuffix README.md, $(SUBPKGS))
 VERSION := $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
 RELEASE_NAME := $(shell cat CHANGES.md | head -n 1 | tail -c+3)
