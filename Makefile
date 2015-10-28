@@ -12,6 +12,13 @@ TESTS := $(shell find . -name "*_test.go" | sed s/\.go//)
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean build-release
 
+GOVERSION := $(shell go version | grep 1.5)
+ifeq "$(GOVERSION)" ""
+  $(error must be running Go version 1.5)
+endif
+
+export GO15VENDOREXPERIMENT = 1
+
 test: $(TESTS) docs
 bench: $(BENCHES)
 build: bin/sphinxd
