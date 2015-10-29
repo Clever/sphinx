@@ -1,4 +1,4 @@
-image: go1.2
+image: clever/drone-go:1.5
 notify:
   email:
     recipients:
