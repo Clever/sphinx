@@ -2,14 +2,21 @@
 	"ImportPath": "github.com/Clever/sphinx",
 	"GoVersion": "go1.5.1",
 	"Packages": [
-		".",
-		"github.com/stretchr/testify"
+		"github.com/Clever/sphinx",
+		"github.com/Clever/sphinx/common",
+		"github.com/Clever/sphinx/config",
+		"github.com/Clever/sphinx/daemon",
+		"github.com/Clever/sphinx/handlers",
+		"github.com/Clever/sphinx/limit",
+		"github.com/Clever/sphinx/limitkeys",
+		"github.com/Clever/sphinx/matchers",
+		"github.com/Clever/sphinx/ratelimiter"
 	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
 			"Comment": "null-15",
-			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
+			"Rev": "'35bc42037350f0078e3c974c6ea690f1926603ab'"
 		},
 		{
 			"ImportPath": "github.com/Clever/leakybucket",
@@ -28,7 +35,11 @@
 			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
 		},
 		{
-			"ImportPath": "github.com/stretchr/testify",
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/mock",
 			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
 		},
 		{
