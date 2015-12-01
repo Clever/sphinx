@@ -83,3 +83,15 @@ docs: $(READMES)
 %/README.md: %/*.go
 	@go get github.com/robertkrimen/godocdown/godocdown
 	godocdown $(PKG)/$(shell dirname $@) > $@
+
+
+SHELL := /bin/bash
+PKGS := $(shell go list ./... | grep -v /vendor)
+GODEP := $(GOPATH)/bin/godep
+
+$(GODEP):
+	go get -u github.com/tools/godep
+
+vendor: $(GODEP)
+	$(GODEP) save $(PKGS)
+	find vendor/ -path '*/vendor' -type d | xargs -IX rm -r X # remove any nested vendor directories
