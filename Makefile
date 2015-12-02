@@ -10,17 +10,23 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
-GODEP := $(GOPATH)/bin/godep
 .PHONY: test $(PKGS) run clean build-release vendor
 
 GOVERSION := $(shell go version | grep 1.5)
 ifeq "$(GOVERSION)" ""
   $(error must be running Go version 1.5)
 endif
-
 export GO15VENDOREXPERIMENT = 1
 
-test: $(TESTS) docs
+GOLINT := $(GOPATH)/bin/golint
+$(GOLINT):
+	go get github.com/golang/lint/golint
+
+GODEP := $(GOPATH)/bin/godep
+$(GODEP):
+	go get -u github.com/tools/godep
+
+test: $(TESTS)
 bench: $(BENCHES)
 build: bin/sphinxd
 
@@ -35,13 +41,13 @@ $(GOPATH)/bin/golint:
 
 $(TESTS): PATH := $(PATH):$(GOPATH)/bin
 $(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
-$(TESTS): $(GOPATH)/bin/golint
+$(TESTS): $(GOLINT)
 	@echo ""
 	@echo "FORMATTING $@..."
 	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 	@echo "LINTING $@..."
-	$(GOPATH)/bin/golint $(GOPATH)/src/$(THE_PKG)*.go
+	$(GOLINT) $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 ifeq ($(COVERAGE),1)
 	@echo "TESTING COVERAGE $@..."
@@ -78,15 +84,6 @@ clean:
 	rm -f bin/sphinxd
 	rm -f main/main
 	rm -f deb/sphinx.deb
-
-docs: $(READMES)
-%/README.md: PATH := $(PATH):$(GOPATH)/bin
-%/README.md: %/*.go
-	@go get github.com/robertkrimen/godocdown/godocdown
-	godocdown $(PKG)/$(shell dirname $@) > $@
-
-$(GODEP):
-	go get -u github.com/tools/godep
 
 vendor: $(GODEP)
 	$(GODEP) save $(PKGS)
