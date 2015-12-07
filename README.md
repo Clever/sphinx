@@ -239,3 +239,7 @@ COVERAGE=1 make
 
 * [Sphinx](http://thenounproject.com/term/sphinx/20572/) logo by EricP from The Noun Project
 * [Drone](https://github.com/drone/drone) inspiration for building a deb
+
+## Vendoring
+
+Please view the [dev-handbook for instructions](https://github.com/Clever/dev-handbook/blob/master/golang/godep.md).

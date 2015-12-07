@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
-SUBPKGS := $(shell ls -d */ | grep -v bin | grep -v deb | grep -v vendor | grep -v Godeps)
-READMES := $(addsuffix README.md, $(SUBPKGS))
+PKGS := $(shell go list ./... | grep -v /vendor)
+READMES := $(addsuffix README.md, $(PKGS))
 VERSION := $(shell cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
 RELEASE_NAME := $(shell cat CHANGES.md | head -n 1 | tail -c+3)
 RELEASE_DOCS := $(shell cat CHANGES.md | tail -n+2 | sed -n '/\#/q;p')
@@ -10,16 +10,23 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
-.PHONY: test $(PKGS) run clean build-release
+.PHONY: test $(PKGS) run clean build-release vendor
 
 GOVERSION := $(shell go version | grep 1.5)
 ifeq "$(GOVERSION)" ""
   $(error must be running Go version 1.5)
 endif
-
 export GO15VENDOREXPERIMENT = 1
 
-test: $(TESTS) docs
+GOLINT := $(GOPATH)/bin/golint
+$(GOLINT):
+	go get github.com/golang/lint/golint
+
+GODEP := $(GOPATH)/bin/godep
+$(GODEP):
+	go get -u github.com/tools/godep
+
+test: $(TESTS)
 bench: $(BENCHES)
 build: bin/sphinxd
 
@@ -34,13 +41,13 @@ $(GOPATH)/bin/golint:
 
 $(TESTS): PATH := $(PATH):$(GOPATH)/bin
 $(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
-$(TESTS): $(GOPATH)/bin/golint
+$(TESTS): $(GOLINT)
 	@echo ""
 	@echo "FORMATTING $@..."
 	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 	@echo "LINTING $@..."
-	$(GOPATH)/bin/golint $(GOPATH)/src/$(THE_PKG)*.go
+	$(GOLINT) $(GOPATH)/src/$(THE_PKG)*.go
 	@echo ""
 ifeq ($(COVERAGE),1)
 	@echo "TESTING COVERAGE $@..."
@@ -78,8 +85,6 @@ clean:
 	rm -f main/main
 	rm -f deb/sphinx.deb
 
-docs: $(READMES)
-%/README.md: PATH := $(PATH):$(GOPATH)/bin
-%/README.md: %/*.go
-	@go get github.com/robertkrimen/godocdown/godocdown
-	godocdown $(PKG)/$(shell dirname $@) > $@
+vendor: $(GODEP)
+	$(GODEP) save $(PKGS)
+	find vendor/ -path '*/vendor' -type d | xargs -IX rm -r X # remove any nested vendor directories
