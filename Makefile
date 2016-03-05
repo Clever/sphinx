@@ -1,3 +1,6 @@
+include golang.mk
+.DEFAULT_GOAL := test # override default goal set in library makefile
+
 SHELL := /bin/bash
 PKG := github.com/Clever/sphinx
 PKGS := $(shell go list ./... | grep -v /vendor)
@@ -11,22 +14,12 @@ GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean build-release vendor
+$(eval $(call golang-version-check,1.5))
 
-GOVERSION := $(shell go version | grep 1.5)
-ifeq "$(GOVERSION)" ""
-  $(error must be running Go version 1.5)
-endif
-export GO15VENDOREXPERIMENT = 1
+test: $(PKGS)
+$(PKGS): golang-test-all-deps
+	$(call golang-test-all,$@)
 
-GOLINT := $(GOPATH)/bin/golint
-$(GOLINT):
-	go get github.com/golang/lint/golint
-
-GODEP := $(GOPATH)/bin/godep
-$(GODEP):
-	go get -u github.com/tools/godep
-
-test: $(TESTS)
 bench: $(BENCHES)
 build: bin/sphinxd
 
@@ -35,29 +28,6 @@ bin/sphinxd: *.go **/*.go
 
 build-release:
 	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
-
-$(GOPATH)/bin/golint:
-	go get github.com/golang/lint/golint
-
-$(TESTS): PATH := $(PATH):$(GOPATH)/bin
-$(TESTS): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
-$(TESTS): $(GOLINT)
-	@echo ""
-	@echo "FORMATTING $@..."
-	gofmt -w=true $(GOPATH)/src/$(THE_PKG)*.go
-	@echo ""
-	@echo "LINTING $@..."
-	$(GOLINT) $(GOPATH)/src/$(THE_PKG)*.go
-	@echo ""
-ifeq ($(COVERAGE),1)
-	@echo "TESTING COVERAGE $@..."
-	go test -cover -coverprofile=$(GOPATH)/src/$(THE_PKG)/c.out $(THE_PKG) -test.v
-	go tool cover -html=$(GOPATH)/src/$(THE_PKG)/c.out
-	go tool cover -func=$(GOPATH)/src/$(THE_PKG)/c.out | tail -n1 | sed 's/[^0-9]*//' > $(GOPATH)/src/$(THE_PKG)/c.out.percent
-else
-	@echo "TESTING $@..."
-	go test -v $(THE_PKG)
-endif
 
 $(BENCHES): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
 $(BENCHES): READABLE_NAME = $(shell echo $@ | sed s/_bench//)
@@ -85,6 +55,5 @@ clean:
 	rm -f main/main
 	rm -f deb/sphinx.deb
 
-vendor: $(GODEP)
-	$(GODEP) save $(PKGS)
-	find vendor/ -path '*/vendor' -type d | xargs -IX rm -r X # remove any nested vendor directories
+vendor: golang-godep-vendor-deps
+	$(call golang-godep-vendor,$(PKGS))
