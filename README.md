@@ -9,6 +9,7 @@ If they could not answer, she would strangle them. She was often thought of as a
 
 ![Sphinx](logo.png)
 
+
 ## Why?
 
 Rate limiting an API is often required to ensure that clients do not abuse the available resources and that the API is reliably available when multiple clients are requesting data concurrently.
@@ -17,6 +18,7 @@ Buckets can be created based on various parameters of an incoming request (eg. A
 Rate limiting functionality is already available in some proxies (eg. Nginx, HAProxy).
 However, they often use in-memory stores that make rate-limiting when running multiple proxies (e.g. for load balancing) unpredictable.
 Configuration for these limits also gets complex since it includes many actions such as routing, request/response re-writing, and rate-limiting.
+
 
 ## Sphinx is not...
 
@@ -30,6 +32,7 @@ Any advanced routing or request handling should be handled by a _real_ proxy (eg
 * Sphinx is not an HTTPS terminator.
 This keeps the burden of configuring _SSL certificates_ and security outside of Sphinx.
 Ideally, there is real load balancing and HTTPS termination before a request hits Sphinx.
+
 
 ## Rate limit headers and errors
 
@@ -86,6 +89,7 @@ _Bucket_: A bucket is simply a named value. Each request that matches a limit in
 
 Below is an example of a limit and three requests that increment two bucket values.
 
+
 ### Test Limit
 
   match if request path begins with `/limited`
@@ -123,7 +127,7 @@ limits:
     Authorization: Basic User:Password
     IP: 10.0.0.1
 
-*State*: 
+*State*:
     `test-limit-10.0.0.1`: 1
 
 ### Request Two
@@ -137,6 +141,7 @@ limits:
 *State*
     `test-limit-10.0.0.1`: 1
     `test-limit-10.0.0.2`: 1
+
 
 ### Request Three
 
@@ -208,37 +213,37 @@ paths:
     - "/objects/limited/.*"
 ```
 
+
 ## Documentation
 
   * LeakyBucket:  [![LeakyBucket documentation](https://godoc.org/github.com/Clever/leakybucket?status.png)](https://godoc.org/github.com/Clever/leakybucket)
   * Sphinx: [![Sphinx documentation](https://godoc.org/github.com/Clever/sphinx?status.png)](https://godoc.org/github.com/Clever/sphinx)
 
+
 ## Tests
 
-_Sphinx_ is built and tested against Go 1.2.
+_Sphinx_ is built and tested against Go 1.5.
 Ensure this is the version of Go you're running with `go version`.
 Make sure your GOPATH is set, e.g. `export GOPATH=~/go`.
-Clone the repository to a location outside your GOPATH, and symlink it to `$GOPATH/src/github.com/Clever/sphinx`.
-If you have [gvm](https://github.com/moovweb/gvm) installed, you can make this symlink by running the following from the root of the repository: `gvm linkthis github.com/Clever/sphinx`.
 
-If you have done all of the above, then you should be able to run
-
+```bash
+mkdir -p $GOPATH/src/github.com/Clever
+cd $GOPATH/src/github.com/Clever
+git clone git@github.com:Clever/sphinx.git
 ```
+
+Now you can run our test and linting suites via Make:
+```
+cd sphinx
 make test
 ```
 
-If you'd like to see a code coverage report, install the cover tool 
-(`go get code.google.com/p/go.tools/cmd/cover`), make sure `$GOPATH/bin` 
-is in your PATH, and run:
-
-```
-COVERAGE=1 make
-```
 
 ## Credits
 
 * [Sphinx](http://thenounproject.com/term/sphinx/20572/) logo by EricP from The Noun Project
 * [Drone](https://github.com/drone/drone) inspiration for building a deb
+
 
 ## Vendoring
 
