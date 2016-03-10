@@ -17,8 +17,8 @@ BENCHES := $(addsuffix "_bench", $(TESTS))
 $(eval $(call golang-version-check,1.5))
 
 test: $(PKGS)
-$(PKGS): golang-test-all-deps
-	$(call golang-test-all,$@)
+$(PKGS): golang-test-all-strict-deps
+	$(call golang-test-all-strict,$@)
 
 bench: $(BENCHES)
 build: bin/sphinxd
