@@ -2,12 +2,13 @@ package daemon
 
 import (
 	"fmt"
-	"github.com/Clever/sphinx/config"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Clever/sphinx/config"
 )
 
 func TestConfigReload(t *testing.T) {
@@ -67,6 +68,7 @@ func setUpDaemonWithLocalServer(conf config.Config) error {
 	}
 
 	go daemon.Start()
+	time.Sleep(10 * time.Millisecond)
 	return nil
 }
 
@@ -75,7 +77,7 @@ func setUpDaemonWithLocalServer(conf config.Config) error {
 func testProxyRequest(t *testing.T, url string, expectedStatus int, expectedBody string) {
 	resp, err := http.Get(url)
 	if err != nil {
-		t.Fatalf("Proxy request failed: %s", err.Error())
+		t.Fatalf("Proxy request failed on '%s': %s", url, err.Error())
 	}
 
 	if resp.StatusCode != expectedStatus {

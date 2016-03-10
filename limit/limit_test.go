@@ -2,16 +2,17 @@ package limit
 
 import (
 	"bytes"
-	"github.com/Clever/leakybucket"
-	"github.com/Clever/leakybucket/memory"
-	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/config"
-	"github.com/Clever/sphinx/matchers"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Clever/leakybucket"
+	"github.com/Clever/leakybucket/memory"
+	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/matchers"
 )
 
 type Storage struct{}
@@ -121,7 +122,7 @@ func TestLimitKeyWithEmptyHeaders(t *testing.T) {
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Fatalf("Error while creating limitkeys for test", err)
+		t.Fatalf("Error while creating limitkeys for test: %s", err)
 	}
 	lim := limit{
 		name: "test-limit",
@@ -156,7 +157,7 @@ func TestLimitKeyForConsistentNamingHeaders(t *testing.T) {
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Fatalf("Error while creating limitkeys for test", err)
+		t.Fatalf("Error while creating limitkeys for test: %s", err)
 	}
 	lim := limit{
 		name: "test-limit",
@@ -194,7 +195,7 @@ func TestLimitKeyForConsistentNamingConfig(t *testing.T) {
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Fatalf("Error while creating limitkeys for test", err)
+		t.Fatalf("Error while creating limitkeys for test: %s", err)
 	}
 	limOne := limit{
 		name: "test-limit",
@@ -206,7 +207,7 @@ func TestLimitKeyForConsistentNamingConfig(t *testing.T) {
 		"ip":      []string{""},
 	})
 	if err != nil {
-		t.Fatalf("Error while creating limitkeys for test", err)
+		t.Fatalf("Error while creating limitkeys for test: %s", err)
 	}
 	limTwo := limit{
 		name: "test-limit",
