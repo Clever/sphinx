@@ -2,11 +2,12 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/Clever/sphinx/common"
-	"gopkg.in/v1/yaml"
 	"log"
 	"strconv"
 	"testing"
+
+	"github.com/Clever/sphinx/common"
+	"gopkg.in/v1/yaml"
 )
 
 type TestPathMatcherConfig struct {
@@ -20,7 +21,7 @@ func getPathMatcher(config []byte) pathMatcher {
 	factory := pathMatcherFactory{}
 	pathmatcher, err := factory.Create(pathConfig.Paths)
 	if err != nil {
-		log.Panicf("Failed to create PathMatcher", err)
+		log.Panicf("Failed to create PathMatcher: %s", err)
 	}
 
 	return pathmatcher.(pathMatcher)

@@ -2,16 +2,18 @@ package daemon
 
 import (
 	"fmt"
-	"github.com/Clever/sphinx/config"
-	"github.com/Clever/sphinx/handlers"
-	"github.com/Clever/sphinx/ratelimiter"
-	"gopkg.in/Clever/kayvee-go.v2"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/Clever/sphinx/config"
+	"github.com/Clever/sphinx/handlers"
+	"github.com/Clever/sphinx/ratelimiter"
+	"gopkg.in/Clever/kayvee-go.v2"
 )
 
+// Daemon represents a daemon server
 type Daemon interface {
 	Start()
 	LoadConfig(config config.Config) error
@@ -81,17 +83,13 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	default:
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
-
 }
 
-// NewDaemon takes in config.Configuration and creates a sphinx listener
+// New takes in config.Configuration and creates a sphinx listener
 func New(config config.Config) (Daemon, error) {
-
 	out := &daemon{}
-	err := out.LoadConfig(config)
-	if err != nil {
+	if err := out.LoadConfig(config); err != nil {
 		return nil, err
 	}
-
 	return out, nil
 }

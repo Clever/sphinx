@@ -2,10 +2,11 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/Clever/sphinx/common"
-	"gopkg.in/v1/yaml"
 	"strconv"
 	"testing"
+
+	"github.com/Clever/sphinx/common"
+	"gopkg.in/v1/yaml"
 )
 
 type TestHeaderConfig struct {
@@ -36,7 +37,7 @@ headers:
 `)
 	headermatcher, err := getHeaderMatcher(config)
 	if err != nil {
-		t.Fatalf("Failed to create HeaderMatcher", err)
+		t.Fatalf("Failed to create HeaderMatcher: %s", err)
 	}
 
 	if len(headermatcher.(headerMatcher).headers) != 2 {
@@ -92,7 +93,7 @@ headers:
 `)
 	headermatcher, err := getHeaderMatcher(config)
 	if err != nil {
-		t.Fatalf("Failed to create HeaderMatcher", err)
+		t.Fatalf("Failed to create HeaderMatcher: %s", err)
 	}
 	request := getRequest(map[string][]string{
 		"Authorization": []string{"Bearer 12345"},
@@ -132,7 +133,7 @@ headers:
 `)
 	headermatcher, err := getHeaderMatcher(config)
 	if err != nil {
-		t.Fatalf("Failed to create HeaderMatcher", err)
+		t.Fatalf("Failed to create HeaderMatcher: %s", err)
 	}
 
 	request := getRequest(map[string][]string{
