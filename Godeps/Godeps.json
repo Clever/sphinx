@@ -3,46 +3,9 @@
 	"GoVersion": "go1.5",
 	"GodepVersion": "v58",
 	"Packages": [
-		"github.com/Clever/sphinx",
-		"github.com/Clever/sphinx/common",
-		"github.com/Clever/sphinx/config",
-		"github.com/Clever/sphinx/daemon",
-		"github.com/Clever/sphinx/handlers",
-		"github.com/Clever/sphinx/limit",
-		"github.com/Clever/sphinx/limitkeys",
-		"github.com/Clever/sphinx/matchers",
-		"github.com/Clever/sphinx/ratelimiter"
+		"github.com/stretchr/testify/mock"
 	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/Clever/leakybucket",
-			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
-		},
-		{
-			"ImportPath": "github.com/Clever/leakybucket/memory",
-			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
-		},
-		{
-			"ImportPath": "github.com/Clever/leakybucket/redis",
-			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
-		},
-		{
-			"ImportPath": "github.com/getsentry/raven-go",
-			"Rev": "1cc47a9463b90f246a0503d4c2e9a55c9459ced3"
-		},
-		{
-			"ImportPath": "github.com/pborman/uuid",
-			"Comment": "v1.0-11-gc55201b",
-			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
-		},
 		{
 			"ImportPath": "github.com/stretchr/objx",
 			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
@@ -54,20 +17,6 @@
 		{
 			"ImportPath": "github.com/stretchr/testify/mock",
 			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
-		},
-		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v2",
-			"Comment": "v2.4.0",
-			"Rev": "f22678e173a41725762e243290eca4dd3939b33b"
-		},
-		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v2/logger",
-			"Comment": "v2.4.0",
-			"Rev": "f22678e173a41725762e243290eca4dd3939b33b"
-		},
-		{
-			"ImportPath": "gopkg.in/v1/yaml",
-			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		}
 	]
 }

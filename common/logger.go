@@ -1,21 +1,23 @@
 package common
 
 import (
-	"gopkg.in/Clever/kayvee-go.v2/logger"
+	"gopkg.in/Clever/kayvee-go.v3/logger"
 
 	"net/http"
 	"strings"
 )
 
+// Log is a Kayvee.Logger singleton to be used in Sphinx
 var Log *logger.Logger
 
 func init() {
 	Log = logger.New("sphinx")
 }
 
-// M is an alias for map[Stringsing]interface{} to make log lines less painful to write.
+// M is an alias for map[String]interface{} to make log lines less painful to write.
 type M map[string]interface{}
 
+// LogWithRequest concats the request to a given map[String]interface{} for use with Kayvee
 func LogWithRequest(data M, req Request) M {
 	var kvData = M{
 		"path":       req["path"],
