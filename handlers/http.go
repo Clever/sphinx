@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/pborman/uuid"
 	"log"
 	"net/http"
 	"strconv"
