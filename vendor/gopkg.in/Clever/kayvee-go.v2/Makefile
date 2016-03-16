@@ -1,10 +1,15 @@
 SHELL := /bin/bash
-PKG := gopkg.in/clever/kayvee-go.v0
-SUBPKG_NAMES :=
+PKG := github.com/Clever/kayvee-go
+SUBPKG_NAMES := logger validator
 SUBPKGS = $(addprefix $(PKG)/, $(SUBPKG_NAMES))
 PKGS = $(PKG) $(SUBPKGS)
 
 .PHONY: test golint README
+
+GOVERSION := $(shell go version | grep 1.5)
+ifeq "$(GOVERSION)" ""
+  $(error must be running Go version 1.5)
+endif
 
 test: docs tests.json $(PKGS)
 
@@ -13,7 +18,7 @@ golint:
 
 README.md: *.go
 	@go get github.com/robertkrimen/godocdown/godocdown
-	@godocdown $(PKG) > README.md
+	@$(GOPATH)/bin/godocdown $(PKG) > README.md
 
 $(PKGS): golint docs
 	@go get -d -t $@
@@ -24,11 +29,11 @@ ifneq ($(NOLINT),1)
 	@echo ""
 endif
 ifeq ($(COVERAGE),1)
-	@go test -cover -coverprofile=$(GOPATH)/src/$@/c.out $@ -test.v
-	@go tool cover -html=$(GOPATH)/src/$@/c.out
+	go test -cover -coverprofile=$(GOPATH)/src/$@/c.out $@ -test.v
+	go tool cover -html=$(GOPATH)/src/$@/c.out
 else
 	@echo "TESTING..."
-	@go test $@ -test.v
+	go test $@ -test.v
 	@echo ""
 endif
 
@@ -36,7 +41,7 @@ docs: $(addsuffix /README.md, $(SUBPKG_NAMES)) README.md
 %/README.md: PATH := $(PATH):$(GOPATH)/bin
 %/README.md: %/*.go
 	@go get github.com/robertkrimen/godocdown/godocdown
-	@godocdown $(PKG)/$(shell dirname $@) > $@
+	@$(GOPATH)/bin/godocdown $(PKG)/$(shell dirname $@) > $@
 
 tests.json:
 	wget https://raw.githubusercontent.com/Clever/kayvee/master/tests.json -O test/tests.json

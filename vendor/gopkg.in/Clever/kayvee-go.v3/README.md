@@ -1,6 +1,6 @@
 # kayvee
 --
-    import "gopkg.in/Clever/kayvee-go.v2"
+    import "gopkg.in/Clever/kayvee-go.v3"
 
 Package kayvee provides methods to output human and machine parseable strings,
 with a "json" format.
@@ -16,7 +16,7 @@ with a "json" format.
         "fmt"
         "time"
 
-        "gopkg.in/Clever/kayvee-go.v2/logger"
+        "gopkg.in/Clever/kayvee-go.v3/logger"
     )
 
     func main() {
@@ -41,6 +41,7 @@ Run `make test` to execute the tests
 
 ## Change log
 
+- v3.0 - Removed sentry-go dependency
 - v2.4 - Add kayvee-go/validator for asserting that raw log lines are in a valid kayvee format.
 - v2.3 - Expose logger.M.
 - v2.2 - Remove godeps.
