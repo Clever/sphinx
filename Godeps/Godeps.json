@@ -1,26 +1,19 @@
 {
 	"ImportPath": "github.com/Clever/sphinx",
 	"GoVersion": "go1.5.1",
-	"Packages": [
-		"github.com/Clever/sphinx",
-		"github.com/Clever/sphinx/common",
-		"github.com/Clever/sphinx/config",
-		"github.com/Clever/sphinx/daemon",
-		"github.com/Clever/sphinx/handlers",
-		"github.com/Clever/sphinx/limit",
-		"github.com/Clever/sphinx/limitkeys",
-		"github.com/Clever/sphinx/matchers",
-		"github.com/Clever/sphinx/ratelimiter"
-	],
+	"GodepVersion": "v58",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/go-uuid/uuid",
-			"Comment": "null-15",
-			"Rev": "'35bc42037350f0078e3c974c6ea690f1926603ab'"
+			"ImportPath": "github.com/Clever/leakybucket",
+			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
 		},
 		{
-			"ImportPath": "github.com/Clever/leakybucket",
-			"Rev": "ad182de4508ff97a751f048e6dc826ba10096a93"
+			"ImportPath": "github.com/Clever/leakybucket/memory",
+			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
+		},
+		{
+			"ImportPath": "github.com/Clever/leakybucket/redis",
+			"Rev": "953bb57c0dc32ad58eb5e6f195616059755845d8"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
@@ -31,21 +24,19 @@
 			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
 		},
 		{
-			"ImportPath": "github.com/stretchr/objx",
-			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
+			"ImportPath": "github.com/pborman/uuid",
+			"Comment": "v1.0-11-gc55201b",
+			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
 		},
 		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v3",
+			"Comment": "v3.0.0",
+			"Rev": "d49feee080e8e32e01a5f415cf1f9dc264dfb043"
 		},
 		{
-			"ImportPath": "github.com/stretchr/testify/mock",
-			"Rev": "2eaa4b48b8954bf871229043b8064ca156a542a5"
-		},
-		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v2",
-			"Comment": "v2.0.0",
-			"Rev": "6027372b81c7ac2294c5e4419ece8e04f0b740f1"
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v3/logger",
+			"Comment": "v3.0.0",
+			"Rev": "d49feee080e8e32e01a5f415cf1f9dc264dfb043"
 		},
 		{
 			"ImportPath": "gopkg.in/v1/yaml",
