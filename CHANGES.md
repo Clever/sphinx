@@ -1,3 +1,5 @@
+# v0.5.2: Move to structured logging using Kayvee
+
 # v0.2.3: Change release process
 
 # v0.2.2: Add resapwn to upstart config
