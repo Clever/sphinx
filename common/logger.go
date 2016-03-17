@@ -17,8 +17,8 @@ func init() {
 // M is an alias for map[String]interface{} to make log lines less painful to write.
 type M map[string]interface{}
 
-// LogWithRequest concats the request to a given map[String]interface{} for use with Kayvee
-func LogWithRequest(data M, req Request) M {
+// ConcatWithRequest concats the request to a given map[String]interface{} for use with Kayvee
+func ConcatWithRequest(data M, req Request) M {
 	var kvData = M{
 		"path":       req["path"],
 		"remoteaddr": req["remoteaddr"],

@@ -37,23 +37,23 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case err == leakybucket.ErrorFull:
 		addRateLimitHeaders(w, matches)
-		common.Log.InfoD("request-finished", common.LogWithRequest(
+		common.Log.InfoD("request-finished", common.ConcatWithRequest(
 			common.M{"guid": guid, "limit": true}, request))
 		w.WriteHeader(StatusTooManyRequests)
 	case err != nil && hrl.allowOnError:
-		common.Log.WarnD("request-finished", common.LogWithRequest(
+		common.Log.WarnD("request-finished", common.ConcatWithRequest(
 			common.M{"guid": guid, "err": err}, request))
 		addRateLimitHeaders(w, []ratelimiter.Status{ratelimiter.NilStatus})
 		hrl.proxy.ServeHTTP(w, r)
 	case err != nil:
 		common.Log.ErrorD("request-finished",
-			common.LogWithRequest(
+			common.ConcatWithRequest(
 				common.M{"guid": guid,
 					"err": err}, request))
 		w.WriteHeader(http.StatusInternalServerError)
 
 	default:
-		common.Log.InfoD("request-finished", common.LogWithRequest(common.M{"guid": guid, "limit": false}, request))
+		common.Log.InfoD("request-finished", common.ConcatWithRequest(common.M{"guid": guid, "limit": false}, request))
 		addRateLimitHeaders(w, matches)
 		hrl.proxy.ServeHTTP(w, r)
 	}
@@ -79,7 +79,7 @@ func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	rateLimitResponse["guid"] = guid
 
-	common.Log.InfoD("request-finished", common.LogWithRequest(common.M{"guid": guid, "limit": true}, request))
+	common.Log.InfoD("http-logger", common.ConcatWithRequest(rateLimitResponse, request))
 	hrl.proxy.ServeHTTP(w, r)
 }
 
