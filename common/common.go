@@ -37,6 +37,7 @@ func HTTPToSphinxRequest(r *http.Request) Request {
 		"path":       r.URL.Path,
 		"headers":    r.Header,
 		"remoteaddr": r.RemoteAddr,
+		"method":     r.Method,
 	}
 }
 

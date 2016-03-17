@@ -22,6 +22,7 @@ func LogWithRequest(data M, req Request) M {
 	var kvData = M{
 		"path":       req["path"],
 		"remoteaddr": req["remoteaddr"],
+		"method":     req["method"],
 	}
 	for header, values := range req["headers"].(http.Header) {
 		kvData[header] = strings.Join(values, ";")
