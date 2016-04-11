@@ -1,3 +1,5 @@
+# v0.5.3: Report card + go 1.6
+
 # v0.5.2: Move to structured logging using Kayvee
 
 # v0.2.3: Change release process
