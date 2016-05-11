@@ -35,29 +35,23 @@ func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := r.Header.Get("X-Request-Id")
 	request := common.HTTPToSphinxRequest(r)
 	matches, err := hrl.rateLimiter.Add(request)
-	switch {
-	case err == leakybucket.ErrorFull:
+	if err == leakybucket.ErrorFull {
 		addRateLimitHeaders(w, matches)
-		common.Log.InfoD("request-finished", common.ConcatWithRequest(
-			common.M{"guid": guid, "limit": true}, request))
+		common.Log.InfoD("ratelimited", common.ConcatWithRequest(common.M{"guid": guid}, request))
 		w.WriteHeader(StatusTooManyRequests)
-	case err != nil && hrl.allowOnError:
-		common.Log.WarnD("request-finished", common.ConcatWithRequest(
-			common.M{"guid": guid, "err": err}, request))
-		addRateLimitHeaders(w, []ratelimiter.Status{ratelimiter.NilStatus})
-		hrl.proxy.ServeHTTP(w, r)
-	case err != nil:
-		common.Log.ErrorD("request-finished",
-			common.ConcatWithRequest(
-				common.M{"guid": guid,
-					"err": err}, request))
-		w.WriteHeader(http.StatusInternalServerError)
-
-	default:
-		common.Log.InfoD("request-finished", common.ConcatWithRequest(common.M{"guid": guid, "limit": false}, request))
-		addRateLimitHeaders(w, matches)
-		hrl.proxy.ServeHTTP(w, r)
+		return
 	}
+	if err != nil {
+		common.Log.WarnD("error",
+			common.ConcatWithRequest(common.M{"guid": guid, "err": err.Error()}, request))
+		if !hrl.allowOnError {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		matches = []ratelimiter.Status{ratelimiter.NilStatus}
+	}
+	addRateLimitHeaders(w, matches)
+	hrl.proxy.ServeHTTP(w, r)
 }
 
 type httpRateLogger httpRateLimiter
