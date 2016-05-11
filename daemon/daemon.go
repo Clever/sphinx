@@ -11,6 +11,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/pborman/uuid"
 )
 
 // Daemon represents a daemon server
@@ -49,6 +50,9 @@ func (d *daemon) Start() {
 }
 
 func (d *daemon) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if req.Header.Get("X-Request-Id") == "" {
+		req.Header.Set("X-Request-Id", uuid.New())
+	}
 	d.handler.ServeHTTP(rw, req)
 }
 

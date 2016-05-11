@@ -1,14 +1,15 @@
 package handlers
 
 import (
-	"github.com/Clever/leakybucket"
-	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/ratelimiter"
-	"github.com/pborman/uuid"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/Clever/leakybucket"
+	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/pborman/uuid"
 )
 
 const (
@@ -31,7 +32,7 @@ type httpRateLimiter struct {
 }
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	guid := uuid.New()
+	guid := r.Header.Get("X-Request-Id")
 	request := common.HTTPToSphinxRequest(r)
 	matches, err := hrl.rateLimiter.Add(request)
 	switch {
