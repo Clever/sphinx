@@ -3,7 +3,16 @@ package kayvee
 import (
 	"encoding/json"
 	"log"
+	"os"
 )
+
+var deployEnv string
+
+func init() {
+	if os.Getenv("_DEPLOY_ENV") != "" {
+		deployEnv = os.Getenv("_DEPLOY_ENV")
+	}
+}
 
 // Log Levels:
 
@@ -27,6 +36,9 @@ const (
 
 // Format converts a map to a string of space-delimited key=val pairs
 func Format(data map[string]interface{}) string {
+	if deployEnv != "" {
+		data["deploy_env"] = deployEnv
+	}
 	formattedString, _ := json.Marshal(data)
 	return string(formattedString)
 }

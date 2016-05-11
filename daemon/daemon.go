@@ -12,6 +12,7 @@ import (
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
 	"github.com/pborman/uuid"
+	"gopkg.in/Clever/kayvee-go.v3/middleware"
 )
 
 // Daemon represents a daemon server
@@ -73,16 +74,20 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	}
 
 	// Set the proxy and handler daemon fields
+	var handler http.Handler
 	switch d.proxy.Handler {
 	case "http":
-		d.handler = handlers.NewHTTPLimiter(rateLimiter, proxy, d.proxy.AllowOnError)
-		return nil
+		handler = handlers.NewHTTPLimiter(rateLimiter, proxy, d.proxy.AllowOnError)
 	case "httplogger":
-		d.handler = handlers.NewHTTPLogger(rateLimiter, proxy)
-		return nil
+		handler = handlers.NewHTTPLogger(rateLimiter, proxy)
 	default:
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
+
+	d.handler = middleware.New(handler, common.Log, func(req *http.Request) map[string]interface{} {
+		return map[string]interface{}{"guid": req.Header.Get("X-Request-Id")}
+	})
+	return nil
 }
 
 // New takes in config.Configuration and creates a sphinx listener

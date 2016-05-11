@@ -1,7 +1,18 @@
 {
 	"ImportPath": "github.com/Clever/sphinx",
 	"GoVersion": "go1.5.1",
-	"GodepVersion": "v58",
+	"GodepVersion": "v65",
+	"Packages": [
+		"github.com/Clever/sphinx",
+		"github.com/Clever/sphinx/common",
+		"github.com/Clever/sphinx/config",
+		"github.com/Clever/sphinx/daemon",
+		"github.com/Clever/sphinx/handlers",
+		"github.com/Clever/sphinx/limit",
+		"github.com/Clever/sphinx/limitkeys",
+		"github.com/Clever/sphinx/matchers",
+		"github.com/Clever/sphinx/ratelimiter"
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Clever/leakybucket",
@@ -29,14 +40,31 @@
 			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
 		},
 		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "e22aedd37671fb115be6c0c25129c405cb575cfd"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/mock",
+			"Rev": "e22aedd37671fb115be6c0c25129c405cb575cfd"
+		},
+		{
 			"ImportPath": "gopkg.in/Clever/kayvee-go.v3",
-			"Comment": "v3.0.0",
-			"Rev": "d49feee080e8e32e01a5f415cf1f9dc264dfb043"
+			"Comment": "v3.2.1",
+			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
 		},
 		{
 			"ImportPath": "gopkg.in/Clever/kayvee-go.v3/logger",
-			"Comment": "v3.0.0",
-			"Rev": "d49feee080e8e32e01a5f415cf1f9dc264dfb043"
+			"Comment": "v3.2.1",
+			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v3/middleware",
+			"Comment": "v3.2.1",
+			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
 		},
 		{
 			"ImportPath": "gopkg.in/v1/yaml",

@@ -7,6 +7,9 @@ with a "json" format.
 
 ## [Logger API Documentation](./logger)
 
+* (gopkg.in/Clever/kayvee-go.v3/logger)[https://godoc.org/gopkg.in/Clever/kayvee-go.v3/logger]
+* (gopkg.in/Clever/kayvee-go.v3/middleware)[https://godoc.org/gopkg.in/Clever/kayvee-go.v3/middleware]
+
 ## Example
 
 ```go
@@ -31,6 +34,9 @@ with a "json" format.
 
         // Output structured data
         myLogger.InfoD("DataResults", map[string]interface{}{"key": "value"})
+
+        // You can use the M alias for your key value pairs
+        myLogger.InfoD("DataResults", logger.M{"shorter": "line"})
     }
 ```
 

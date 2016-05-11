@@ -33,6 +33,13 @@ const (
 	Critical
 )
 
+var reservedKeyNames = map[string]bool{
+	"title":  true,
+	"source": true,
+	"value":  true,
+	"type":   true,
+}
+
 var logLevelNames = map[LogLevel]string{
 	Debug:    "debug",
 	Info:     "info",
@@ -76,7 +83,6 @@ func (l *Logger) SetConfig(source string, logLvl LogLevel, formatter Formatter, 
 	if l.globals == nil {
 		l.globals = make(map[string]interface{})
 	}
-
 	l.globals["source"] = source
 	l.logLvl = logLvl
 	l.formatter = formatter
@@ -217,7 +223,27 @@ func (l *Logger) logWithLevel(logLvl LogLevel, data map[string]interface{}) {
 
 // New creates a *logger.Logger. Default values are Debug LogLevel, kayvee Formatter, and std.err output.
 func New(source string) *Logger {
-	logObj := Logger{}
+	return NewWithContext(source, nil)
+}
+
+// NewWithContext creates a *logger.Logger. Default values are Debug LogLevel, kayvee Formatter, and std.err output.
+func NewWithContext(source string, contextValues map[string]interface{}) *Logger {
+	context := M{}
+	for k, v := range contextValues {
+		if reservedKeyNames[strings.ToLower(k)] {
+			log.Printf("WARN: kayvee logger reserves '%s' from being set as context", k)
+			continue
+		}
+		context[k] = v
+	}
+	if os.Getenv("_DEPLOY_ENV") != "" {
+		context["deploy_env"] = os.Getenv("_DEPLOY_ENV")
+	}
+
+	logObj := Logger{
+		globals: context,
+	}
+
 	var logLvl LogLevel
 	strLogLvl := os.Getenv("KAYVEE_LOG_LEVEL")
 	if strLogLvl == "" {
