@@ -2,10 +2,12 @@ package daemon
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
@@ -25,6 +27,19 @@ type daemon struct {
 	handler     http.Handler
 	proxy       config.Proxy
 	healthCheck config.HealthCheck
+}
+
+// LogFDs logs the number of open file descriptors
+func LogFDs() {
+	for {
+		time.Sleep(1 * time.Minute)
+		fds, err := ioutil.ReadDir("/proc/self/fd")
+		if err != nil {
+			common.Log.ErrorD("looking-up-fds-failed", map[string]interface{}{"err": err.Error()})
+		} else {
+			common.Log.GaugeInt("open-files", len(fds))
+		}
+	}
 }
 
 // setUpHealthCheckService sets up a health check service at the given port

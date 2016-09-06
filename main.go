@@ -36,6 +36,7 @@ func main() {
 		return
 	}
 
+	go daemon.LogFDs()
 	sphinxd.Start()
 }
 
