@@ -32,7 +32,7 @@ type daemon struct {
 // LogFDs logs the number of open file descriptors
 func LogFDs() {
 	for {
-		time.Sleep(1 * time.Minute)
+		time.Sleep(1 * time.Second)
 		fds, err := ioutil.ReadDir("/proc/self/fd")
 		if err != nil {
 			common.Log.ErrorD("looking-up-fds-failed", map[string]interface{}{"err": err.Error()})
