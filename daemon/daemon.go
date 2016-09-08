@@ -82,7 +82,13 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	d.proxy = newConfig.Proxy
 	d.healthCheck = newConfig.HealthCheck
 	target, _ := url.Parse(d.proxy.Host) // already tested for invalid Host
+
+	transport := &http.Transport{}
+	transport.MaxIdleConnsPerHost = 50
+
 	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.Transport = transport
+
 	rateLimiter, err := ratelimiter.New(newConfig)
 	if err != nil {
 		return fmt.Errorf("SPHINX_LOAD_CONFIG_FAILED: %s", err.Error())
