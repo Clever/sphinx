@@ -1,6 +1,3 @@
-env:
-- REPORT_CARD_GITHUB_STATUS_TOKEN=$$report_card_github_status_token
-- REPORT_CARD_GITHUB_REPO_TOKEN=$$report_card_github_repo_token
 image: clever/drone-go:1.6
 notify:
   email:
@@ -14,11 +11,11 @@ notify:
 publish:
   github:
     artifacts:
-      - sphinx-amd64.deb
+    - sphinx-amd64.deb
     repo: sphinx
     script:
-      - make deb
-      - cp deb/sphinx.deb sphinx-amd64.deb
+    - make deb
+    - cp deb/sphinx.deb sphinx-amd64.deb
     tag: v$(cat deb/sphinx/DEBIAN/control | grep Version | cut -d " " -f 2)
     token: $$github_token
     user: Clever
@@ -35,7 +32,7 @@ publish:
     username: $$docker_username
     when:
       branch: master
+  report_card: {}
 script:
-- sudo pip install -q git+https://$REPORT_CARD_GITHUB_REPO_TOKEN@github.com/Clever/report-card.git; GITHUB_API_TOKEN=$REPORT_CARD_GITHUB_STATUS_TOKEN report-card --publish || true
 - make test
 - make build
