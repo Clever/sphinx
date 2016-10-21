@@ -24,10 +24,10 @@ bench: $(BENCHES)
 build: bin/sphinxd
 
 bin/sphinxd: *.go **/*.go
-	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
+	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 build-release:
-	go build -o bin/sphinxd -ldflags "-X main.version v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
+	go build -o bin/sphinxd -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 $(BENCHES): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
 $(BENCHES): READABLE_NAME = $(shell echo $@ | sed s/_bench//)
