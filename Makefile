@@ -23,6 +23,9 @@ $(PKGS): golang-test-all-strict-deps
 bench: $(BENCHES)
 build: bin/sphinxd
 
+VERSION:
+	echo $(VERSION) > VERSION
+
 bin/sphinxd: *.go **/*.go
 	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
