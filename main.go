@@ -9,12 +9,20 @@ import (
 
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/daemon"
+
+	"gopkg.in/Clever/kayvee-go.v6/logger"
 )
 
 var (
 	configfile = flag.String("config", "example.yaml", "/path/to/configuration.yaml")
 	validate   = flag.Bool("validate", false, "Validate configuration and exit")
 )
+
+func init() {
+	if err := logger.SetGlobalRouting("kvconfig.yml"); err != nil {
+		log.Fatalf("error setting kv config: %s %s", "blah", err)
+	}
+}
 
 func main() {
 

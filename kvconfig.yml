@@ -1,0 +1,9 @@
+routes:
+  sphinx-error:
+    matchers:
+      level: [ "error" ]
+    output:
+      type: "alerts"
+      stat_type: "counter"
+      series: "sphinx.error"
+      dimensions: [ "limit" ]
