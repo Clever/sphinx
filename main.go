@@ -20,7 +20,7 @@ var (
 
 func init() {
 	if err := logger.SetGlobalRouting("kvconfig.yml"); err != nil {
-		log.Fatalf("error setting kv config: %s %s", "blah", err)
+		log.Fatalf("error setting kv config: %s", err)
 	}
 }
 
