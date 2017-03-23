@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/Clever/sphinx",
-	"GoVersion": "go1.5.1",
-	"GodepVersion": "v65",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
 	"Packages": [
 		"github.com/Clever/sphinx",
 		"github.com/Clever/sphinx/common",
@@ -45,30 +45,53 @@
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "e22aedd37671fb115be6c0c25129c405cb575cfd"
+			"Comment": "v1.0-15-gddcad49",
+			"Rev": "ddcad49ec6b8f31bc3daf3a1fbea7eac58d61ff0"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/mock",
-			"Rev": "e22aedd37671fb115be6c0c25129c405cb575cfd"
+			"Comment": "v1.0-15-gddcad49",
+			"Rev": "ddcad49ec6b8f31bc3daf3a1fbea7eac58d61ff0"
 		},
 		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v3",
-			"Comment": "v3.2.1",
-			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
+			"ImportPath": "github.com/xeipuuv/gojsonpointer",
+			"Rev": "e0fe6f68307607d540ed8eac07a342c33fa1b54a"
 		},
 		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v3/logger",
-			"Comment": "v3.2.1",
-			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
+			"ImportPath": "github.com/xeipuuv/gojsonreference",
+			"Rev": "e02fc20de94c78484cd5ffb007f8af96be030a45"
 		},
 		{
-			"ImportPath": "gopkg.in/Clever/kayvee-go.v3/middleware",
-			"Comment": "v3.2.1",
-			"Rev": "056c92dcc68b40c5d6045f755197b3776f914154"
+			"ImportPath": "github.com/xeipuuv/gojsonschema",
+			"Rev": "00f9fafb54d2244d291b86ab63d12c38bd5c3886"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v6",
+			"Comment": "v6.6.0",
+			"Rev": "096364e316a52652d3493be702d8105d8d01db84"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v6/logger",
+			"Comment": "v6.6.0",
+			"Rev": "096364e316a52652d3493be702d8105d8d01db84"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v6/middleware",
+			"Comment": "v6.6.0",
+			"Rev": "096364e316a52652d3493be702d8105d8d01db84"
+		},
+		{
+			"ImportPath": "gopkg.in/Clever/kayvee-go.v6/router",
+			"Comment": "v6.6.0",
+			"Rev": "096364e316a52652d3493be702d8105d8d01db84"
 		},
 		{
 			"ImportPath": "gopkg.in/v1/yaml",
 			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
 		}
 	]
 }

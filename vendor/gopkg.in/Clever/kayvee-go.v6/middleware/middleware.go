@@ -3,7 +3,7 @@ Package middleware provides a customizable Kayvee logging middleware for HTTP se
 
 	logHandler := New(myHandler, myLogger, func(req *http.Request) map[string]interface{} {
 		// Add Gorilla mux vars to the log, just because
-		return mux.Vays(req)
+		return mux.Vars(req)
 	})
 
 */
@@ -11,9 +11,10 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"time"
 
-	"gopkg.in/Clever/kayvee-go.v3/logger"
+	"gopkg.in/Clever/kayvee-go.v6/logger"
 )
 
 var defaultHandler = func(req *http.Request) map[string]interface{} {
@@ -28,11 +29,16 @@ var defaultHandler = func(req *http.Request) map[string]interface{} {
 type logHandler struct {
 	handlers []func(req *http.Request) map[string]interface{}
 	h        http.Handler
-	logger   *logger.Logger
+	isCanary bool
+	source   string
 }
 
 func (l *logHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	start := time.Now()
+
+	// create and inject a logger into req.Context
+	lggr := logger.New(l.source)
+	req = req.WithContext(logger.NewContext(req.Context(), lggr))
 
 	lrw := &loggedResponseWriter{
 		status:         200,
@@ -47,13 +53,14 @@ func (l *logHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		"response-size": lrw.length,
 		"status-code":   lrw.status,
 		"via":           "kayvee-middleware",
+		"canary":        l.isCanary,
 	})
 
 	switch logLevelFromStatus(lrw.status) {
 	case logger.Error:
-		l.logger.ErrorD("request-finished", data)
+		lggr.ErrorD("request-finished", data)
 	default:
-		l.logger.InfoD("request-finished", data)
+		lggr.InfoD("request-finished", data)
 	}
 }
 
@@ -75,13 +82,21 @@ func (l *logHandler) applyHandlers(req *http.Request, finalizer map[string]inter
 	return result
 }
 
-// New takes in an http Handler to wrap with logging, the logger to use, and any amount of
+// New takes in an http Handler to wrap with logging, the logger source name to use, and any amount of
 // optional handlers to customize the data that's logged.
-func New(h http.Handler, logger *logger.Logger, handlers ...func(*http.Request) map[string]interface{}) http.Handler {
+// On every request, the middleware will create a logger and place it in req.Context().
+func New(h http.Handler, source string, handlers ...func(*http.Request) map[string]interface{}) http.Handler {
+	isCanary := false
+
+	canaryFlag := os.Getenv("_CANARY")
+	if canaryFlag == "1" {
+		isCanary = true
+	}
 	return &logHandler{
-		logger:   logger,
 		handlers: handlers,
 		h:        h,
+		isCanary: isCanary,
+		source:   source,
 	}
 }
 

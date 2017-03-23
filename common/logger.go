@@ -1,14 +1,14 @@
 package common
 
 import (
-	"gopkg.in/Clever/kayvee-go.v3/logger"
+	"gopkg.in/Clever/kayvee-go.v6/logger"
 
 	"net/http"
 	"strings"
 )
 
 // Log is a Kayvee.Logger singleton to be used in Sphinx
-var Log *logger.Logger
+var Log logger.KayveeLogger
 
 func init() {
 	Log = logger.New("sphinx")

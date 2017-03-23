@@ -1,3 +1,7 @@
+# v0.6.1: log routing + go 1.7
+
+# v0.6.0: Standardized request logging, X-Request-Id header
+
 # v0.5.3: Report card + go 1.6
 
 # v0.5.2: Move to structured logging using Kayvee

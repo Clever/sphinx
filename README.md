@@ -222,7 +222,7 @@ paths:
 
 ## Tests
 
-_Sphinx_ is built and tested against Go 1.5.
+_Sphinx_ is built and tested against Go 1.7.
 Ensure this is the version of Go you're running with `go version`.
 Make sure your GOPATH is set, e.g. `export GOPATH=~/go`.
 
