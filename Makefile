@@ -14,7 +14,7 @@ GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean build-release vendor
-$(eval $(call golang-version-check,1.7))
+$(eval $(call golang-version-check,1.8))
 
 test: $(PKGS)
 $(PKGS): golang-test-all-strict-deps
