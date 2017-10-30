@@ -3,9 +3,11 @@ package daemon
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
@@ -68,6 +70,22 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	d.healthCheck = newConfig.HealthCheck
 	target, _ := url.Parse(d.proxy.Host) // already tested for invalid Host
 	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	// An attempt to fix cancelled DNS requests resulting in 502 errors
+	// See https://groups.google.com/d/msg/golang-nuts/oiBBZfUb2hM/9S_JB6g2EAAJ
+	proxy.Transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).Dial,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
 	rateLimiter, err := ratelimiter.New(newConfig)
 	if err != nil {
 		return fmt.Errorf("SPHINX_LOAD_CONFIG_FAILED: %s", err.Error())
