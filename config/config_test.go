@@ -61,7 +61,7 @@ forward
   host$$: proxy.example.com
 `)
 
-	if _, err := LoadAndValidateYaml(invalidYaml); !strings.Contains(err.Error(), "YAML error:") {
+	if _, err := LoadAndValidateYaml(invalidYaml); !strings.Contains(err.Error(), "yaml: line 2: mapping values are not allowed in this context") {
 		t.Errorf("expected yaml error, got %s", err.Error())
 	}
 }
