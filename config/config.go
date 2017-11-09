@@ -3,12 +3,13 @@ package config
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/v1/yaml"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Config holds the yaml data for the config file
