@@ -9,6 +9,7 @@ checkout:
   - $HOME/ci-scripts/circleci/golang-move-project
 compile:
   override:
+  - make install_deps
   - make build
 test:
   override:
