@@ -17,11 +17,16 @@ test:
   post:
   - $HOME/ci-scripts/circleci/report-card $RC_DOCKER_USER $RC_DOCKER_PASS "$RC_DOCKER_EMAIL" $RC_GITHUB_TOKEN
 deployment:
-  all:
+  master:
     branch: master
     owner: Clever
     commands:
     - $HOME/ci-scripts/circleci/docker-publish $DOCKER_USER $DOCKER_PASS "$DOCKER_EMAIL" $DOCKER_ORG
     - make VERSION && make deb && cp deb/sphinx.deb sphinx-amd64.deb && $HOME/ci-scripts/circleci/github-release $GH_RELEASE_TOKEN sphinx-amd64.deb
+  non-master:
+    branch: /^(?!master$).*$/
+    owner: Clever
+    commands:
+    - $HOME/ci-scripts/circleci/docker-publish $DOCKER_USER $DOCKER_PASS "$DOCKER_EMAIL" $DOCKER_ORG
 general:
   build_dir: ../.go_workspace/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
