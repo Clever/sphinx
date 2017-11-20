@@ -15,6 +15,7 @@ import (
 	"github.com/Clever/sphinx/ratelimiter"
 	"github.com/pborman/uuid"
 	"gopkg.in/Clever/kayvee-go.v6/middleware"
+	"gopkg.in/tylerb/graceful.v1"
 )
 
 // Daemon represents a daemon server
@@ -48,7 +49,9 @@ func (d *daemon) Start() {
 	if d.healthCheck.Enabled {
 		setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
 	}
-	log.Fatal(http.ListenAndServe(d.proxy.Listen, d))
+	if err := graceful.RunWithErr(d.proxy.Listen, 30*time.Second, d); err != nil {
+		log.Fatal(err)
+	}
 	return
 }
 

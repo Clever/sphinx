@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/Clever/sphinx/common"
-	"gopkg.in/v1/yaml"
+	"gopkg.in/yaml.v1"
 )
 
 type TestPathMatcherConfig struct {

@@ -13,8 +13,8 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
-.PHONY: test $(PKGS) run clean build-release vendor
-$(eval $(call golang-version-check,1.8))
+.PHONY: test $(PKGS) run clean build-release install_deps
+$(eval $(call golang-version-check,1.9))
 
 test: $(PKGS)
 $(PKGS): golang-test-all-strict-deps
@@ -58,5 +58,5 @@ clean:
 	rm -f main/main
 	rm -f deb/sphinx.deb
 
-vendor: golang-godep-vendor-deps
-	$(call golang-godep-vendor,$(PKGS))
+install_deps: golang-dep-vendor-deps
+	$(call golang-dep-vendor)

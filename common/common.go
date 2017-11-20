@@ -4,9 +4,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"gopkg.in/v1/yaml"
 	"net/http"
 	"sort"
+
+	"gopkg.in/yaml.v1"
 )
 
 // Request contains any info necessary to ratelimit a request
