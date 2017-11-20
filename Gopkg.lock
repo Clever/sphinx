@@ -49,6 +49,12 @@
   version = "v6.6.0"
 
 [[projects]]
+  name = "gopkg.in/tylerb/graceful.v1"
+  packages = ["."]
+  revision = "4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb"
+  version = "v1.2.15"
+
+[[projects]]
   branch = "v1"
   name = "gopkg.in/yaml.v1"
   packages = ["."]
@@ -62,6 +68,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b07472dbf6685d10a3a7d77c010201bc8078a8b33d0a25d7ef932c9a2d6d2825"
+  inputs-digest = "ea120c4cb72c3120dec6e5184ba2a59abbaec4138f40e07fbb5ce65abdeb249f"
   solver-name = "gps-cdcl"
   solver-version = 1

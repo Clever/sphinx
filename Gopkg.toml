@@ -37,3 +37,7 @@
 [[constraint]]
   branch = "v1"
   name = "gopkg.in/yaml.v1"
+
+[[constraint]]
+  name = "gopkg.in/tylerb/graceful.v1"
+  version = "1.2.15"
