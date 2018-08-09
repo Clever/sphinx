@@ -2,14 +2,15 @@ package limit
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limitkeys"
 	"github.com/Clever/sphinx/matchers"
-	"log"
-	"strings"
-	"time"
 )
 
 // Limit has methods for matching and adding to a limit
@@ -164,9 +165,15 @@ func resolveLimitKeys(limitkeysConfig map[string]interface{}) ([]limitkeys.Limit
 				return []limitkeys.LimitKey{}, err
 			}
 			resolvedLimitkeys = append(resolvedLimitkeys, keys...)
+		case "global":
+			keys, err := limitkeys.NewHeaderLimitKeys(config)
+			if err != nil {
+				return []limitkeys.LimitKey{}, err
+			}
+			resolvedLimitkeys = append(resolvedLimitkeys, keys...)
 		default:
 			return []limitkeys.LimitKey{},
-				fmt.Errorf("only header and ip limitkeys allowed. Found: %s", name)
+				fmt.Errorf("only global, header and ip limitkeys allowed. Found: %s", name)
 		}
 	}
 
