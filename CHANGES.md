@@ -1,5 +1,5 @@
 # v0.7.0: Add global limit key
-  * Allows global rate limiting irrespective of request content
+  - Allows global rate limiting irrespective of request content
 
 # v0.6.1: log routing + go 1.7
 

@@ -1,5 +1,5 @@
 Package: sphinx
-Version: 0.6.1
+Version: 0.7.0
 Section: base
 Priority: optional
 Architecture: amd64
