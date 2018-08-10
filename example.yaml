@@ -26,6 +26,7 @@ limits:
         names:
           - "Authorization"
       ip: ""      # ip keys require no configuration
+      global: ""  # global keys have NO affect when used with other key types
     matches:
       # both headers and paths matches should be true for limit to apply
       headers:
@@ -36,6 +37,16 @@ limits:
       paths:
         match_any:
           - "/special/resources/.*"
+
+  global-limit:
+    interval: 15
+    max: 500
+    keys:
+      global: ""  # global key has no configuration
+    matches:
+      paths:
+        match_any:
+          - "/generic/resources/.*"
 
   basic-simple:
     interval: 15
@@ -88,3 +99,4 @@ limits:
       paths:
         match_any:
           - "/special/resources/.*"
+

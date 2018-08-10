@@ -33,8 +33,8 @@ func TestConfigurationFileLoading(t *testing.T) {
 		t.Error("expected /health/check for HealthCheck.Port")
 	}
 
-	if len(config.Limits) != 4 {
-		t.Error("expected 4 bucket definitions")
+	if len(config.Limits) != 5 {
+		t.Error("expected 5 limit definitions")
 	}
 
 	for name, limit := range config.Limits {

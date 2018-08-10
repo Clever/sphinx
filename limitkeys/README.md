@@ -21,6 +21,13 @@ func NewIPLimitKeys(config interface{}) ([]LimitKey, error)
 NewIPLimitKeys creates a slice of ipLimitKeys that returns a key based on
 request remoteaddr
 
+#### func  NewGlobalLimitKey
+
+```go
+func NewGlobalLimitKey(config interface{}) ([]LimitKey, error)
+```
+NewGlobalLimitKey creates a slice of globalLimitKey that always returns the same key
+
 #### type EmptyKeyError
 
 ```go
