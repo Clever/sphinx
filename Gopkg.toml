@@ -23,6 +23,7 @@
 
 [[constraint]]
   name = "github.com/Clever/leakybucket"
+  revision = "e71c0c5ef35405c601ade74f6c02b71aa68b8d0d"
 
 [[constraint]]
   name = "github.com/pborman/uuid"
