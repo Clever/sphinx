@@ -3,13 +3,21 @@
 
 [[projects]]
   name = "github.com/Clever/leakybucket"
-  packages = [".","memory","redis"]
-  revision = "953bb57c0dc32ad58eb5e6f195616059755845d8"
+  packages = [
+    ".",
+    "memory",
+    "redis"
+  ]
+  revision = "e71c0c5ef35405c601ade74f6c02b71aa68b8d0d"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
-  packages = ["internal","redis"]
-  revision = "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+  packages = [
+    "internal",
+    "redis"
+  ]
+  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
+  version = "v1.6.0"
 
 [[projects]]
   name = "github.com/pborman/uuid"
@@ -23,7 +31,10 @@
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert","mock"]
+  packages = [
+    "assert",
+    "mock"
+  ]
   revision = "ddcad49ec6b8f31bc3daf3a1fbea7eac58d61ff0"
 
 [[projects]]
@@ -44,7 +55,12 @@
 
 [[projects]]
   name = "gopkg.in/Clever/kayvee-go.v6"
-  packages = [".","logger","middleware","router"]
+  packages = [
+    ".",
+    "logger",
+    "middleware",
+    "router"
+  ]
   revision = "096364e316a52652d3493be702d8105d8d01db84"
   version = "v6.6.0"
 
@@ -68,6 +84,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b925e515cf7befa151e96c301265aa139ece51615d3509194cb9be9a3153056"
+  inputs-digest = "8fa60781398ccfb94fb0732ba14e22ca7407bc00d4469583ca617322d3a9cfc9"
   solver-name = "gps-cdcl"
   solver-version = 1
