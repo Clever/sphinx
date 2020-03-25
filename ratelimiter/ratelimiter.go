@@ -3,13 +3,18 @@ package ratelimiter
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/Clever/leakybucket"
+	leakybucketDynamoDB "github.com/Clever/leakybucket/dynamodb"
 	leakybucketMemory "github.com/Clever/leakybucket/memory"
 	leakybucketRedis "github.com/Clever/leakybucket/redis"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limit"
-	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 // Status contains the status of a limit.
@@ -42,6 +47,15 @@ func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
 	case "redis":
 		return leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
 			config["host"], config["port"]))
+	case "dynamodb":
+		return leakybucketDynamoDB.New(
+			config["table"],
+			session.New(&aws.Config{
+				Region:     aws.String(config["region"]),
+				MaxRetries: aws.Int(0),
+			}),
+			24*time.Hour,
+		)
 	}
 }
 
