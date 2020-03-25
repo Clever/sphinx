@@ -6,9 +6,11 @@ proxy:
   allow-on-error: Yes       # become passive proxy if error detected? (optional, default=No)
 
 storage:
-  type: memory    # can be {redis,memory}
-  host: localhost # redis hostname. not required for memory
-  port: 6379      # redis port.     not required for memory
+  type: memory      # must be one of {redis, dynamodb, memory}
+  host: localhost   # redis hostname. required for redis
+  port: 6379        # redis port.     required for redis
+  table: table      # table name.     required for dynamodb
+  region: us-west-1 # table region.   required for dynamodb
 
 health-check:
   enabled: true
