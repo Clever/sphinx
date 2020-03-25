@@ -1,3 +1,5 @@
+# v0.7.1: Add AWS DynamoDB as a backend
+
 # v0.7.0: Add global limit key
   - Allows global rate limiting irrespective of request content
 
