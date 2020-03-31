@@ -1,9 +1,10 @@
 package matchers
 
 import (
-	"github.com/Clever/sphinx/common"
 	"net/http"
 	"regexp"
+
+	"github.com/Clever/sphinx/common"
 )
 
 // type to deserialize configuration

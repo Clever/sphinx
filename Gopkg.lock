@@ -2,88 +2,213 @@
 
 
 [[projects]]
+  digest = "1:d91a090d94f858edced27f983656c5a85d186463e40f4996a996ceee423b058f"
   name = "github.com/Clever/leakybucket"
   packages = [
     ".",
+    "dynamodb",
     "memory",
-    "redis"
+    "redis",
   ]
-  revision = "e71c0c5ef35405c601ade74f6c02b71aa68b8d0d"
+  pruneopts = ""
+  revision = "d6df64f795e6d308d51d5e3e4ea18456ffb3b264"
+  version = "v1.0.0"
 
 [[projects]]
+  digest = "1:0fc946169edf6aed7facaf8d0893f40aa1a3a363a4fae5e0cb4ff07fe3532655"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/crr",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/context",
+    "internal/ini",
+    "internal/sdkio",
+    "internal/sdkmath",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "internal/strings",
+    "internal/sync/singleflight",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/xml/xmlutil",
+    "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
+    "service/dynamodb/dynamodbiface",
+    "service/sts",
+    "service/sts/stsiface",
+  ]
+  pruneopts = ""
+  revision = "38d919b886b050f26e53e5de9bd3b3ba46f018e8"
+  version = "v1.29.34"
+
+[[projects]]
+  digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = ""
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:9525d0e79ccf382e32edeef466b9a91f16eb0eebdca5971a03fad1bb3be9cd89"
   name = "github.com/garyburd/redigo"
   packages = [
     "internal",
-    "redis"
+    "redis",
   ]
+  pruneopts = ""
   revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
   version = "v1.6.0"
 
 [[projects]]
+  digest = "1:ad92aa49f34cbc3546063c7eb2cabb55ee2278b72842eda80e2a20a8a06a8d73"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = ""
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:13fe471d0ed891e8544eddfeeb0471fd3c9f2015609a1c000aefdedf52a19d40"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = ""
+  revision = "c2b33e84"
+
+[[projects]]
+  digest = "1:a5484d4fa43127138ae6e7b2299a6a52ae006c7f803d98d717f60abf3e97192e"
   name = "github.com/pborman/uuid"
   packages = ["."]
-  revision = "c55201b036063326c5b1b89ccfe45a184973d073"
+  pruneopts = ""
+  revision = "adf5a7427709b9deb95d29d3fa8a2bf9cfd388f1"
+  version = "v1.2"
 
 [[projects]]
+  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = ""
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:88e031206b52c11a8442f3f07e9bcddc1b248274d0506c768a948e7e254b84bb"
   name = "github.com/stretchr/objx"
   packages = ["."]
-  revision = "cbeaeb16a013161a98496fad62933b1d21786672"
+  pruneopts = ""
+  revision = "ea4fe68685ee0d3cee7032121851b57e7494e8ea"
+  version = "v0.2.0"
 
 [[projects]]
+  digest = "1:cc4eb6813da8d08694e557fcafae8fcc24f47f61a0717f952da130ca9a486dfc"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "mock"
+    "mock",
   ]
-  revision = "ddcad49ec6b8f31bc3daf3a1fbea7eac58d61ff0"
-
-[[projects]]
-  name = "github.com/xeipuuv/gojsonpointer"
-  packages = ["."]
-  revision = "e0fe6f68307607d540ed8eac07a342c33fa1b54a"
+  pruneopts = ""
+  revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
+  version = "v1.5.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:5372ed388f189f6204f1864a2bae1ce9bbdf33f47528ffc776d31a649e3978aa"
+  name = "github.com/xeipuuv/gojsonpointer"
+  packages = ["."]
+  pruneopts = ""
+  revision = "02993c407bfbf5f6dae44c4f4b1cf6a39b5fc5bb"
+
+[[projects]]
+  branch = "master"
+  digest = "1:604f98a38394d2805a78c462396a4992b93fdd5b7306130add330f1a99ac6b0a"
   name = "github.com/xeipuuv/gojsonreference"
   packages = ["."]
-  revision = "e02fc20de94c78484cd5ffb007f8af96be030a45"
+  pruneopts = ""
+  revision = "bd5ef7bd5415a7ac448318e64f11a24cd21e594b"
 
 [[projects]]
+  branch = "master"
+  digest = "1:43ea491ae2a23ad30fe6273b50d2ecafa93b98f7ab8e3d0f533b39337c25930e"
   name = "github.com/xeipuuv/gojsonschema"
   packages = ["."]
-  revision = "00f9fafb54d2244d291b86ab63d12c38bd5c3886"
+  pruneopts = ""
+  revision = "b537c054d4b486d62f64a76b8d48fdf38a0ea99d"
 
 [[projects]]
+  digest = "1:7f26011c3c526622fb75234cde0241821e1910e5f8284e129249aef104898353"
   name = "gopkg.in/Clever/kayvee-go.v6"
   packages = [
     ".",
     "logger",
     "middleware",
-    "router"
+    "router",
   ]
-  revision = "096364e316a52652d3493be702d8105d8d01db84"
-  version = "v6.6.0"
+  pruneopts = ""
+  revision = "f1eb862e07bb00f481e0064c742181db62c8818c"
+  version = "v6.21.0"
 
 [[projects]]
+  digest = "1:8143ea52154df4cf52589d780ad447f625978a4c29713200842ccaa7c532350a"
   name = "gopkg.in/tylerb/graceful.v1"
   packages = ["."]
+  pruneopts = ""
   revision = "4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb"
   version = "v1.2.15"
 
 [[projects]]
   branch = "v1"
+  digest = "1:d6dfc13bd1ac289efe8d7d267ccb0d34dc6a6e55703a228cdea1848f5b2dc529"
   name = "gopkg.in/yaml.v1"
   packages = ["."]
+  pruneopts = ""
   revision = "9f9df34309c04878acc86042b16630b0f696e1de"
 
 [[projects]]
+  branch = "v2"
+  digest = "1:2efc9662a6a1ff28c65c84fc2f9030f13d3afecdb2ecad445f3b0c80e75fc281"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+  pruneopts = ""
+  revision = "53403b58ad1b561927d19068c655246f2db79d48"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8fa60781398ccfb94fb0732ba14e22ca7407bc00d4469583ca617322d3a9cfc9"
+  input-imports = [
+    "github.com/Clever/leakybucket",
+    "github.com/Clever/leakybucket/dynamodb",
+    "github.com/Clever/leakybucket/memory",
+    "github.com/Clever/leakybucket/redis",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/pborman/uuid",
+    "github.com/stretchr/testify/mock",
+    "gopkg.in/Clever/kayvee-go.v6/logger",
+    "gopkg.in/Clever/kayvee-go.v6/middleware",
+    "gopkg.in/tylerb/graceful.v1",
+    "gopkg.in/yaml.v1",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

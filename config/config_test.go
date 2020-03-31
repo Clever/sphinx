@@ -181,7 +181,8 @@ limits:
 		t.Errorf("Expected Storage error. Got: %s", err.Error())
 	}
 
-	configBuf := baseBuf
+	// invalid redis configs (requires both host and port)
+	configBuf := bytes.NewBuffer(baseBuf.Bytes())
 	configBuf.WriteString(`
 storage:
   type: redis
@@ -191,7 +192,7 @@ storage:
 		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
 	}
 
-	configBuf = baseBuf
+	configBuf = bytes.NewBuffer(baseBuf.Bytes())
 	configBuf.WriteString(`
 storage:
   type: redis
@@ -199,6 +200,30 @@ storage:
 `)
 	_, err = LoadAndValidateYaml(configBuf.Bytes())
 	if err == nil || !strings.Contains(err.Error(), "port") {
-		t.Errorf("Expected redis Storage host error. Got: %s", err.Error())
+		t.Errorf("Expected redis Storage post error. Got: %s", err.Error())
 	}
+
+	// invalid dynamodb configs (requires table and region)
+	configBuf = bytes.NewBuffer(baseBuf.Bytes())
+	configBuf.WriteString(`
+storage:
+  type: dynamodb
+  region: bar
+`)
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "table") {
+		t.Errorf("Expected dynamodb Storage table error. Got: %s", err.Error())
+	}
+
+	configBuf = bytes.NewBuffer(baseBuf.Bytes())
+	configBuf.WriteString(`
+storage:
+  type: dynamodb
+  table: foo
+`)
+	_, err = LoadAndValidateYaml(configBuf.Bytes())
+	if err == nil || !strings.Contains(err.Error(), "region") {
+		t.Errorf("Expected dynamodb Storage region error. Got: %s", err.Error())
+	}
+
 }

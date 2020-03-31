@@ -1,8 +1,9 @@
 package matchers
 
 import (
-	"github.com/Clever/sphinx/common"
 	"regexp"
+
+	"github.com/Clever/sphinx/common"
 )
 
 type pathMatcherConfig struct {

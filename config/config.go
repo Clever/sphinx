@@ -105,6 +105,13 @@ func ValidateConfig(config Config) error {
 	switch strings.ToLower(store) {
 	default:
 		return fmt.Errorf("storage type needs to be memory or redis")
+	case "dynamodb":
+		if _, ok := config.Storage["region"]; !ok {
+			return fmt.Errorf("storage region must be set for DynamoDB")
+		}
+		if _, ok := config.Storage["table"]; !ok {
+			return fmt.Errorf("storage table must be set for DynamoDB")
+		}
 	case "redis":
 		if _, ok := config.Storage["host"]; !ok {
 			return fmt.Errorf("storage host must be set for Redis")

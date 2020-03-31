@@ -105,7 +105,11 @@ proxy:
   listen: :6634             # bind to host:port. default: height of the Great Sphinx of Giza
 
 storage:
-  type: memory    # can be {redis,memory}
+  type: redis       # must be one of {redis, dynamodb, memory}
+  host: localhost   # redis hostname. required for redis
+  port: 6379        # redis port.     required for redis
+  table: table      # table name.     required for dynamodb
+  region: us-west-1 # table region.   required for dynamodb
 
 limits:
   test-limit:
