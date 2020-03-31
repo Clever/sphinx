@@ -41,7 +41,7 @@ func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
 
 	switch config["type"] {
 	default:
-		return nil, errors.New("must specify one of 'redis' or 'memory' storage")
+		return nil, errors.New("must specify one of 'redis', 'dynamodb', or 'memory' storage")
 	case "memory":
 		return leakybucketMemory.New(), nil
 	case "redis":
