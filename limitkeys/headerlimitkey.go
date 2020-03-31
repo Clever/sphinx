@@ -2,10 +2,11 @@ package limitkeys
 
 import (
 	"fmt"
-	"github.com/Clever/sphinx/common"
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/Clever/sphinx/common"
 )
 
 type headerLimitKey struct {

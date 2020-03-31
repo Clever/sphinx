@@ -2,6 +2,7 @@ package matchers
 
 import (
 	"fmt"
+
 	"github.com/Clever/sphinx/common"
 )
 

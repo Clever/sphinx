@@ -3,17 +3,18 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/Clever/leakybucket"
-	"github.com/Clever/sphinx/common"
-	"github.com/Clever/sphinx/limit"
-	"github.com/Clever/sphinx/ratelimiter"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Clever/leakybucket"
+	"github.com/Clever/sphinx/common"
+	"github.com/Clever/sphinx/limit"
+	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/stretchr/testify/mock"
 )
 
 func constructMockRequestWithHeaders(headers map[string][]string) *http.Request {

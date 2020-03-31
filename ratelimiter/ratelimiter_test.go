@@ -2,13 +2,14 @@ package ratelimiter
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limit"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func returnLastAddStatus(rateLimiter RateLimiter, request common.Request, numAdds int) ([]Status, error) {
