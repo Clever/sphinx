@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:d91a090d94f858edced27f983656c5a85d186463e40f4996a996ceee423b058f"
+  digest = "1:1cd3aecaaa57090a7a977ef3c4233beae614cc095874bc2f2f219323d7afb9d9"
   name = "github.com/Clever/leakybucket"
   packages = [
     ".",
@@ -11,8 +11,8 @@
     "redis",
   ]
   pruneopts = ""
-  revision = "d6df64f795e6d308d51d5e3e4ea18456ffb3b264"
-  version = "v1.0.0"
+  revision = "9023cbf8e611568125ce6d165d070b6686efc65e"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:0fc946169edf6aed7facaf8d0893f40aa1a3a363a4fae5e0cb4ff07fe3532655"
@@ -70,6 +70,14 @@
   pruneopts = ""
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:8c9af6e3162383951dee97404fadb761f9ae60b4806998df288a5b143afa7251"
+  name = "github.com/eapache/go-resiliency"
+  packages = ["retrier"]
+  pruneopts = ""
+  revision = "5efd2ed019fd331ec2defc6f3bd98882f1e3e636"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:9525d0e79ccf382e32edeef466b9a91f16eb0eebdca5971a03fad1bb3be9cd89"
