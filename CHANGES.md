@@ -1,3 +1,5 @@
+# v0.7.2: Update to use latest leakybucket
+
 # v0.7.1: Add AWS DynamoDB as a backend
 
 # v0.7.0: Add global limit key
