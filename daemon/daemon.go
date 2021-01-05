@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -14,6 +15,7 @@ import (
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
 	"github.com/pborman/uuid"
+	"gopkg.in/Clever/kayvee-go.v6/logger"
 	"gopkg.in/Clever/kayvee-go.v6/middleware"
 	"gopkg.in/tylerb/graceful.v1"
 )
@@ -105,8 +107,12 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
 
+	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 20*time.Second)
 	d.handler = middleware.New(handler, "sphinx", func(req *http.Request) map[string]interface{} {
-		return map[string]interface{}{"guid": req.Header.Get("X-Request-Id")}
+		return map[string]interface{}{
+			"guid": req.Header.Get("X-Request-Id"),
+			"op":   req.URL.Path, // add op key since log rollups are keyed on method, status, and op
+		}
 	})
 	return nil
 }
