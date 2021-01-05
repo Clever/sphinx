@@ -13,10 +13,10 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_DIRTY=$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 TESTS := $(shell find . -name "*_test.go" | sed s/\.go// | grep -v "./vendor")
 BENCHES := $(addsuffix "_bench", $(TESTS))
-.PHONY: test $(PKGS) run clean build-release install_deps
-$(eval $(call golang-version-check,1.13))
+.PHONY: test $(PKGS) run clean build-release
+$(eval $(call golang-version-check,1.15))
 
-test: $(PKGS)
+test: golang-test-deps $(PKGS)
 $(PKGS): golang-test-all-strict-deps
 	$(call golang-test-all-strict,$@)
 
@@ -27,10 +27,10 @@ VERSION:
 	echo $(VERSION) > VERSION
 
 bin/sphinxd: *.go **/*.go
-	go build -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
+	go build -mod=mod -o bin/sphinxd -gcflags "-N -l" -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 build-release:
-	go build -o bin/sphinxd -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
+	go build -mod=mod -o bin/sphinxd -ldflags "-X main.version=v$(VERSION)-$(BRANCH)-$(SHA)$(GIT_DIRTY)" $(PKG)
 
 $(BENCHES): THE_PKG = $(addprefix $(PKG)/, $(dir $@))
 $(BENCHES): READABLE_NAME = $(shell echo $@ | sed s/_bench//)
@@ -57,6 +57,3 @@ clean:
 	rm -f bin/sphinxd
 	rm -f main/main
 	rm -f deb/sphinx.deb
-
-install_deps: golang-dep-vendor-deps
-	$(call golang-dep-vendor)
