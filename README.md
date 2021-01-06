@@ -3,7 +3,7 @@
 _Sphinx_ is a _rate limiting_ HTTP proxy, implemented in Go, using
 [leaky buckets](https://github.com/Clever/leakybucket).
 
-*The name for this project (_"Sphinx"_) comes from the ancient Greek word sphingien, which means "to squeeze" or "to strangle." 
+*The name for this project (_"Sphinx"_) comes from the ancient Greek word sphingien, which means "to squeeze" or "to strangle."
 The Sphinx would stand by the road and stop travelers to ask them a riddle.
 If they could not answer, she would strangle them. She was often thought of as a guardian and flanked the entrances to temples.*
 
@@ -79,7 +79,7 @@ Response headers:
 
 ## [Configuring Sphinx](./example.yaml)
 
-Rate limiting in Sphinx is managed by setting up `limits` in a `yaml` configuration file. 
+Rate limiting in Sphinx is managed by setting up `limits` in a `yaml` configuration file.
 Details about the configuration format can be found in the [annotated example](./example.yaml).
 
 It is important to understand the concept of `buckets` and `limits` to effectively configure a rate limiter.
@@ -96,7 +96,7 @@ Below is an example of a limit and three requests that increment two bucket valu
   bucket names are defined as `name-{ip-address}`
   Allow TWO requests per minute
 
-Setting this limit using the config would look like: 
+Setting this limit using the config would look like:
 
 ```
 proxy:
@@ -183,7 +183,7 @@ _interval_: A limit may create many `buckets`. This key provides the `expire tim
 
 _max_: Maximum number of requests that will be allowed for a `bucket` in one `interval`.
 
-_keys_: This section defines the dynamic bucket name generated for each request. Currently supported matchers include `headers` and `ip`. 
+_keys_: This section defines the dynamic bucket name generated for each request. Currently supported matchers include `headers` and `ip`.
 All keys defined are concatenated to create the full bucket name.
 
   _headers_: Use concatenated header values from requests in the `bucket` name.
@@ -226,17 +226,11 @@ paths:
 
 ## Tests
 
-_Sphinx_ is built and tested against Go 1.7.
+_Sphinx_ is built and tested against Go 1.15.
 Ensure this is the version of Go you're running with `go version`.
-Make sure your GOPATH is set, e.g. `export GOPATH=~/go`.
-
-```bash
-mkdir -p $GOPATH/src/github.com/Clever
-cd $GOPATH/src/github.com/Clever
-git clone git@github.com:Clever/sphinx.git
-```
 
 Now you can run our test and linting suites via Make:
+
 ```
 cd sphinx
 make test
@@ -247,8 +241,3 @@ make test
 
 * [Sphinx](http://thenounproject.com/term/sphinx/20572/) logo by EricP from The Noun Project
 * [Drone](https://github.com/drone/drone) inspiration for building a deb
-
-
-## Vendoring
-
-Please view the [dev-handbook for instructions](https://github.com/Clever/dev-handbook/blob/master/golang/godep.md).

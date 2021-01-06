@@ -1,3 +1,5 @@
+# v0.7.3: Add log rollups
+
 # v0.7.2: Update to use latest leakybucket
 
 # v0.7.1: Add AWS DynamoDB as a backend
