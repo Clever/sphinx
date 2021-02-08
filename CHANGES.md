@@ -1,3 +1,5 @@
+# v0.7.4 Decrease rollup window
+
 # v0.7.3: Add log rollups
 
 # v0.7.2: Update to use latest leakybucket
