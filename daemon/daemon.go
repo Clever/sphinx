@@ -107,7 +107,7 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
 
-	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 20*time.Second)
+	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 10*time.Second)
 	d.handler = middleware.New(handler, "sphinx", func(req *http.Request) map[string]interface{} {
 		return map[string]interface{}{
 			"guid": req.Header.Get("X-Request-Id"),
