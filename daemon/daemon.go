@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/Clever/sphinx/common"
@@ -31,6 +32,8 @@ type daemon struct {
 	proxy       config.Proxy
 	healthCheck config.HealthCheck
 }
+
+var pathRegex = regexp.MustCompile(`(/.*)(/[0-9a-f]{24})(.*)`)
 
 // setUpHealthCheckService sets up a health check service at the given port
 // that can be pinged at the given endpoint to determine if Sphinx is still
@@ -107,11 +110,16 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
 
-	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 10*time.Second)
+	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 20*time.Second)
 	d.handler = middleware.New(handler, "sphinx", func(req *http.Request) map[string]interface{} {
+		path := req.URL.Path
+		matches := pathRegex.FindAllStringSubmatch(path, 1)
+		if len(matches) == 1 && len(matches[0]) == 4 {
+			path = matches[0][1] + matches[0][3]
+		}
 		return map[string]interface{}{
 			"guid": req.Header.Get("X-Request-Id"),
-			"op":   req.URL.Path, // add op key since log rollups are keyed on method, status, and op
+			"op":   path, // add op key since log rollups are keyed on method, status, and op
 		}
 	})
 	return nil

@@ -1,3 +1,5 @@
+# v0.7.5 Revert rollup window change, and cut IDs out of rollups
+
 # v0.7.4 Decrease rollup window
 
 # v0.7.3: Add log rollups
