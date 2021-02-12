@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/Clever/sphinx/common"
@@ -107,11 +108,24 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}
 
-	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 10*time.Second)
+	var pathRegex = regexp.MustCompile(`(/.*)(/[0-9a-f]{24})(.*)`)
+
+	middleware.EnableRollups(context.Background(), logger.New("sphinx"), 20*time.Second)
 	d.handler = middleware.New(handler, "sphinx", func(req *http.Request) map[string]interface{} {
+		path := req.URL.Path
+		// matches will be empty if the path has no 24-character hex ID
+		// otherwise it will have one element, namely an array with
+		// - the whole match (i.e. the whole path)
+		// - capture group 1 (everything before the ID)
+		// - capture group 2 (the ID)
+		// - capture group 3 (everything after the ID)
+		matches := pathRegex.FindAllStringSubmatch(path, 1)
+		if len(matches) == 1 && len(matches[0]) == 4 {
+			path = matches[0][1] + matches[0][3]
+		}
 		return map[string]interface{}{
 			"guid": req.Header.Get("X-Request-Id"),
-			"op":   req.URL.Path, // add op key since log rollups are keyed on method, status, and op
+			"op":   path, // add op key since log rollups are keyed on method, status, and op
 		}
 	})
 	return nil
