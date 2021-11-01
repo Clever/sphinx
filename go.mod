@@ -1,6 +1,6 @@
 module github.com/Clever/sphinx
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Clever/leakybucket v1.1.0
