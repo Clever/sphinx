@@ -12,11 +12,11 @@ case "$1" in
 esac
 
 echo "Bringing up the Sphinx..."
-if [ -f /etc/init/sphinx.conf ]; then
+if [ -f /etc/systemd/system/sphinx.service ]; then
     if pidof /usr/local/bin/sphinxd >/dev/null; then
-        service sphinx stop || exit $?
+        systemctl stop sphinx.service || exit $?
     fi
-    service sphinx start && echo "Started. Sphinx now on guard."
+    systemctl start sphinx.service && echo "Started. Sphinx now on guard."
 fi
 
 #DEBHELPER#
