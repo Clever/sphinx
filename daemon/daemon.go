@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Clever/sphinx/common"
@@ -75,7 +76,27 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 	d.proxy = newConfig.Proxy
 	d.healthCheck = newConfig.HealthCheck
 	target, _ := url.Parse(d.proxy.Host) // already tested for invalid Host
-	proxy := httputil.NewSingleHostReverseProxy(target)
+
+	// This is same as httputil.NewSingleHostReverseProxy with a change of adding "req.Host = targetURL.Host" https://github.com/golang/go/issues/28168
+	// In future version of go we can use ReverseProxy.Rewrite instead https://github.com/golang/go/commit/a55793835f16d0242be18aff4ec0bd13494175bd
+	targetQuery := target.RawQuery
+	director := func(req *http.Request) {
+		req.URL.Scheme = target.Scheme
+		req.URL.Host = target.Host
+		req.URL.Path, req.URL.RawPath = joinURLPath(target, req.URL)
+		req.Host = target.Host
+		if targetQuery == "" || req.URL.RawQuery == "" {
+			req.URL.RawQuery = targetQuery + req.URL.RawQuery
+		} else {
+			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
+		}
+		if _, ok := req.Header["User-Agent"]; !ok {
+			// explicitly disable User-Agent so it's not set to default value
+			req.Header.Set("User-Agent", "")
+		}
+	}
+
+	proxy := &httputil.ReverseProxy{Director: director}
 
 	// An attempt to fix cancelled DNS requests resulting in 502 errors
 	// See https://groups.google.com/d/msg/golang-nuts/oiBBZfUb2hM/9S_JB6g2EAAJ
@@ -138,4 +159,37 @@ func New(config config.Config) (Daemon, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+func singleJoiningSlash(a, b string) string {
+	aslash := strings.HasSuffix(a, "/")
+	bslash := strings.HasPrefix(b, "/")
+	switch {
+	case aslash && bslash:
+		return a + b[1:]
+	case !aslash && !bslash:
+		return a + "/" + b
+	}
+	return a + b
+}
+
+func joinURLPath(a, b *url.URL) (path, rawpath string) {
+	if a.RawPath == "" && b.RawPath == "" {
+		return singleJoiningSlash(a.Path, b.Path), ""
+	}
+	// Same as singleJoiningSlash, but uses EscapedPath to determine
+	// whether a slash should be added
+	apath := a.EscapedPath()
+	bpath := b.EscapedPath()
+
+	aslash := strings.HasSuffix(apath, "/")
+	bslash := strings.HasPrefix(bpath, "/")
+
+	switch {
+	case aslash && bslash:
+		return a.Path + b.Path[1:], apath + bpath[1:]
+	case !aslash && !bslash:
+		return a.Path + "/" + b.Path, apath + "/" + bpath
+	}
+	return a.Path + b.Path, apath + bpath
 }
