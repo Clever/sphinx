@@ -25,7 +25,9 @@ func ConcatWithRequest(data M, req Request) M {
 		"method":     req["method"],
 	}
 	for header, values := range req["headers"].(http.Header) {
-		kvData[header] = strings.Join(values, ";")
+		if header != "Authorization" {
+			kvData[header] = strings.Join(values, ";")
+		}
 	}
 	for key, val := range data {
 		kvData[key] = val
