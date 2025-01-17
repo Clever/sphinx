@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-    - image: circleci/golang:1.21
+    - image: cimg/go:1.21
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
