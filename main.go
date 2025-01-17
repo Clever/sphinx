@@ -65,7 +65,7 @@ func sighupHandler(d daemon.Daemon) {
 
 // setupSighupHandler creates a channel to listen for HUP signals and process them.
 func setupSighupHandler(d daemon.Daemon, handler func(daemon.Daemon)) {
-	sigc := make(chan os.Signal)
+	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGHUP)
 	go func() {
 		// Listen for HUP signals "forever", calling the hup-handler each time
