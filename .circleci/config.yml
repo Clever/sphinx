@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-    - image: circleci/golang:1.15
+    - image: cimg/go:1.24
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
@@ -18,6 +18,7 @@ jobs:
     - run:
         command: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
         name: Set up CircleCI artifacts directories
+    - run: make install_deps
     - run: make build
     - run: make test
     - run: $HOME/ci-scripts/circleci/docker-publish $DOCKER_USER $DOCKER_PASS "$DOCKER_EMAIL" $DOCKER_ORG
