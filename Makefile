@@ -16,6 +16,9 @@ BENCHES := $(addsuffix "_bench", $(TESTS))
 .PHONY: test $(PKGS) run clean build-release
 $(eval $(call golang-version-check,1.24))
 
+install_deps:
+	go mod vendor
+
 test: golang-test-deps $(PKGS)
 $(PKGS): golang-test-all-strict-deps
 	$(call golang-test-all-strict,$@)
