@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Clever/kayvee-go/v7/logger"
+	"github.com/Clever/kayvee-go/v7/middleware"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
 	"github.com/pborman/uuid"
-	"gopkg.in/Clever/kayvee-go.v6/logger"
-	"gopkg.in/Clever/kayvee-go.v6/middleware"
 	"gopkg.in/tylerb/graceful.v1"
 )
 
