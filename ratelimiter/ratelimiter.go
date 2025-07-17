@@ -1,6 +1,7 @@
 package ratelimiter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -13,8 +14,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/limit"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 )
 
 // Status contains the status of a limit.
@@ -39,6 +39,7 @@ func newStatus(name string, bucket leakybucket.BucketState) Status {
 
 func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
 
+	ctx := context.Background()
 	switch config["type"] {
 	default:
 		return nil, errors.New("must specify one of 'redis', 'dynamodb', or 'memory' storage")
@@ -48,12 +49,15 @@ func resolveBucketStore(config map[string]string) (leakybucket.Storage, error) {
 		return leakybucketRedis.New("tcp", fmt.Sprintf("%s:%s",
 			config["host"], config["port"]))
 	case "dynamodb":
+		cfg, err := awsconfig.LoadDefaultConfig(ctx,
+			awsconfig.WithRegion(config["region"]),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS config: %w", err)
+		}
 		return leakybucketDynamoDB.New(
 			config["table"],
-			session.New(&aws.Config{
-				Region:     aws.String(config["region"]),
-				MaxRetries: aws.Int(0),
-			}),
+			cfg,
 			24*time.Hour,
 		)
 	}
