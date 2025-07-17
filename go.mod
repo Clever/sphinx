@@ -8,7 +8,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.17
 	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
 	github.com/stretchr/testify v1.8.0
-	gopkg.in/Clever/kayvee-go.v6 v6.27.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 )

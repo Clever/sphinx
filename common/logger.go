@@ -1,7 +1,7 @@
 package common
 
 import (
-	"gopkg.in/Clever/kayvee-go.v6/logger"
+	"github.com/Clever/kayvee-go/v7/logger"
 
 	"net/http"
 	"strings"
