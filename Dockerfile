@@ -1,4 +1,4 @@
-FROM buildpack-deps:xenial-curl
+FROM debian:stable-slim
 
 RUN mkdir -p /etc/sphinx
 
