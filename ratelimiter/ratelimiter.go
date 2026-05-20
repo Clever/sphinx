@@ -116,3 +116,11 @@ var NilStatus = Status{
 	Remaining: 1,
 	Name:      "Unknown",
 }
+
+// BypassStatus for when throttling is bypassed via feature flag
+var BypassStatus = Status{
+	Capacity:  0,
+	Reset:     time.Time{},
+	Remaining: 0,
+	Name:      "bypass",
+}

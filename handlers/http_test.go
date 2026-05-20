@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/limit"
 	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/launchdarkly/go-sdk-common/v3/ldcontext"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -242,6 +245,151 @@ var allowOnErrorCases = []struct {
 	{false, http.StatusInternalServerError},
 	// If allowOnError == true and no headers, should still StatusOK
 	{true, http.StatusOK},
+}
+
+// mockFlagChecker is a FlagChecker that returns a fixed boolean value.
+type mockFlagChecker struct {
+	value bool
+}
+
+func (m *mockFlagChecker) BoolVariation(_ string, _ ldcontext.Context, defaultVal bool) (bool, error) {
+	return m.value, nil
+}
+
+func basicAuthHeader(clientID, secret string) string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(clientID+":"+secret))
+}
+
+func TestLDContextKey(t *testing.T) {
+	cases := []struct {
+		name     string
+		headers  map[string][]string
+		expected string
+	}{
+		{"basic auth", map[string][]string{"Authorization": {basicAuthHeader("myapp", "secret")}}, "app:myapp"},
+		{"bearer", map[string][]string{"Authorization": {"Bearer sometoken"}}, "bearer-global"},
+		{"edmentum", map[string][]string{"X-Edmentum-Rate-Limit": {"edmentum-key"}}, "app:edmentum-key"},
+		{"no auth", map[string][]string{}, ""},
+		{"unknown scheme", map[string][]string{"Authorization": {"Digest abc"}}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := constructMockRequestWithHeaders(tc.headers)
+			assert.Equal(t, tc.expected, ldContextKey(r))
+		})
+	}
+}
+
+func TestBypassBasicAuth(t *testing.T) {
+	limiter := constructHTTPRateLimiter()
+	limiter.ldChecker = &mockFlagChecker{value: true}
+	limiter.ldFlagName = "sphinx-throttle-bypass"
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("body"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Header.Set("Authorization", basicAuthHeader("myapp", "secret"))
+
+	proxyMock := limiter.proxy.(*MockProxy).Mock
+	proxyMock.On("ServeHTTP", w, r).Return().Once()
+
+	limiter.ServeHTTP(w, r)
+
+	// rateLimiter.Add must NOT have been called
+	limiter.rateLimiter.(*MockRateLimiter).Mock.AssertNotCalled(t, "Add")
+	proxyMock.AssertExpectations(t)
+	assert.Equal(t, "bypass", w.Header().Get("X-Ratelimit-Bucket"))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestBypassBearer(t *testing.T) {
+	limiter := constructHTTPRateLimiter()
+	limiter.ldChecker = &mockFlagChecker{value: true}
+	limiter.ldFlagName = "sphinx-throttle-bypass"
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("body"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Header.Set("Authorization", "Bearer sometoken")
+
+	proxyMock := limiter.proxy.(*MockProxy).Mock
+	proxyMock.On("ServeHTTP", w, r).Return().Once()
+
+	limiter.ServeHTTP(w, r)
+
+	limiter.rateLimiter.(*MockRateLimiter).Mock.AssertNotCalled(t, "Add")
+	proxyMock.AssertExpectations(t)
+	assert.Equal(t, "bypass", w.Header().Get("X-Ratelimit-Bucket"))
+}
+
+func TestBypassEdmentum(t *testing.T) {
+	limiter := constructHTTPRateLimiter()
+	limiter.ldChecker = &mockFlagChecker{value: true}
+	limiter.ldFlagName = "sphinx-throttle-bypass"
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("body"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Header.Set("X-Edmentum-Rate-Limit", "edmentum-key")
+
+	proxyMock := limiter.proxy.(*MockProxy).Mock
+	proxyMock.On("ServeHTTP", w, r).Return().Once()
+
+	limiter.ServeHTTP(w, r)
+
+	limiter.rateLimiter.(*MockRateLimiter).Mock.AssertNotCalled(t, "Add")
+	proxyMock.AssertExpectations(t)
+	assert.Equal(t, "bypass", w.Header().Get("X-Ratelimit-Bucket"))
+}
+
+func TestNoBypassWhenFlagFalse(t *testing.T) {
+	limiter := constructHTTPRateLimiter()
+	limiter.ldChecker = &mockFlagChecker{value: false}
+	limiter.ldFlagName = "sphinx-throttle-bypass"
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("body"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Header.Set("Authorization", basicAuthHeader("myapp", "secret"))
+	statuses := []ratelimiter.Status{sphinxStatus}
+
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
+	limitMock.On("Add", anyRequest).Return(statuses, nil).Once()
+
+	proxyMock := limiter.proxy.(*MockProxy).Mock
+	proxyMock.On("ServeHTTP", w, r).Return().Once()
+
+	limiter.ServeHTTP(w, r)
+
+	limitMock.AssertExpectations(t)
+	proxyMock.AssertExpectations(t)
+	assert.NotEqual(t, "bypass", w.Header().Get("X-Ratelimit-Bucket"))
+}
+
+func TestNoBypassWhenNilChecker(t *testing.T) {
+	limiter := constructHTTPRateLimiter() // ldChecker is nil by default
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "http://google.com", strings.NewReader("body"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Header.Set("Authorization", basicAuthHeader("myapp", "secret"))
+	statuses := []ratelimiter.Status{sphinxStatus}
+
+	limitMock := limiter.rateLimiter.(*MockRateLimiter).Mock
+	limitMock.On("Add", anyRequest).Return(statuses, nil).Once()
+
+	proxyMock := limiter.proxy.(*MockProxy).Mock
+	proxyMock.On("ServeHTTP", w, r).Return().Once()
+
+	limiter.ServeHTTP(w, r)
+
+	limitMock.AssertExpectations(t)
+	proxyMock.AssertExpectations(t)
 }
 
 // Tests the allowOnError flag feature

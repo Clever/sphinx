@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,8 +10,39 @@ import (
 	"github.com/Clever/leakybucket"
 	"github.com/Clever/sphinx/common"
 	"github.com/Clever/sphinx/ratelimiter"
+	"github.com/launchdarkly/go-sdk-common/v3/ldcontext"
 	"github.com/pborman/uuid"
 )
+
+// FlagChecker evaluates a LaunchDarkly boolean feature flag.
+type FlagChecker interface {
+	BoolVariation(key string, context ldcontext.Context, defaultVal bool) (bool, error)
+}
+
+// ldContextKey returns the LaunchDarkly context key for the request, or "" if the request
+// type is not one we evaluate flags for.
+//
+// - Basic auth:  decode base64 credential, extract client_id → "app:{client_id}"
+// - Edmentum:    X-Edmentum-Rate-Limit header value       → "app:{value}"
+// - Bearer:      opaque token, no per-app identity         → "bearer-global"
+func ldContextKey(r *http.Request) string {
+	auth := r.Header.Get("Authorization")
+	if strings.HasPrefix(auth, "Basic ") {
+		decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, "Basic "))
+		if err == nil {
+			if parts := strings.SplitN(string(decoded), ":", 2); len(parts) == 2 && parts[0] != "" {
+				return "app:" + parts[0]
+			}
+		}
+	}
+	if strings.HasPrefix(auth, "Bearer ") {
+		return "bearer-global"
+	}
+	if val := r.Header.Get("X-Edmentum-Rate-Limit"); val != "" {
+		return "app:" + val
+	}
+	return ""
+}
 
 const (
 	// StatusTooManyRequests represents HTTP 429, missing from net/http
@@ -29,10 +61,23 @@ type httpRateLimiter struct {
 	rateLimiter  ratelimiter.RateLimiter
 	proxy        http.Handler
 	allowOnError bool // Do not limit on errors when true
+	ldChecker    FlagChecker
+	ldFlagName   string
 }
 
 func (hrl httpRateLimiter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := r.Header.Get("X-Request-Id")
+	if hrl.ldChecker != nil {
+		if ctxKey := ldContextKey(r); ctxKey != "" {
+			ldCtx := ldcontext.NewBuilder(ctxKey).Build()
+			bypass, _ := hrl.ldChecker.BoolVariation(hrl.ldFlagName, ldCtx, false)
+			if bypass {
+				addRateLimitHeaders(w, []ratelimiter.Status{ratelimiter.BypassStatus})
+				hrl.proxy.ServeHTTP(w, r)
+				return
+			}
+		}
+	}
 	request := common.HTTPToSphinxRequest(r)
 	matches, err := hrl.rateLimiter.Add(request)
 	if err == leakybucket.ErrorFull {
@@ -58,6 +103,19 @@ type httpRateLogger httpRateLimiter
 
 func (hrl httpRateLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guid := uuid.New()
+	if hrl.ldChecker != nil {
+		if ctxKey := ldContextKey(r); ctxKey != "" {
+			ldCtx := ldcontext.NewBuilder(ctxKey).Build()
+			bypass, _ := hrl.ldChecker.BoolVariation(hrl.ldFlagName, ldCtx, false)
+			if bypass {
+				common.Log.InfoD("http-logger", common.ConcatWithRequest(
+					common.M{"guid": guid, "limit": false, "bypass": true}, common.HTTPToSphinxRequest(r),
+				))
+				hrl.proxy.ServeHTTP(w, r)
+				return
+			}
+		}
+	}
 	request := common.HTTPToSphinxRequest(r)
 	matches, err := hrl.rateLimiter.Add(request)
 	if err != nil && err != leakybucket.ErrorFull {
@@ -120,12 +178,12 @@ func addRateLimitHeaders(w http.ResponseWriter, statuses []ratelimiter.Status) {
 }
 
 // NewHTTPLimiter returns an http.Handler that rate limits and proxies requests.
-func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler, allowOnError bool) http.Handler {
-	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy, allowOnError: allowOnError}
+func NewHTTPLimiter(rateLimiter ratelimiter.RateLimiter, proxy http.Handler, allowOnError bool, ldChecker FlagChecker, ldFlagName string) http.Handler {
+	return &httpRateLimiter{rateLimiter: rateLimiter, proxy: proxy, allowOnError: allowOnError, ldChecker: ldChecker, ldFlagName: ldFlagName}
 }
 
 // NewHTTPLogger returns an http.Handler that logs the results of rate limiting requests, but
 // actually proxies everything.
-func NewHTTPLogger(rateLimiter ratelimiter.RateLimiter, proxy http.Handler) http.Handler {
-	return &httpRateLogger{rateLimiter: rateLimiter, proxy: proxy}
+func NewHTTPLogger(rateLimiter ratelimiter.RateLimiter, proxy http.Handler, ldChecker FlagChecker, ldFlagName string) http.Handler {
+	return &httpRateLogger{rateLimiter: rateLimiter, proxy: proxy, ldChecker: ldChecker, ldFlagName: ldFlagName}
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/Clever/sphinx/config"
 	"github.com/Clever/sphinx/handlers"
 	"github.com/Clever/sphinx/ratelimiter"
+	ld "github.com/launchdarkly/go-server-sdk/v7"
 	"github.com/pborman/uuid"
 	"gopkg.in/tylerb/graceful.v1"
 )
@@ -32,6 +33,7 @@ type daemon struct {
 	handler     http.Handler
 	proxy       config.Proxy
 	healthCheck config.HealthCheck
+	ldClient    *ld.LDClient
 }
 
 // setUpHealthCheckService sets up a health check service at the given port
@@ -49,6 +51,9 @@ func setUpHealthCheckService(port string, endpoint string) {
 
 func (d *daemon) Start() {
 	log.Printf("Limiter listening on %s", d.proxy.Listen)
+	if d.ldClient != nil {
+		defer d.ldClient.Close()
+	}
 	// Only set up the health check service if it is enabled.
 	if d.healthCheck.Enabled {
 		setUpHealthCheckService(d.healthCheck.Port, d.healthCheck.Endpoint)
@@ -118,13 +123,28 @@ func (d *daemon) LoadConfig(newConfig config.Config) error {
 		return fmt.Errorf("SPHINX_LOAD_CONFIG_FAILED: %s", err.Error())
 	}
 
+	// Initialize LaunchDarkly client once; reuse across SIGHUP reloads.
+	if newConfig.LaunchDarkly != nil && d.ldClient == nil {
+		ldClient, err := ld.MakeClient(newConfig.LaunchDarkly.SDKKey, 5*time.Second)
+		if err != nil {
+			log.Printf("WARNING: LaunchDarkly client failed to initialize: %s. Continuing without feature flag support.", err)
+		} else {
+			d.ldClient = ldClient
+		}
+	}
+
+	var ldFlagName string
+	if newConfig.LaunchDarkly != nil {
+		ldFlagName = newConfig.LaunchDarkly.Flag
+	}
+
 	// Set the proxy and handler daemon fields
 	var handler http.Handler
 	switch d.proxy.Handler {
 	case "http":
-		handler = handlers.NewHTTPLimiter(rateLimiter, proxy, d.proxy.AllowOnError)
+		handler = handlers.NewHTTPLimiter(rateLimiter, proxy, d.proxy.AllowOnError, d.ldClient, ldFlagName)
 	case "httplogger":
-		handler = handlers.NewHTTPLogger(rateLimiter, proxy)
+		handler = handlers.NewHTTPLogger(rateLimiter, proxy, d.ldClient, ldFlagName)
 	default:
 		return fmt.Errorf("unrecognized handler %s", d.proxy.Handler)
 	}

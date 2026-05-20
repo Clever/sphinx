@@ -12,12 +12,19 @@ import (
 	"gopkg.in/yaml.v1"
 )
 
+// LaunchDarkly holds configuration for the LaunchDarkly feature flag client.
+type LaunchDarkly struct {
+	SDKKey string `yaml:"sdk-key"`
+	Flag   string `yaml:"flag"`
+}
+
 // Config holds the yaml data for the config file
 type Config struct {
-	Proxy       Proxy
-	HealthCheck HealthCheck `yaml:"health-check"`
-	Limits      map[string]Limit
-	Storage     map[string]string
+	Proxy        Proxy
+	HealthCheck  HealthCheck   `yaml:"health-check"`
+	Limits       map[string]Limit
+	Storage      map[string]string
+	LaunchDarkly *LaunchDarkly `yaml:"launchdarkly"`
 }
 
 // Proxy holds the yaml data for the proxy option in the config file
@@ -95,6 +102,15 @@ func ValidateConfig(config Config) error {
 		}
 		if limit.Max < 1 {
 			return fmt.Errorf("max must be set > 1 for limit: %s", name)
+		}
+	}
+
+	if config.LaunchDarkly != nil {
+		if config.LaunchDarkly.SDKKey == "" {
+			return fmt.Errorf("launchdarkly.sdk-key must be set when launchdarkly is configured")
+		}
+		if config.LaunchDarkly.Flag == "" {
+			return fmt.Errorf("launchdarkly.flag must be set when launchdarkly is configured")
 		}
 	}
 
