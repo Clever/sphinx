@@ -3,9 +3,9 @@ kind: Component
 metadata:
   name: sphinx
   description: Configurable HTTP rate limiter
-  owner: unknown
+  owner: eng-infra
 spec:
   type: unknown
   lifecycle: production
-  owner: unknown
+  owner: eng-infra
   system: Clever
